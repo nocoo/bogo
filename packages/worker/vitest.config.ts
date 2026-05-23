@@ -12,9 +12,8 @@ export default defineConfig({
 				"src/**/*.test.ts",
 				"src/**/*.d.ts",
 				"src/**/index.ts",
-				"src/middleware/**",
-				"src/routes/**",
 				"src/types.ts",
+				"src/middleware/**",
 			],
 			thresholds: {
 				lines: 95,
