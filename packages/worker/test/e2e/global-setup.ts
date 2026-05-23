@@ -10,7 +10,7 @@ const WORKER_ROOT = join(__dirname, "../..");
 const PERSIST_DIR = join(WORKER_ROOT, ".wrangler/e2e");
 const DEV_VARS_PATH = join(WORKER_ROOT, ".dev.vars");
 
-const PORT = 17035;
+const PORT = 17036;
 const BASE = `http://localhost:${PORT}`;
 
 const E2E_DEV_VARS =

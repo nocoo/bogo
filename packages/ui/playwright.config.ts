@@ -13,7 +13,7 @@ export default defineConfig({
 	},
 
 	use: {
-		baseURL: "http://localhost:27035",
+		baseURL: "http://localhost:27036",
 		trace: "on-first-retry",
 		screenshot: "only-on-failure",
 	},
@@ -26,8 +26,8 @@ export default defineConfig({
 	],
 
 	webServer: {
-		command: "cd ../worker && bunx wrangler dev --port 27035 --local --persist-to .wrangler/e2e-pw",
-		url: "http://localhost:27035/api/live",
+		command: "cd ../worker && bunx wrangler dev --port 27036 --local --persist-to .wrangler/e2e-pw",
+		url: "http://localhost:27036/api/live",
 		reuseExistingServer: !process.env.CI,
 		timeout: 120_000,
 		stdout: "pipe",

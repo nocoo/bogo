@@ -29,10 +29,10 @@ Bogo 使用 **单一 Worker 架构**，同时服务 API 和前端：
 
 | Port  | Purpose           | Domain                  |
 |-------|-------------------|-------------------------|
-| 7035  | Vite dev server   | bogo.dev.hexly.ai      |
+| 7036  | Vite dev server   | bogo.dev.hexly.ai      |
 | 8787  | Wrangler dev      | localhost:8787          |
-| 17035 | L2 E2E tests      | localhost:17035         |
-| 27035 | L3 Playwright     | localhost:27035         |
+| 17036 | L2 E2E tests      | localhost:17036         |
+| 27036 | L3 Playwright     | localhost:27036         |
 
 ### Caddy Setup
 
@@ -42,7 +42,7 @@ Add this block for local HTTPS:
 ```
 bogo.dev.hexly.ai {
     tls /Users/nocoo/workspace/personal/workflow/certs/cert.pem /Users/nocoo/workspace/personal/workflow/certs/key.pem
-    reverse_proxy localhost:7035
+    reverse_proxy localhost:7036
 }
 ```
 
@@ -52,9 +52,9 @@ DNS: `*.dev.hexly.ai` 通配符 A→127.0.0.1（Cloudflare），无需 /etc/host
 
 **日常开发：UI 本地 + 直连 prod worker（推荐）**
 ```bash
-bun dev   # 启动 vite (7035) + 本地 wrangler dev (8787, 仅供 E2E)
+bun dev   # 启动 vite (7036) + 本地 wrangler dev (8787, 仅供 E2E)
 ```
-- 访问 `http://localhost:7035` 或 `https://bogo.dev.hexly.ai`（Caddy 反代 → 7035）
+- 访问 `http://localhost:7036` 或 `https://bogo.dev.hexly.ai`（Caddy 反代 → 7036）
 - `/api/*` 由 vite proxy 转发到本地 wrangler (8787) 或远程 worker
 - localhost/dev.hexly.ai 请求跳过 Access JWT 校验
 

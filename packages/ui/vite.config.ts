@@ -15,7 +15,8 @@ export default defineConfig({
 		emptyOutDir: true,
 	},
 	server: {
-		port: 7035,
+		port: 7036,
+		allowedHosts: ["bogo.dev.hexly.ai"],
 		proxy: {
 			"/api": {
 				target: "http://localhost:8787",
