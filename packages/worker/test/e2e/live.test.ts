@@ -1,7 +1,7 @@
 import type { LiveResponse } from "@bogo/shared";
 import { describe, expect, it } from "vitest";
 
-const BASE = process.env.BOGO_E2E_BASE || "http://localhost:17035";
+const BASE = process.env.BOGO_E2E_BASE || "http://localhost:17036";
 
 describe("GET /api/live", () => {
 	it("returns 200 with liveness payload", async () => {
