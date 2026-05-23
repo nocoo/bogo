@@ -1,0 +1,36 @@
+{
+	"name": "bogo",
+	"version": "0.1.0",
+	"private": true,
+	"packageManager": "bun@1.3.11",
+	"workspaces": ["packages/*"],
+	"scripts": {
+		"dev": "turbo run dev --parallel",
+		"build": "turbo build --filter=@bogo/ui",
+		"deploy": "turbo build --filter=@bogo/ui && cd packages/worker && npx wrangler deploy --env production",
+		"typecheck": "turbo typecheck",
+		"lint": "biome check --error-on-warnings .",
+		"lint:fix": "biome check --write .",
+		"test": "turbo test",
+		"test:unit:coverage": "bash scripts/check-coverage.sh",
+		"test:e2e:pw": "cd packages/ui && bunx playwright test",
+		"gate:routes": "bun run scripts/check-route-coverage.ts",
+		"gate:pages": "bun run scripts/check-page-coverage.ts",
+		"gate:security": "bun run scripts/run-security.ts",
+		"prepare": "husky"
+	},
+	"trustedDependencies": ["@biomejs/biome", "esbuild", "workerd"],
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@vitest/coverage-v8": "^4.1.5",
+		"husky": "^9.1.0",
+		"lint-staged": "^16.4.0",
+		"picomatch": "^4.0.4",
+		"turbo": "^2.5.0",
+		"typescript": "^5.8.2",
+		"vitest": "^4.1.5"
+	},
+	"lint-staged": {
+		"*.{ts,tsx,js,jsx,json,css}": ["biome check --error-on-warnings --no-errors-on-unmatched"]
+	}
+}

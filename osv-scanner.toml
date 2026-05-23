@@ -1,0 +1,3 @@
+[[IgnoredVulns]]
+id = "GHSA-placeholder"
+reason = "No active vulns at init"

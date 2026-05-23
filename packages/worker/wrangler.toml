@@ -1,0 +1,33 @@
+name = "bogo"
+main = "src/index.ts"
+compatibility_date = "2025-03-14"
+
+# Static assets configuration (Wrangler v4)
+# SPA served from ./static, API handled by Worker code
+[assets]
+directory = "./static"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+not_found_handling = "single-page-application"
+
+[vars]
+ENVIRONMENT = "development"
+
+# Production environment overrides
+# Usage: wrangler deploy --env production
+# Secrets (set via `wrangler secret put`): CF_ACCESS_TEAM_DOMAIN, CF_ACCESS_AUD
+[env.production]
+name = "bogo"
+
+[env.production.assets]
+directory = "./static"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+not_found_handling = "single-page-application"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+
+[[env.production.routes]]
+pattern = "bogo.hexly.ai"
+custom_domain = true
