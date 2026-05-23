@@ -1,28 +1,137 @@
 #!/usr/bin/env bun
 /**
- * Route coverage gate — ensures every Worker route has at least one
- * L2 E2E test file covering it. Static analysis only (no runtime).
+ * L2 route coverage gate.
+ *
+ * Statically extract every `(method, path)` declared in packages/worker/src/index.ts,
+ * then statically extract every HTTP request made from packages/worker/test/e2e/*.test.ts.
+ * Fail if any declared route is not exercised by at least one E2E test.
+ *
+ * Run: `bun run scripts/check-route-coverage.ts`
  */
 
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readFileSync, readdirSync } from "node:fs";
+import { join, resolve } from "node:path";
 
-const ROOT = resolve(import.meta.dir, "..");
-const indexPath = resolve(ROOT, "packages/worker/src/index.ts");
-const indexSrc = readFileSync(indexPath, "utf-8");
+const ROOT = resolve(import.meta.dirname, "..");
+const WORKER_INDEX = join(ROOT, "packages/worker/src/index.ts");
+const E2E_DIR = join(ROOT, "packages/worker/test/e2e");
 
-// Extract route patterns: app.get("/api/...", ...) / app.post("/api/...", ...)
-const routePattern = /app\.(get|post|put|patch|delete)\s*\(\s*["']([^"']+)["']/g;
-const routes: string[] = [];
-let match: RegExpExecArray | null;
-while ((match = routePattern.exec(indexSrc)) !== null) {
-	routes.push(match[2]);
+type RouteMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD";
+type Route = { method: RouteMethod; path: string };
+
+function discoverDeclaredRoutes(): Route[] {
+	const src = readFileSync(WORKER_INDEX, "utf-8");
+	const routes: Route[] = [];
+
+	const re = /\bapp\.(get|post|put|delete|patch|head)\(\s*["']([^"']+)["']/g;
+	for (const m of src.matchAll(re)) {
+		const method = m[1];
+		const path = m[2];
+		if (method && path && path.startsWith("/api/")) {
+			routes.push({ method: method.toUpperCase() as RouteMethod, path });
+		}
+	}
+	return routes;
 }
 
-if (routes.length === 0) {
-	console.log("[gate:routes] No routes found — pass (empty project).");
-	process.exit(0);
+function discoverE2ERequests(): Route[] {
+	let files: string[];
+	try {
+		files = readdirSync(E2E_DIR).filter((f) => f.endsWith(".test.ts"));
+	} catch {
+		return [];
+	}
+
+	const requests: Route[] = [];
+
+	for (const file of files) {
+		const src = readFileSync(join(E2E_DIR, file), "utf-8");
+
+		const fetchRe =
+			/fetch\(\s*[`"'][^`"']*?(\/api\/[^`"'?]+)[^`"']*?[`"']\s*(?:,\s*\{([^}]*)\})?/gs;
+		for (const m of src.matchAll(fetchRe)) {
+			const rawPath = m[1];
+			const opts = m[2] ?? "";
+			if (!rawPath) continue;
+
+			const methodMatch = opts.match(/method:\s*["'`](\w+)["'`]/);
+			const method = (methodMatch ? methodMatch[1].toUpperCase() : "GET") as RouteMethod;
+			requests.push({ method, path: normaliseRequestPath(rawPath) });
+		}
+
+		const helperRe = /\b(get|post|put|delete|patch|head)\(\s*[`"']([^`"']+)[`"']/g;
+		for (const m of src.matchAll(helperRe)) {
+			const helper = m[1];
+			const rawPath = m[2];
+			if (!(helper && rawPath)) continue;
+			if (!rawPath.startsWith("/api/")) continue;
+			const method = helper.toUpperCase() as RouteMethod;
+			requests.push({ method, path: normaliseRequestPath(rawPath) });
+		}
+
+		const concatRe = /\$\{BASE\}\s*\+?\s*[`"'](\/api\/[^`"'?]+)[`"']/g;
+		for (const m of src.matchAll(concatRe)) {
+			const rawPath = m[1];
+			if (!rawPath) continue;
+			requests.push({ method: "GET", path: normaliseRequestPath(rawPath) });
+		}
+	}
+	return requests;
 }
 
-console.log(`[gate:routes] Found ${routes.length} route(s) — pass.`);
-process.exit(0);
+function routeToRegex(path: string): RegExp {
+	const escaped = path
+		.split("/")
+		.map((seg) => {
+			if (seg.startsWith(":")) return "[^/]+";
+			return seg.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+		})
+		.join("/");
+	return new RegExp(`^${escaped}$`);
+}
+
+function normaliseRequestPath(path: string): string {
+	return path.replace(/\$\{[^}]+\}/g, "x");
+}
+
+function isMatch(route: Route, request: Route): boolean {
+	const methodOk =
+		route.method === request.method || (route.method === "GET" && request.method === "HEAD");
+	if (!methodOk) return false;
+	return routeToRegex(route.path).test(request.path);
+}
+
+function main(): void {
+	console.info("=== L2 Route Coverage Gate ===\n");
+
+	const declared = discoverDeclaredRoutes();
+	const requests = discoverE2ERequests();
+
+	console.info(`Declared routes: ${declared.length}`);
+	console.info(`E2E requests:    ${requests.length}\n`);
+
+	if (declared.length === 0) {
+		console.info("✔ No routes declared — pass.\n");
+		return;
+	}
+
+	const uncovered: Route[] = [];
+	for (const route of declared) {
+		const hit = requests.some((req) => isMatch(route, req));
+		if (!hit) uncovered.push(route);
+	}
+
+	if (uncovered.length === 0) {
+		console.info(`✔ All ${declared.length} routes have at least one E2E request.\n`);
+		return;
+	}
+
+	console.error(`❌ ${uncovered.length} route(s) have NO E2E coverage:\n`);
+	for (const r of uncovered) {
+		console.error(`  ${r.method.padEnd(6)} ${r.path}`);
+	}
+	console.error("\nAdd a request in packages/worker/test/e2e/ for each uncovered route.\n");
+	process.exit(1);
+}
+
+main();
