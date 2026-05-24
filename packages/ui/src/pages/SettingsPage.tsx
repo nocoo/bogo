@@ -1,8 +1,20 @@
 import { Bell, Globe, Settings as SettingsIcon, Shield } from "lucide-react";
+import { FieldDefsManager } from "../components/field/FieldDefsManager.js";
+import { useWorkspaceContext } from "../contexts/workspace-context.js";
+import { useFieldDefs } from "../viewmodels/field/use-field-defs.js";
 
 export function SettingsPage() {
+	const { workspaceId } = useWorkspaceContext();
+	const fieldDefsVm = useFieldDefs();
+
 	return (
 		<>
+			{workspaceId && (
+				<div className="rounded-xl bg-secondary p-5 mb-4">
+					<FieldDefsManager vm={fieldDefsVm} />
+				</div>
+			)}
+
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 				<div className="rounded-xl bg-secondary p-5">
 					<div className="flex items-center gap-3 mb-4">
