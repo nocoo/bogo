@@ -199,7 +199,7 @@ describe("DocumentEditor", () => {
 		expect(highlighted?.textContent).toContain("v1");
 	});
 
-	it("shows compare button and renders diff on click", () => {
+	it("shows compare button and renders diff on click", async () => {
 		const vm = createVM({
 			versions: [
 				{
@@ -225,7 +225,8 @@ describe("DocumentEditor", () => {
 		expect(compareBtn).toBeTruthy();
 
 		fireEvent.click(compareBtn);
-		expect(screen.getByText(/Comparing v1 → v2/)).toBeTruthy();
+		expect(await screen.findByText(/Comparing v1 → v2/)).toBeTruthy();
+		await screen.findByTestId("multi-file-diff");
 	});
 
 	it("disables save while updating", () => {

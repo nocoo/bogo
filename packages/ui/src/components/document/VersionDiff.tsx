@@ -36,9 +36,12 @@ export function VersionDiff({
 				}
 			>
 				<LazyMultiFileDiff
-					oldFile={{ name: "document.md", contents: oldVersion.content }}
-					newFile={{ name: "document.md", contents: newVersion.content }}
-					options={{ diffStyle: "unified" }}
+					oldFile={{ name: "document.md", contents: oldVersion.content, lang: "markdown" }}
+					newFile={{ name: "document.md", contents: newVersion.content, lang: "markdown" }}
+					options={{
+						diffStyle: "unified",
+						theme: { dark: "github-dark", light: "github-light" },
+					}}
 				/>
 			</Suspense>
 		</div>
