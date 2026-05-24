@@ -1,4 +1,4 @@
-import { type ChildProcess, spawn } from "node:child_process";
+import { type ChildProcess, execSync, spawn } from "node:child_process";
 import { existsSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
@@ -53,6 +53,11 @@ export async function setup(): Promise<void> {
 	if (existsSync(PERSIST_DIR)) {
 		rmSync(PERSIST_DIR, { recursive: true, force: true });
 	}
+
+	execSync("npx wrangler d1 migrations apply bogo --local --persist-to .wrangler/e2e", {
+		cwd: WORKER_ROOT,
+		stdio: "ignore",
+	});
 
 	wranglerProc = spawn(
 		"npx",

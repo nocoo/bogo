@@ -2,9 +2,9 @@
 /**
  * L2 route coverage gate.
  *
- * Statically extract every `(method, path)` declared in packages/worker/src/index.ts,
- * then statically extract every HTTP request made from packages/worker/test/e2e/*.test.ts.
- * Fail if any declared route is not exercised by at least one E2E test.
+ * Statically extract every `(method, path)` declared in packages/worker/src,
+ * including routes mounted via `app.route(prefix, module)`, then check that
+ * every route is exercised by at least one E2E test request.
  *
  * Run: `bun run scripts/check-route-coverage.ts`
  */
@@ -13,7 +13,8 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
-const WORKER_INDEX = join(ROOT, "packages/worker/src/index.ts");
+const WORKER_SRC = join(ROOT, "packages/worker/src");
+const WORKER_INDEX = join(WORKER_SRC, "index.ts");
 const E2E_DIR = join(ROOT, "packages/worker/test/e2e");
 
 type RouteMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD";
@@ -23,11 +24,65 @@ function discoverDeclaredRoutes(): Route[] {
 	const src = readFileSync(WORKER_INDEX, "utf-8");
 	const routes: Route[] = [];
 
-	const re = /\bapp\.(get|post|put|delete|patch|head)\(\s*["']([^"']+)["']/g;
-	for (const m of src.matchAll(re)) {
+	const directRe = /\bapp\.(get|post|put|delete|patch|head)\(\s*["']([^"']+)["']/g;
+	for (const m of src.matchAll(directRe)) {
 		const method = m[1];
 		const path = m[2];
 		if (method && path && path.startsWith("/api/")) {
+			routes.push({ method: method.toUpperCase() as RouteMethod, path });
+		}
+	}
+
+	const mountRe = /\bapp\.route\(\s*["']([^"']+)["']\s*,\s*(\w+)\s*\)/g;
+	const importRe = /import\s*\{[^}]*\b(\w+)\b[^}]*\}\s*from\s*["']([^"']+)["']/g;
+	const imports = new Map<string, string>();
+	for (const im of src.matchAll(importRe)) {
+		if (im[1] && im[2]) {
+			imports.set(im[1], im[2]);
+		}
+	}
+
+	for (const m of src.matchAll(mountRe)) {
+		const prefix = m[1];
+		const varName = m[2];
+		if (!(prefix && varName)) continue;
+
+		const importPath = imports.get(varName);
+		if (!importPath) continue;
+
+		const filePath = resolveImport(importPath);
+		if (!filePath) continue;
+
+		const subRoutes = extractSubRoutes(filePath);
+		for (const sub of subRoutes) {
+			routes.push({ method: sub.method, path: prefix + sub.path });
+		}
+	}
+
+	return routes;
+}
+
+function resolveImport(importPath: string): string | null {
+	let resolved = importPath.replace(/\.js$/, ".ts");
+	if (!resolved.startsWith(".")) return null;
+	const full = join(WORKER_SRC, resolved);
+	try {
+		readFileSync(full);
+		return full;
+	} catch {
+		return null;
+	}
+}
+
+function extractSubRoutes(filePath: string): Route[] {
+	const src = readFileSync(filePath, "utf-8");
+	const routes: Route[] = [];
+
+	const re = /\b\w+\.(get|post|put|delete|patch|head)\(\s*["']([^"']+)["']/g;
+	for (const m of src.matchAll(re)) {
+		const method = m[1];
+		const path = m[2];
+		if (method && path) {
 			routes.push({ method: method.toUpperCase() as RouteMethod, path });
 		}
 	}
@@ -69,11 +124,34 @@ function discoverE2ERequests(): Route[] {
 			requests.push({ method, path: normaliseRequestPath(rawPath) });
 		}
 
-		const concatRe = /\$\{BASE\}\s*\+?\s*[`"'](\/api\/[^`"'?]+)[`"']/g;
-		for (const m of src.matchAll(concatRe)) {
+		const templateRe = /fetch\(\s*`\$\{BASE\}(\/api\/[^`?]+)`\s*(?:,\s*\{([^}]*)\})?/gs;
+		for (const m of src.matchAll(templateRe)) {
 			const rawPath = m[1];
+			const opts = m[2] ?? "";
 			if (!rawPath) continue;
-			requests.push({ method: "GET", path: normaliseRequestPath(rawPath) });
+			const methodMatch = opts.match(/method:\s*["'`](\w+)["'`]/);
+			const method = (methodMatch ? methodMatch[1].toUpperCase() : "GET") as RouteMethod;
+			requests.push({ method, path: normaliseRequestPath(rawPath) });
+		}
+
+		const apiHelperRe = /\bapi\(\s*[`"'](\/api\/[^`"'?]+)[`"']\s*(?:,\s*\{([^}]*)\})?/gs;
+		for (const m of src.matchAll(apiHelperRe)) {
+			const rawPath = m[1];
+			const opts = m[2] ?? "";
+			if (!rawPath) continue;
+			const methodMatch = opts.match(/method:\s*["'`](\w+)["'`]/);
+			const method = (methodMatch ? methodMatch[1].toUpperCase() : "GET") as RouteMethod;
+			requests.push({ method, path: normaliseRequestPath(rawPath) });
+		}
+
+		const apiTemplateLitRe = /\bapi\(\s*`(\/api\/[^`?]+)`\s*(?:,\s*\{([^}]*)\})?/gs;
+		for (const m of src.matchAll(apiTemplateLitRe)) {
+			const rawPath = m[1];
+			const opts = m[2] ?? "";
+			if (!rawPath) continue;
+			const methodMatch = opts.match(/method:\s*["'`](\w+)["'`]/);
+			const method = (methodMatch ? methodMatch[1].toUpperCase() : "GET") as RouteMethod;
+			requests.push({ method, path: normaliseRequestPath(rawPath) });
 		}
 	}
 	return requests;
@@ -98,7 +176,9 @@ function isMatch(route: Route, request: Route): boolean {
 	const methodOk =
 		route.method === request.method || (route.method === "GET" && request.method === "HEAD");
 	if (!methodOk) return false;
-	return routeToRegex(route.path).test(request.path);
+	const routePath = route.path.replace(/\/$/, "") || "/";
+	const requestPath = request.path.replace(/\/$/, "") || "/";
+	return routeToRegex(routePath).test(requestPath);
 }
 
 function main(): void {
