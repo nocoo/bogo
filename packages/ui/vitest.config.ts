@@ -19,6 +19,7 @@ export default defineConfig({
 				"src/hooks/**/*.ts",
 				"src/models/**/*.ts",
 				"src/viewmodels/**/*.ts",
+				"src/contexts/**/*.tsx",
 			],
 			exclude: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.d.ts", "src/**/index.ts"],
 			thresholds: {
