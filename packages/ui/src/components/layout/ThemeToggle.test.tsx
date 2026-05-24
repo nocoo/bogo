@@ -1,11 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ThemeToggle } from "./ThemeToggle.js";
+import { ThemeToggle, initTheme } from "./ThemeToggle.js";
 
 let matchMediaResult = true;
 
 beforeEach(() => {
-	localStorage.clear();
+	window.localStorage.clear();
 	document.documentElement.classList.remove("dark", "light");
 	matchMediaResult = true;
 	vi.spyOn(window, "matchMedia").mockImplementation(
@@ -52,13 +52,13 @@ describe("ThemeToggle", () => {
 	});
 
 	it("restores stored light theme on mount", () => {
-		localStorage.setItem("theme", "light");
+		window.localStorage.setItem("theme", "light");
 		render(<ThemeToggle />);
 		expect(screen.getByLabelText("Theme: light")).toBeTruthy();
 	});
 
 	it("restores stored dark theme on mount", () => {
-		localStorage.setItem("theme", "dark");
+		window.localStorage.setItem("theme", "dark");
 		render(<ThemeToggle />);
 		expect(screen.getByLabelText("Theme: dark")).toBeTruthy();
 	});
@@ -76,43 +76,30 @@ describe("ThemeToggle", () => {
 	});
 });
 
-describe("theme initialization (main.tsx logic)", () => {
+describe("initTheme", () => {
 	it("stored=light → html has light, not dark", () => {
-		localStorage.setItem("theme", "light");
-		const isDark =
-			localStorage.getItem("theme") === "dark" ||
-			(localStorage.getItem("theme") !== "light" && matchMediaResult);
-		document.documentElement.classList.toggle("dark", isDark);
-		document.documentElement.classList.toggle("light", !isDark);
+		window.localStorage.setItem("theme", "light");
+		initTheme();
 		expect(document.documentElement.classList.contains("dark")).toBe(false);
 		expect(document.documentElement.classList.contains("light")).toBe(true);
 	});
 
 	it("stored=dark → html has dark", () => {
-		localStorage.setItem("theme", "dark");
-		const stored = localStorage.getItem("theme");
-		const isDark = stored === "dark" || (stored !== "light" && matchMediaResult);
-		document.documentElement.classList.toggle("dark", isDark);
-		document.documentElement.classList.toggle("light", !isDark);
+		window.localStorage.setItem("theme", "dark");
+		initTheme();
 		expect(document.documentElement.classList.contains("dark")).toBe(true);
 		expect(document.documentElement.classList.contains("light")).toBe(false);
 	});
 
 	it("no stored + system dark → html has dark", () => {
 		matchMediaResult = true;
-		const stored = localStorage.getItem("theme");
-		const isDark = stored === "dark" || (stored !== "light" && matchMediaResult);
-		document.documentElement.classList.toggle("dark", isDark);
-		document.documentElement.classList.toggle("light", !isDark);
+		initTheme();
 		expect(document.documentElement.classList.contains("dark")).toBe(true);
 	});
 
 	it("no stored + system light → html has light", () => {
 		matchMediaResult = false;
-		const stored = localStorage.getItem("theme");
-		const isDark = stored === "dark" || (stored !== "light" && matchMediaResult);
-		document.documentElement.classList.toggle("dark", isDark);
-		document.documentElement.classList.toggle("light", !isDark);
+		initTheme();
 		expect(document.documentElement.classList.contains("dark")).toBe(false);
 		expect(document.documentElement.classList.contains("light")).toBe(true);
 	});

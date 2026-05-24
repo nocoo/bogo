@@ -21,6 +21,13 @@ function applyTheme(theme: Theme) {
 	window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
 }
 
+export function initTheme() {
+	const stored = getStoredTheme();
+	const resolved = stored === "system" ? getSystemTheme() : stored;
+	document.documentElement.classList.toggle("dark", resolved === "dark");
+	document.documentElement.classList.toggle("light", resolved !== "dark");
+}
+
 function subscribeToTheme(callback: () => void) {
 	window.addEventListener(THEME_CHANGE_EVENT, callback);
 	const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
