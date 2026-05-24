@@ -63,8 +63,10 @@ describe("document routes", () => {
 		});
 
 		it("creates document with personIds", async () => {
-			const { db, mockBatch } = createMockD1();
-			mockBatch.mockResolvedValue([]);
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "550e8400-e29b-41d4-a716-446655440000" } }, // person exists
+			]);
+			(db as unknown as { batch: () => Promise<unknown[]> }).batch = async () => [];
 
 			const res = await app.fetch(
 				makeRequest("POST", BASE, {
@@ -76,6 +78,40 @@ describe("document routes", () => {
 			expect(res.status).toBe(201);
 			const json = await res.json();
 			expect(json.data.title).toBe("Review");
+		});
+
+		it("rejects invalid typeId", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: null }, // doc type NOT found
+			]);
+
+			const res = await app.fetch(
+				makeRequest("POST", BASE, {
+					title: "Doc",
+					typeId: "550e8400-e29b-41d4-a716-446655440000",
+				}),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_TYPE");
+		});
+
+		it("rejects invalid personId", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: null }, // person NOT found
+			]);
+
+			const res = await app.fetch(
+				makeRequest("POST", BASE, {
+					title: "Doc",
+					personIds: ["550e8400-e29b-41d4-a716-446655440000"],
+				}),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_PERSON");
 		});
 
 		it("rejects empty title", async () => {
@@ -263,8 +299,10 @@ describe("document routes", () => {
 		});
 
 		it("POST /:id/persons adds association", async () => {
-			const { db, mockRun } = createMockD1();
-			mockRun.mockResolvedValue({ success: true, meta: { changes: 1 } });
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "550e8400-e29b-41d4-a716-446655440000" } }, // person exists
+				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+			]);
 
 			const res = await app.fetch(
 				makeRequest("POST", `${BASE}/d-1/persons`, {
@@ -273,6 +311,22 @@ describe("document routes", () => {
 				{ DB: db, ENVIRONMENT: "test" },
 			);
 			expect(res.status).toBe(201);
+		});
+
+		it("POST /:id/persons rejects non-existent person", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: null }, // person NOT found
+			]);
+
+			const res = await app.fetch(
+				makeRequest("POST", `${BASE}/d-1/persons`, {
+					personId: "550e8400-e29b-41d4-a716-446655440000",
+				}),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_PERSON");
 		});
 
 		it("DELETE /:id/persons/:personId removes association", async () => {

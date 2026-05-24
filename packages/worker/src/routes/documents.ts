@@ -30,6 +30,40 @@ documentRoutes.post("/", async (c) => {
 		return c.json({ error: { code: "VALIDATION_ERROR", issues: parsed.error.issues } }, 400);
 	}
 
+	if (parsed.data.typeId) {
+		const docType = await c.env.DB.prepare(
+			"SELECT id FROM document_types WHERE id = ? AND workspace_id = ?",
+		)
+			.bind(parsed.data.typeId, wid)
+			.first();
+		if (!docType) {
+			return c.json(
+				{ error: { code: "INVALID_TYPE", message: "Document type not found in workspace" } },
+				400,
+			);
+		}
+	}
+
+	const personIds = parsed.data.personIds ?? [];
+	for (const personId of personIds) {
+		const person = await c.env.DB.prepare(
+			"SELECT id FROM persons WHERE id = ? AND workspace_id = ?",
+		)
+			.bind(personId, wid)
+			.first();
+		if (!person) {
+			return c.json(
+				{
+					error: {
+						code: "INVALID_PERSON",
+						message: `Person ${personId} not found in workspace`,
+					},
+				},
+				400,
+			);
+		}
+	}
+
 	const id = generateId();
 	const versionId = generateId();
 	const now = new Date().toISOString();
@@ -52,7 +86,6 @@ documentRoutes.post("/", async (c) => {
 		).bind(versionId, id, parsed.data.title, parsed.data.content ?? "", now),
 	];
 
-	const personIds = parsed.data.personIds ?? [];
 	for (const personId of personIds) {
 		batch.push(
 			c.env.DB.prepare(
@@ -228,6 +261,16 @@ documentRoutes.post("/:id/persons", async (c) => {
 	const parsed = addDocPersonSchema.safeParse(body);
 	if (!parsed.success) {
 		return c.json({ error: { code: "VALIDATION_ERROR", issues: parsed.error.issues } }, 400);
+	}
+
+	const person = await c.env.DB.prepare("SELECT id FROM persons WHERE id = ? AND workspace_id = ?")
+		.bind(parsed.data.personId, wid)
+		.first();
+	if (!person) {
+		return c.json(
+			{ error: { code: "INVALID_PERSON", message: "Person not found in workspace" } },
+			400,
+		);
 	}
 
 	await c.env.DB.prepare(
