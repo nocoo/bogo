@@ -1,0 +1,190 @@
+import {
+	type CustomFieldDefinition,
+	type CustomFieldValue,
+	createFieldDefSchema,
+	generateId,
+	setFieldValueSchema,
+	updateFieldDefSchema,
+} from "@bogo/shared";
+import { Hono } from "hono";
+import type { AppEnv } from "../types.js";
+
+export const fieldRoutes = new Hono<AppEnv>();
+
+fieldRoutes.get("/", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const rows = await c.env.DB.prepare(
+		"SELECT id, workspace_id, name, field_type, options, sort_order, required, default_value, created_at FROM custom_field_definitions WHERE workspace_id = ? ORDER BY sort_order ASC",
+	)
+		.bind(wid)
+		.all();
+
+	return c.json({ data: rows.results.map(mapDefRow) });
+});
+
+fieldRoutes.post("/", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const body = await c.req.json();
+	const parsed = createFieldDefSchema.safeParse(body);
+	if (!parsed.success) {
+		return c.json({ error: { code: "VALIDATION_ERROR", issues: parsed.error.issues } }, 400);
+	}
+
+	const id = generateId();
+	const now = new Date().toISOString();
+	const options = parsed.data.options ? JSON.stringify(parsed.data.options) : null;
+
+	await c.env.DB.prepare(
+		"INSERT INTO custom_field_definitions (id, workspace_id, name, field_type, options, sort_order, required, default_value, created_at) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)",
+	)
+		.bind(
+			id,
+			wid,
+			parsed.data.name,
+			parsed.data.fieldType,
+			options,
+			parsed.data.required ? 1 : 0,
+			parsed.data.defaultValue ?? null,
+			now,
+		)
+		.run();
+
+	const def: CustomFieldDefinition = {
+		id,
+		workspaceId: wid,
+		name: parsed.data.name,
+		fieldType: parsed.data.fieldType,
+		options: parsed.data.options ?? null,
+		sortOrder: 0,
+		required: parsed.data.required ?? false,
+		defaultValue: parsed.data.defaultValue ?? null,
+		createdAt: now,
+	};
+
+	return c.json({ data: def }, 201);
+});
+
+fieldRoutes.put("/:id", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const { id } = c.req.param();
+	const body = await c.req.json();
+	const parsed = updateFieldDefSchema.safeParse(body);
+	if (!parsed.success) {
+		return c.json({ error: { code: "VALIDATION_ERROR", issues: parsed.error.issues } }, 400);
+	}
+
+	const sets: string[] = [];
+	const values: unknown[] = [];
+
+	if (parsed.data.name !== undefined) {
+		sets.push("name = ?");
+		values.push(parsed.data.name);
+	}
+	if (parsed.data.options !== undefined) {
+		sets.push("options = ?");
+		values.push(JSON.stringify(parsed.data.options));
+	}
+	if (parsed.data.required !== undefined) {
+		sets.push("required = ?");
+		values.push(parsed.data.required ? 1 : 0);
+	}
+	if (parsed.data.defaultValue !== undefined) {
+		sets.push("default_value = ?");
+		values.push(parsed.data.defaultValue);
+	}
+	if (parsed.data.sortOrder !== undefined) {
+		sets.push("sort_order = ?");
+		values.push(parsed.data.sortOrder);
+	}
+
+	if (sets.length === 0) {
+		return c.json({ data: { updated: false } });
+	}
+
+	values.push(id);
+	values.push(wid);
+
+	const result = await c.env.DB.prepare(
+		`UPDATE custom_field_definitions SET ${sets.join(", ")} WHERE id = ? AND workspace_id = ?`,
+	)
+		.bind(...values)
+		.run();
+
+	if (!result.meta.changes) {
+		return c.json({ error: { code: "NOT_FOUND", message: "Field definition not found" } }, 404);
+	}
+
+	return c.json({ data: { updated: true } });
+});
+
+fieldRoutes.delete("/:id", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const { id } = c.req.param();
+	const result = await c.env.DB.prepare(
+		"DELETE FROM custom_field_definitions WHERE id = ? AND workspace_id = ?",
+	)
+		.bind(id, wid)
+		.run();
+
+	if (!result.meta.changes) {
+		return c.json({ error: { code: "NOT_FOUND", message: "Field definition not found" } }, 404);
+	}
+
+	return c.json({ data: { deleted: true } });
+});
+
+// Field values for a person
+fieldRoutes.get("/values/:personId", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const { personId } = c.req.param();
+	const rows = await c.env.DB.prepare(
+		"SELECT id, workspace_id, person_id, field_def_id, value FROM custom_field_values WHERE workspace_id = ? AND person_id = ?",
+	)
+		.bind(wid, personId)
+		.all();
+
+	return c.json({ data: rows.results.map(mapValueRow) });
+});
+
+fieldRoutes.put("/values/:personId/:fieldDefId", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const { personId, fieldDefId } = c.req.param();
+	const body = await c.req.json();
+	const parsed = setFieldValueSchema.safeParse(body);
+	if (!parsed.success) {
+		return c.json({ error: { code: "VALIDATION_ERROR", issues: parsed.error.issues } }, 400);
+	}
+
+	const id = generateId();
+	await c.env.DB.prepare(
+		"INSERT INTO custom_field_values (id, workspace_id, person_id, field_def_id, value) VALUES (?, ?, ?, ?, ?) ON CONFLICT (person_id, field_def_id) DO UPDATE SET value = excluded.value",
+	)
+		.bind(id, wid, personId, fieldDefId, parsed.data.value)
+		.run();
+
+	return c.json({ data: { personId, fieldDefId, value: parsed.data.value } });
+});
+
+function mapDefRow(row: Record<string, unknown>): CustomFieldDefinition {
+	return {
+		id: row.id as string,
+		workspaceId: row.workspace_id as string,
+		name: row.name as string,
+		fieldType: row.field_type as CustomFieldDefinition["fieldType"],
+		options: row.options ? JSON.parse(row.options as string) : null,
+		sortOrder: row.sort_order as number,
+		required: row.required === 1,
+		defaultValue: (row.default_value as string) || null,
+		createdAt: row.created_at as string,
+	};
+}
+
+function mapValueRow(row: Record<string, unknown>): CustomFieldValue {
+	return {
+		id: row.id as string,
+		workspaceId: row.workspace_id as string,
+		personId: row.person_id as string,
+		fieldDefId: row.field_def_id as string,
+		value: row.value as string,
+	};
+}

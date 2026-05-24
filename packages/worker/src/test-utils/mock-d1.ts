@@ -8,6 +8,7 @@ export interface MockD1 {
 	mockFirst: ReturnType<typeof vi.fn>;
 	mockRun: ReturnType<typeof vi.fn>;
 	mockBind: ReturnType<typeof vi.fn>;
+	mockBatch: ReturnType<typeof vi.fn>;
 }
 
 export function createMockD1(): MockD1 {
@@ -26,9 +27,10 @@ export function createMockD1(): MockD1 {
 	mockBind.mockReturnValue(statement);
 
 	const mockPrepare = vi.fn().mockReturnValue(statement);
-	const db = { prepare: mockPrepare } as unknown as D1Database;
+	const mockBatch = vi.fn().mockResolvedValue([]);
+	const db = { prepare: mockPrepare, batch: mockBatch } as unknown as D1Database;
 
-	return { db, mockPrepare, mockAll, mockFirst, mockRun, mockBind };
+	return { db, mockPrepare, mockAll, mockFirst, mockRun, mockBind, mockBatch };
 }
 
 export function createSequenceD1(
@@ -56,6 +58,7 @@ export function createSequenceD1(
 	};
 
 	const prepare = vi.fn().mockImplementation(() => createStatement());
-	const db = { prepare } as unknown as D1Database;
-	return { db, prepare };
+	const batch = vi.fn().mockResolvedValue([]);
+	const db = { prepare, batch } as unknown as D1Database;
+	return { db, prepare, batch };
 }
