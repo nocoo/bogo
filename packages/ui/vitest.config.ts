@@ -1,6 +1,12 @@
+import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+	resolve: {
+		alias: {
+			"@": resolve(__dirname, "./src"),
+		},
+	},
 	test: {
 		globals: true,
 		environment: "happy-dom",
@@ -8,7 +14,12 @@ export default defineConfig({
 		coverage: {
 			provider: "v8",
 			reporter: ["text", "json", "html"],
-			include: ["src/lib/**/*.ts", "src/hooks/**/*.ts"],
+			include: [
+				"src/lib/**/*.ts",
+				"src/hooks/**/*.ts",
+				"src/models/**/*.ts",
+				"src/viewmodels/**/*.ts",
+			],
 			exclude: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.d.ts", "src/**/index.ts"],
 			thresholds: {
 				lines: 95,
