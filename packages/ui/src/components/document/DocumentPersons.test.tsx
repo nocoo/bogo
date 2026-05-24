@@ -178,5 +178,7 @@ describe("DocumentPersons", () => {
 	it("shows personsError message for association query failure", () => {
 		renderComponent({ personsError: new Error("DB timeout"), persons: [] });
 		expect(screen.getByText("Failed to load associations: DB timeout")).toBeTruthy();
+		expect(screen.queryByText("No people associated yet.")).toBeNull();
+		expect(screen.queryByLabelText("Select person to add")).toBeNull();
 	});
 });
