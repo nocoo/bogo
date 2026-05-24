@@ -155,6 +155,25 @@ fieldRoutes.put("/values/:personId/:fieldDefId", async (c) => {
 		return c.json({ error: { code: "VALIDATION_ERROR", issues: parsed.error.issues } }, 400);
 	}
 
+	const fieldDef = await c.env.DB.prepare(
+		"SELECT field_type, options FROM custom_field_definitions WHERE id = ? AND workspace_id = ?",
+	)
+		.bind(fieldDefId, wid)
+		.first();
+	if (!fieldDef) {
+		return c.json(
+			{ error: { code: "NOT_FOUND", message: "Field definition not found in workspace" } },
+			404,
+		);
+	}
+
+	const fieldType = fieldDef.field_type as string;
+	const value = parsed.data.value;
+	const validationError = validateFieldValue(fieldType, value, fieldDef.options as string | null);
+	if (validationError) {
+		return c.json({ error: { code: "INVALID_VALUE", message: validationError } }, 400);
+	}
+
 	const id = generateId();
 	await c.env.DB.prepare(
 		"INSERT INTO custom_field_values (id, workspace_id, person_id, field_def_id, value) VALUES (?, ?, ?, ?, ?) ON CONFLICT (person_id, field_def_id) DO UPDATE SET value = excluded.value",
@@ -177,6 +196,43 @@ function mapDefRow(row: Record<string, unknown>): CustomFieldDefinition {
 		defaultValue: (row.default_value as string) || null,
 		createdAt: row.created_at as string,
 	};
+}
+
+function validateFieldValue(
+	fieldType: string,
+	value: string,
+	optionsJson: string | null,
+): string | null {
+	switch (fieldType) {
+		case "number":
+			if (Number.isNaN(Number(value))) {
+				return "Value must be a valid number";
+			}
+			break;
+		case "date":
+			if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+				return "Value must be a valid date (YYYY-MM-DD)";
+			}
+			break;
+		case "boolean":
+			if (value !== "true" && value !== "false") {
+				return "Value must be 'true' or 'false'";
+			}
+			break;
+		case "select": {
+			if (!optionsJson) {
+				break;
+			}
+			const options: string[] = JSON.parse(optionsJson);
+			if (!options.includes(value)) {
+				return `Value must be one of: ${options.join(", ")}`;
+			}
+			break;
+		}
+		default:
+			break;
+	}
+	return null;
 }
 
 function mapValueRow(row: Record<string, unknown>): CustomFieldValue {

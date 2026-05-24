@@ -243,20 +243,141 @@ describe("field routes", () => {
 	});
 
 	describe("PUT /api/w/:wid/fields/values/:personId/:fieldDefId", () => {
-		it("sets field value (upsert)", async () => {
-			const { db, mockRun } = createMockD1();
-			mockRun.mockResolvedValue({ success: true, meta: { changes: 1 } });
+		it("sets text field value (upsert)", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "text", options: null } }, // field def
+				{ type: "run", value: { success: true, meta: { changes: 1 } } }, // upsert
+			]);
 
 			const res = await app.fetch(
 				makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "Sales" }),
-				{
-					DB: db,
-					ENVIRONMENT: "test",
-				},
+				{ DB: db, ENVIRONMENT: "test" },
 			);
 			expect(res.status).toBe(200);
 			const json = await res.json();
 			expect(json.data.value).toBe("Sales");
+		});
+
+		it("returns 404 for missing field definition", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: null }, // field def NOT found
+			]);
+
+			const res = await app.fetch(
+				makeRequest("PUT", `${BASE}/values/p-1/f-missing`, { value: "X" }),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(404);
+		});
+
+		it("rejects invalid number value", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "number", options: null } },
+			]);
+
+			const res = await app.fetch(
+				makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "not-a-number" }),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_VALUE");
+		});
+
+		it("rejects invalid date value", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "date", options: null } },
+			]);
+
+			const res = await app.fetch(
+				makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "yesterday" }),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_VALUE");
+		});
+
+		it("rejects invalid boolean value", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "boolean", options: null } },
+			]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "yes" }), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_VALUE");
+		});
+
+		it("rejects invalid select value", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "select", options: '["A","B","C"]' } },
+			]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "D" }), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_VALUE");
+		});
+
+		it("accepts valid select value", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "select", options: '["NYC","SF"]' } },
+				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+			]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "NYC" }), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.value).toBe("NYC");
+		});
+
+		it("accepts valid number value", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "number", options: null } },
+				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+			]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "42.5" }), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+		});
+
+		it("accepts valid date value", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "date", options: null } },
+				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+			]);
+
+			const res = await app.fetch(
+				makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "2026-05-24" }),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(200);
+		});
+
+		it("accepts valid boolean value", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "boolean", options: null } },
+				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+			]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "true" }), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
 		});
 
 		it("rejects missing value", async () => {
