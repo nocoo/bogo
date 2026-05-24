@@ -8,7 +8,6 @@ import {
 	LayoutDashboard,
 	LogOut,
 	Monitor,
-	Mountain,
 	Network,
 	PanelLeft,
 	ScrollText,
@@ -168,7 +167,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 				{collapsed ? (
 					<div className="flex h-screen w-[68px] flex-col items-center">
 						<div className="flex h-14 items-center justify-center">
-							<Mountain className="h-5 w-5 text-primary" strokeWidth={1.5} />
+							<img src="/logo.png" alt="bogo" width={20} height={20} className="rounded-sm" />
 						</div>
 
 						<button
@@ -206,7 +205,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 						<div className="px-3 h-14 flex items-center">
 							<div className="flex w-full items-center justify-between px-3">
 								<div className="flex items-center gap-3">
-									<Mountain className="h-5 w-5 text-primary" strokeWidth={1.5} />
+									<img src="/logo.png" alt="bogo" width={20} height={20} className="rounded-sm" />
 									<span className="text-lg md:text-xl font-semibold text-foreground">bogo.</span>
 									<span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground leading-none">
 										v{BOGO_VERSION}
