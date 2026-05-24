@@ -45,7 +45,7 @@ const MOCK_LOGS: LogEntry[] = [
 	{
 		timestamp: "2026-05-24T08:28:45Z",
 		level: "warn",
-		message: "Slow response: 245ms on /api/users",
+		message: "Slow response: 245ms on /api/persons",
 		source: "worker",
 	},
 	{

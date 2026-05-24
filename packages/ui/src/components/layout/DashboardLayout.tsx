@@ -103,7 +103,7 @@ export function DashboardLayout() {
 					<div className="flex items-center gap-1">
 						<WorkspaceSelector />
 						<a
-							href="https://basalt.nocoo.dev"
+							href="https://basalt.hexly.ai"
 							target="_blank"
 							rel="noopener noreferrer"
 							aria-label="Template gallery"
