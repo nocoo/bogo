@@ -69,6 +69,11 @@ export function useWorkspaceList(): WorkspaceListVM {
 			setMutationError(null);
 			return { previous, previousWorkspace };
 		},
+		onSuccess: (updated, { id }) => {
+			if (workspaceId === id) {
+				switchWorkspace(updated);
+			}
+		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(workspaceKeys.all, context?.previous);
 			if (context?.previousWorkspace) {

@@ -186,11 +186,12 @@ describe("useWorkspaceList", () => {
 			act(() => result.current.vm.select("ws-1"));
 			expect(result.current.ctx.workspace?.name).toBe("Corp");
 
-			const updated = { ...WS1, name: "Renamed" };
+			const updated = { ...WS1, name: "Renamed", updatedAt: "2026-05-24T15:00:00Z" };
 			mockFetch.mockResolvedValue(ok(updated));
 			act(() => result.current.vm.rename("ws-1", "Renamed"));
 
 			await waitFor(() => expect(result.current.ctx.workspace?.name).toBe("Renamed"));
+			expect(result.current.ctx.workspace?.updatedAt).toBe("2026-05-24T15:00:00Z");
 		});
 
 		it("restores context workspace.name on rename failure of selected workspace", async () => {
