@@ -105,4 +105,14 @@ describe("WorkspaceSelector", () => {
 		render(<WorkspaceSelector />, { wrapper: createWrapper() });
 		expect(screen.getByLabelText("Manage workspaces")).toBeTruthy();
 	});
+
+	it("shows error state when fetch fails", async () => {
+		mockFetch.mockResolvedValueOnce(new Response("Internal Server Error", { status: 500 }));
+		render(<WorkspaceSelector />, { wrapper: createWrapper() });
+		expect(await screen.findByText("Error")).toBeTruthy();
+
+		const btn = await screen.findByLabelText("Select workspace");
+		fireEvent.click(btn);
+		expect(await screen.findByText("Failed to load workspaces")).toBeTruthy();
+	});
 });
