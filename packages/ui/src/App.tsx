@@ -2,6 +2,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AppProviders } from "@/contexts/app-providers";
 import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import { DashboardPage } from "@/pages/DashboardPage";
+import { DocumentEditorPage } from "@/pages/DocumentEditorPage";
 import { DocumentsPage } from "@/pages/DocumentsPage";
 import { LogsPage } from "@/pages/LogsPage";
 import { SettingsPage } from "@/pages/SettingsPage";
@@ -19,6 +20,7 @@ export function App() {
 						<Route path="/" element={<DashboardPage />} />
 						<Route path="/workspaces" element={<WorkspacesPage />} />
 						<Route path="/documents" element={<DocumentsPage />} />
+						<Route path="/documents/:id" element={<DocumentEditorPage />} />
 						<Route path="/analytics" element={<AnalyticsPage />} />
 						<Route path="/users" element={<UsersPage />} />
 						<Route path="/logs" element={<LogsPage />} />

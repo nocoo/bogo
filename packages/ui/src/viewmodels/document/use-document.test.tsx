@@ -1,0 +1,213 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { WorkspaceProvider, useWorkspaceContext } from "../../contexts/workspace-context.js";
+import { useDocument } from "./use-document.js";
+
+const mockFetch = vi.fn();
+
+beforeEach(() => {
+	vi.stubGlobal("fetch", mockFetch);
+});
+
+afterEach(() => {
+	vi.clearAllMocks();
+	vi.unstubAllGlobals();
+});
+
+function ok(data: unknown, status = 200) {
+	return new Response(JSON.stringify({ data }), { status });
+}
+
+function err(status: number, code: string, message: string) {
+	return new Response(JSON.stringify({ error: { code, message } }), { status });
+}
+
+function createWrapper() {
+	const queryClient = new QueryClient({
+		defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+	});
+	return function Wrapper({ children }: { children: ReactNode }) {
+		return (
+			<QueryClientProvider client={queryClient}>
+				<WorkspaceProvider>{children}</WorkspaceProvider>
+			</QueryClientProvider>
+		);
+	};
+}
+
+function useWithWorkspace(docId: string) {
+	const ctx = useWorkspaceContext();
+	const vm = useDocument(docId);
+	return { ctx, vm };
+}
+
+const WS = {
+	id: "ws-1",
+	ownerId: "u-1",
+	name: "Corp",
+	createdAt: "2026-01-01",
+	updatedAt: "2026-01-01",
+};
+
+const DOC = {
+	id: "doc-1",
+	workspaceId: "ws-1",
+	typeId: "dt-1",
+	title: "Q1 Report",
+	content: "# Summary\nHello world",
+	eventDate: "2026-03-01",
+	version: 1,
+	createdAt: "2026-01-01",
+	updatedAt: "2026-01-01",
+};
+
+const VERSION_1 = {
+	id: "v-1",
+	documentId: "doc-1",
+	version: 1,
+	title: "Q1 Report",
+	content: "# Summary\nHello world",
+	createdAt: "2026-01-01",
+};
+
+describe("useDocument", () => {
+	it("does not fetch when no workspace selected", () => {
+		const wrapper = createWrapper();
+		const { result } = renderHook(() => useDocument("doc-1"), { wrapper });
+		expect(result.current.document).toBeNull();
+		expect(result.current.isLoading).toBe(false);
+		expect(mockFetch).not.toHaveBeenCalled();
+	});
+
+	it("fetches document detail and versions after workspace selection", async () => {
+		mockFetch.mockResolvedValueOnce(ok(DOC)).mockResolvedValueOnce(ok([VERSION_1]));
+		const wrapper = createWrapper();
+		const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+		act(() => result.current.ctx.switchWorkspace(WS));
+
+		await waitFor(() => expect(result.current.vm.document).not.toBeNull());
+		expect(result.current.vm.document?.title).toBe("Q1 Report");
+		await waitFor(() => expect(result.current.vm.versions).toHaveLength(1));
+		expect(result.current.vm.versions[0].version).toBe(1);
+	});
+
+	it("exposes loading state while fetching", async () => {
+		mockFetch.mockReturnValue(new Promise(() => undefined));
+		const wrapper = createWrapper();
+		const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+		act(() => result.current.ctx.switchWorkspace(WS));
+
+		await waitFor(() => expect(result.current.vm.isLoading).toBe(true));
+	});
+
+	it("exposes error when fetch fails", async () => {
+		mockFetch.mockResolvedValue(err(500, "INTERNAL", "DB error"));
+		const wrapper = createWrapper();
+		const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+		act(() => result.current.ctx.switchWorkspace(WS));
+
+		await waitFor(() => expect(result.current.vm.error).not.toBeNull());
+		expect(result.current.vm.error?.message).toContain("DB error");
+	});
+
+	describe("update", () => {
+		it("optimistically updates document and applies returned version", async () => {
+			mockFetch.mockResolvedValueOnce(ok(DOC)).mockResolvedValueOnce(ok([VERSION_1]));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.document).not.toBeNull());
+
+			mockFetch
+				.mockResolvedValueOnce(ok({ version: 2 }))
+				.mockResolvedValueOnce(ok({ ...DOC, title: "Q1 Final", version: 2 }))
+				.mockResolvedValueOnce(
+					ok([VERSION_1, { ...VERSION_1, id: "v-2", version: 2, title: "Q1 Final" }]),
+				);
+
+			act(() => result.current.vm.update({ title: "Q1 Final" }));
+
+			await waitFor(() => expect(result.current.vm.document?.title).toBe("Q1 Final"));
+			await waitFor(() => expect(result.current.vm.document?.version).toBe(2));
+		});
+
+		it("rolls back on update failure", async () => {
+			mockFetch.mockResolvedValueOnce(ok(DOC)).mockResolvedValueOnce(ok([VERSION_1]));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.document).not.toBeNull());
+
+			mockFetch
+				.mockResolvedValueOnce(err(400, "VALIDATION", "Title too long"))
+				.mockResolvedValueOnce(ok(DOC))
+				.mockResolvedValueOnce(ok([VERSION_1]));
+
+			act(() => result.current.vm.update({ title: "" }));
+
+			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
+			expect(result.current.vm.mutationError?.message).toContain("Title too long");
+			expect(result.current.vm.document?.title).toBe("Q1 Report");
+		});
+
+		it("exposes isUpdating state", async () => {
+			mockFetch.mockResolvedValueOnce(ok(DOC)).mockResolvedValueOnce(ok([VERSION_1]));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.document).not.toBeNull());
+
+			mockFetch.mockReturnValueOnce(new Promise(() => undefined));
+
+			act(() => result.current.vm.update({ title: "New" }));
+
+			await waitFor(() => expect(result.current.vm.isUpdating).toBe(true));
+		});
+	});
+
+	it("clears mutation error", async () => {
+		mockFetch.mockResolvedValueOnce(ok(DOC)).mockResolvedValueOnce(ok([VERSION_1]));
+		const wrapper = createWrapper();
+		const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+		act(() => result.current.ctx.switchWorkspace(WS));
+		await waitFor(() => expect(result.current.vm.document).not.toBeNull());
+
+		mockFetch
+			.mockResolvedValueOnce(err(400, "VALIDATION", "Bad"))
+			.mockResolvedValueOnce(ok(DOC))
+			.mockResolvedValueOnce(ok([VERSION_1]));
+
+		act(() => result.current.vm.update({ title: "" }));
+
+		await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
+
+		act(() => result.current.vm.clearMutationError());
+		expect(result.current.vm.mutationError).toBeNull();
+	});
+
+	it("handles update when detail cache is undefined", async () => {
+		mockFetch.mockReturnValue(new Promise(() => undefined));
+		const wrapper = createWrapper();
+		const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+		act(() => result.current.ctx.switchWorkspace(WS));
+
+		mockFetch
+			.mockResolvedValueOnce(ok({ version: 2 }))
+			.mockResolvedValueOnce(ok(DOC))
+			.mockResolvedValueOnce(ok([VERSION_1]));
+
+		act(() => result.current.vm.update({ title: "X" }));
+
+		await waitFor(() => expect(result.current.vm.isUpdating).toBe(false));
+	});
+});

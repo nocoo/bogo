@@ -4,6 +4,8 @@ import { api } from "../lib/api/index.js";
 
 export const documentKeys = {
 	all: (wid: string) => ["documents", wid] as const,
+	detail: (wid: string, id: string) => ["documents", wid, id] as const,
+	versions: (wid: string, id: string) => ["documents", wid, id, "versions"] as const,
 };
 
 export const documentModel = {
@@ -12,6 +14,20 @@ export const documentModel = {
 			queryKey: documentKeys.all(wid),
 			queryFn: () => api.documents.list(wid),
 			enabled: !!wid,
+		}),
+
+	detailQueryOptions: (wid: string, id: string) =>
+		queryOptions({
+			queryKey: documentKeys.detail(wid, id),
+			queryFn: () => api.documents.get(wid, id),
+			enabled: !!wid && !!id,
+		}),
+
+	versionsQueryOptions: (wid: string, id: string) =>
+		queryOptions({
+			queryKey: documentKeys.versions(wid, id),
+			queryFn: () => api.documents.listVersions(wid, id),
+			enabled: !!wid && !!id,
 		}),
 
 	createMutationOptions: (wid: string) => ({

@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import { DocumentsPage } from "./DocumentsPage.js";
 
@@ -102,7 +103,11 @@ describe("DocumentsPage", () => {
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue(baseDocumentsVm());
 
-		render(<DocumentsPage />);
+		render(
+			<MemoryRouter>
+				<DocumentsPage />
+			</MemoryRouter>,
+		);
 		expect(screen.getByText(/Select a workspace/)).toBeTruthy();
 	});
 
@@ -115,7 +120,11 @@ describe("DocumentsPage", () => {
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({ ...baseDocumentsVm(), documents: [], isLoading: true });
 
-		const { container } = render(<DocumentsPage />);
+		const { container } = render(
+			<MemoryRouter>
+				<DocumentsPage />
+			</MemoryRouter>,
+		);
 		expect(container.querySelector(".animate-spin")).not.toBeNull();
 	});
 
@@ -132,7 +141,11 @@ describe("DocumentsPage", () => {
 			error: new Error("DB down"),
 		});
 
-		render(<DocumentsPage />);
+		render(
+			<MemoryRouter>
+				<DocumentsPage />
+			</MemoryRouter>,
+		);
 		expect(screen.getByText(/DB down/)).toBeTruthy();
 	});
 
@@ -145,7 +158,11 @@ describe("DocumentsPage", () => {
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({ ...baseDocumentsVm(), documents: [] });
 
-		render(<DocumentsPage />);
+		render(
+			<MemoryRouter>
+				<DocumentsPage />
+			</MemoryRouter>,
+		);
 		expect(screen.getByText("No documents yet")).toBeTruthy();
 	});
 
@@ -158,7 +175,11 @@ describe("DocumentsPage", () => {
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue(baseDocumentsVm());
 
-		render(<DocumentsPage />);
+		render(
+			<MemoryRouter>
+				<DocumentsPage />
+			</MemoryRouter>,
+		);
 		expect(screen.getByText("Q1 Report")).toBeTruthy();
 		expect(screen.getByText("Draft Notes")).toBeTruthy();
 		expect(screen.getByText("Report")).toBeTruthy();
@@ -177,7 +198,11 @@ describe("DocumentsPage", () => {
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({ ...baseDocumentsVm(), create });
 
-		render(<DocumentsPage />);
+		render(
+			<MemoryRouter>
+				<DocumentsPage />
+			</MemoryRouter>,
+		);
 		fireEvent.click(screen.getByLabelText("Create document"));
 		expect(screen.getByLabelText("Title")).toBeTruthy();
 
@@ -202,7 +227,11 @@ describe("DocumentsPage", () => {
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({ ...baseDocumentsVm(), create });
 
-		render(<DocumentsPage />);
+		render(
+			<MemoryRouter>
+				<DocumentsPage />
+			</MemoryRouter>,
+		);
 		fireEvent.click(screen.getByLabelText("Create document"));
 		fireEvent.click(screen.getByText("Create"));
 
@@ -223,7 +252,11 @@ describe("DocumentsPage", () => {
 			clearMutationError,
 		});
 
-		render(<DocumentsPage />);
+		render(
+			<MemoryRouter>
+				<DocumentsPage />
+			</MemoryRouter>,
+		);
 		expect(screen.getByText(/Conflict/)).toBeTruthy();
 
 		fireEvent.click(screen.getByLabelText("Dismiss error"));
@@ -240,7 +273,11 @@ describe("DocumentsPage", () => {
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({ ...baseDocumentsVm(), remove });
 
-		render(<DocumentsPage />);
+		render(
+			<MemoryRouter>
+				<DocumentsPage />
+			</MemoryRouter>,
+		);
 		fireEvent.click(screen.getByLabelText("Delete Q1 Report"));
 		expect(remove).toHaveBeenCalledWith("doc-1");
 	});
@@ -255,7 +292,11 @@ describe("DocumentsPage", () => {
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({ ...baseDocumentsVm(), create });
 
-		render(<DocumentsPage />);
+		render(
+			<MemoryRouter>
+				<DocumentsPage />
+			</MemoryRouter>,
+		);
 		fireEvent.click(screen.getByLabelText("Create document"));
 		fireEvent.change(screen.getByLabelText("Title"), { target: { value: "Typed" } });
 		fireEvent.change(screen.getByLabelText("Type"), { target: { value: "dt-1" } });

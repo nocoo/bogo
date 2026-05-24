@@ -1,6 +1,7 @@
 import type { Document } from "@bogo/shared";
 import { AlertCircle, FileText, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useState } from "react";
+import { Link } from "react-router";
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
 import { useDocTypes } from "../viewmodels/document/use-doc-types.js";
 import { useDocuments } from "../viewmodels/document/use-documents.js";
@@ -211,7 +212,11 @@ function DocumentRow({
 	isRemoving: boolean;
 }) {
 	return (
-		<div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 hover:border-primary/30 transition-colors">
+		<Link
+			to={`/documents/${doc.id}`}
+			className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 hover:border-primary/30 transition-colors"
+			aria-label={`Open ${doc.title}`}
+		>
 			<FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
 			<div className="flex-1 min-w-0">
 				<p className="text-sm font-medium text-foreground truncate">{doc.title}</p>
@@ -233,7 +238,10 @@ function DocumentRow({
 			</div>
 			<button
 				type="button"
-				onClick={() => onRemove(doc.id)}
+				onClick={(e) => {
+					e.preventDefault();
+					onRemove(doc.id);
+				}}
 				disabled={isRemoving}
 				className="shrink-0 text-muted-foreground hover:text-red-500 disabled:opacity-50 transition-colors"
 				aria-label={`Delete ${doc.title}`}
@@ -244,6 +252,6 @@ function DocumentRow({
 					<Trash2 className="h-4 w-4" strokeWidth={1.5} />
 				)}
 			</button>
-		</div>
+		</Link>
 	);
 }
