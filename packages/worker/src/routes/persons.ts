@@ -31,39 +31,34 @@ personRoutes.post("/", async (c) => {
 	}
 
 	const input: CreatePersonInput = parsed.data;
-	const isRoot = input.managerId === null;
 
-	if (isRoot) {
-		const existing = await c.env.DB.prepare(
-			"SELECT id FROM persons WHERE workspace_id = ? AND is_root = 1",
-		)
-			.bind(wid)
-			.first();
-		if (existing) {
-			return c.json(
-				{ error: { code: "CONFLICT", message: "Workspace already has a root person" } },
-				409,
-			);
-		}
-	} else {
-		const parent = await c.env.DB.prepare(
-			"SELECT id FROM persons WHERE id = ? AND workspace_id = ?",
-		)
-			.bind(input.managerId, wid)
-			.first();
-		if (!parent) {
-			return c.json(
-				{ error: { code: "INVALID_PARENT", message: "Manager not found in workspace" } },
-				400,
-			);
-		}
+	if (input.managerId === null) {
+		return c.json(
+			{
+				error: {
+					code: "CANNOT_CREATE_ROOT",
+					message: "Root person is created automatically with workspace",
+				},
+			},
+			400,
+		);
+	}
+
+	const parent = await c.env.DB.prepare("SELECT id FROM persons WHERE id = ? AND workspace_id = ?")
+		.bind(input.managerId, wid)
+		.first();
+	if (!parent) {
+		return c.json(
+			{ error: { code: "INVALID_PARENT", message: "Manager not found in workspace" } },
+			400,
+		);
 	}
 
 	const id = generateId();
 	const now = new Date().toISOString();
 
 	await c.env.DB.prepare(
-		"INSERT INTO persons (id, workspace_id, name, title, manager_id, dotted_manager_id, is_root, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)",
+		"INSERT INTO persons (id, workspace_id, name, title, manager_id, dotted_manager_id, is_root, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?, ?)",
 	)
 		.bind(
 			id,
@@ -72,7 +67,6 @@ personRoutes.post("/", async (c) => {
 			input.title ?? "",
 			input.managerId,
 			input.dottedManagerId ?? null,
-			isRoot ? 1 : 0,
 			now,
 			now,
 		)
@@ -85,7 +79,7 @@ personRoutes.post("/", async (c) => {
 		title: input.title ?? "",
 		managerId: input.managerId,
 		dottedManagerId: input.dottedManagerId ?? null,
-		isRoot,
+		isRoot: false,
 		sortOrder: 0,
 		createdAt: now,
 		updatedAt: now,
@@ -187,6 +181,13 @@ personRoutes.put("/:id/move", async (c) => {
 		return c.json({ error: { code: "NOT_FOUND", message: "Person not found" } }, 404);
 	}
 
+	if (person.is_root === 1 && newManagerId !== null) {
+		return c.json(
+			{ error: { code: "CANNOT_MOVE_ROOT", message: "Cannot move root person under a manager" } },
+			400,
+		);
+	}
+
 	if (newManagerId === null) {
 		const existingRoot = await c.env.DB.prepare(
 			"SELECT id FROM persons WHERE workspace_id = ? AND is_root = 1 AND id != ?",
@@ -249,6 +250,23 @@ personRoutes.delete("/:id", async (c) => {
 	const wid = c.req.param("wid") as string;
 	const { id } = c.req.param();
 
+	const person = await c.env.DB.prepare(
+		"SELECT id, is_root FROM persons WHERE id = ? AND workspace_id = ?",
+	)
+		.bind(id, wid)
+		.first();
+
+	if (!person) {
+		return c.json({ error: { code: "NOT_FOUND", message: "Person not found" } }, 404);
+	}
+
+	if (person.is_root === 1) {
+		return c.json(
+			{ error: { code: "CANNOT_DELETE_ROOT", message: "Cannot delete root person" } },
+			400,
+		);
+	}
+
 	const children = await c.env.DB.prepare(
 		"SELECT id FROM persons WHERE manager_id = ? AND workspace_id = ?",
 	)
@@ -267,13 +285,9 @@ personRoutes.delete("/:id", async (c) => {
 		);
 	}
 
-	const result = await c.env.DB.prepare("DELETE FROM persons WHERE id = ? AND workspace_id = ?")
+	await c.env.DB.prepare("DELETE FROM persons WHERE id = ? AND workspace_id = ?")
 		.bind(id, wid)
 		.run();
-
-	if (!result.meta.changes) {
-		return c.json({ error: { code: "NOT_FOUND", message: "Person not found" } }, 404);
-	}
 
 	return c.json({ data: { deleted: true } });
 });

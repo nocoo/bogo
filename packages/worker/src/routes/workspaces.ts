@@ -31,13 +31,17 @@ workspaceRoutes.post("/", async (c) => {
 
 	const input: CreateWorkspaceInput = parsed.data;
 	const id = generateId();
+	const rootId = generateId();
 	const now = new Date().toISOString();
 
-	await c.env.DB.prepare(
-		"INSERT INTO workspaces (id, owner_id, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
-	)
-		.bind(id, "default-owner", input.name, now, now)
-		.run();
+	await c.env.DB.batch([
+		c.env.DB.prepare(
+			"INSERT INTO workspaces (id, owner_id, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+		).bind(id, "default-owner", input.name, now, now),
+		c.env.DB.prepare(
+			"INSERT INTO persons (id, workspace_id, name, title, manager_id, is_root, sort_order, created_at, updated_at) VALUES (?, ?, ?, '', NULL, 1, 0, ?, ?)",
+		).bind(rootId, id, input.name, now, now),
+	]);
 
 	const workspace: Workspace = {
 		id,

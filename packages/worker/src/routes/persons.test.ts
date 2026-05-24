@@ -74,35 +74,16 @@ describe("person routes", () => {
 	});
 
 	describe("POST /api/w/:wid/persons", () => {
-		it("creates root person", async () => {
-			const { db } = createSequenceD1([
-				{ type: "first", value: null }, // no existing root
-				{ type: "run", value: { success: true, meta: { changes: 1 } } }, // insert
-			]);
+		it("rejects creating root person directly", async () => {
+			const { db } = createMockD1();
 
 			const res = await app.fetch(makeRequest("POST", BASE, { name: "CEO", managerId: null }), {
 				DB: db,
 				ENVIRONMENT: "test",
 			});
-			expect(res.status).toBe(201);
+			expect(res.status).toBe(400);
 			const json = await res.json();
-			expect(json.data.name).toBe("CEO");
-			expect(json.data.isRoot).toBe(true);
-			expect(json.data.managerId).toBeNull();
-		});
-
-		it("rejects duplicate root", async () => {
-			const { db } = createSequenceD1([
-				{ type: "first", value: { id: "existing-root" } }, // root exists
-			]);
-
-			const res = await app.fetch(makeRequest("POST", BASE, { name: "CEO2", managerId: null }), {
-				DB: db,
-				ENVIRONMENT: "test",
-			});
-			expect(res.status).toBe(409);
-			const json = await res.json();
-			expect(json.error.code).toBe("CONFLICT");
+			expect(json.error.code).toBe("CANNOT_CREATE_ROOT");
 		});
 
 		it("creates child person", async () => {
@@ -250,6 +231,20 @@ describe("person routes", () => {
 	});
 
 	describe("PUT /api/w/:wid/persons/:id/move", () => {
+		it("rejects moving root under a manager", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: UUID1, is_root: 1 } }, // person is root
+			]);
+
+			const res = await app.fetch(
+				makeRequest("PUT", `${BASE}/${UUID1}/move`, { managerId: UUID2 }),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("CANNOT_MOVE_ROOT");
+		});
+
 		it("rejects moving under self", async () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { id: UUID1, is_root: 0 } }, // person exists
@@ -352,6 +347,7 @@ describe("person routes", () => {
 	describe("DELETE /api/w/:wid/persons/:id", () => {
 		it("deletes leaf person", async () => {
 			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "p-1", is_root: 0 } }, // person exists, not root
 				{ type: "first", value: null }, // no children
 				{ type: "run", value: { success: true, meta: { changes: 1 } } }, // delete
 			]);
@@ -365,8 +361,23 @@ describe("person routes", () => {
 			expect(json.data.deleted).toBe(true);
 		});
 
+		it("rejects delete of root person", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "p-root", is_root: 1 } }, // person is root
+			]);
+
+			const res = await app.fetch(makeRequest("DELETE", `${BASE}/p-root`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("CANNOT_DELETE_ROOT");
+		});
+
 		it("rejects delete with direct reports", async () => {
 			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "p-1", is_root: 0 } }, // person exists, not root
 				{ type: "first", value: { id: "child-1" } }, // has children
 			]);
 
@@ -381,8 +392,7 @@ describe("person routes", () => {
 
 		it("returns 404 when person not found", async () => {
 			const { db } = createSequenceD1([
-				{ type: "first", value: null }, // no children
-				{ type: "run", value: { success: true, meta: { changes: 0 } } }, // not found
+				{ type: "first", value: null }, // person not found
 			]);
 
 			const res = await app.fetch(makeRequest("DELETE", `${BASE}/missing`), {
