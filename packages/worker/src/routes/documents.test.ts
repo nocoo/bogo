@@ -178,6 +178,7 @@ describe("document routes", () => {
 		it("updates typeId and eventDate", async () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { version: 1, title: "Doc", content: "Content" } },
+				{ type: "first", value: { id: "550e8400-e29b-41d4-a716-446655440000" } }, // type exists
 			]);
 			(db as unknown as { batch: () => Promise<unknown[]> }).batch = async () => [];
 
@@ -191,6 +192,34 @@ describe("document routes", () => {
 			expect(res.status).toBe(200);
 			const json = await res.json();
 			expect(json.data.version).toBe(2);
+		});
+
+		it("rejects invalid typeId in update", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { version: 1, title: "Doc", content: "Content" } },
+				{ type: "first", value: null }, // type NOT found
+			]);
+
+			const res = await app.fetch(
+				makeRequest("PUT", `${BASE}/d-1`, { typeId: "550e8400-e29b-41d4-a716-446655440000" }),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_TYPE");
+		});
+
+		it("allows clearing typeId to null", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { version: 1, title: "Doc", content: "Content" } },
+			]);
+			(db as unknown as { batch: () => Promise<unknown[]> }).batch = async () => [];
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/d-1`, { typeId: null }), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
 		});
 
 		it("returns 404 for missing document", async () => {
@@ -300,6 +329,7 @@ describe("document routes", () => {
 
 		it("POST /:id/persons adds association", async () => {
 			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "d-1" } }, // doc exists
 				{ type: "first", value: { id: "550e8400-e29b-41d4-a716-446655440000" } }, // person exists
 				{ type: "run", value: { success: true, meta: { changes: 1 } } },
 			]);
@@ -313,8 +343,23 @@ describe("document routes", () => {
 			expect(res.status).toBe(201);
 		});
 
+		it("POST /:id/persons rejects non-existent document", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: null }, // doc NOT found
+			]);
+
+			const res = await app.fetch(
+				makeRequest("POST", `${BASE}/d-1/persons`, {
+					personId: "550e8400-e29b-41d4-a716-446655440000",
+				}),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(404);
+		});
+
 		it("POST /:id/persons rejects non-existent person", async () => {
 			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "d-1" } }, // doc exists
 				{ type: "first", value: null }, // person NOT found
 			]);
 

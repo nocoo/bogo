@@ -165,6 +165,19 @@ documentRoutes.put("/:id", async (c) => {
 		values.push(parsed.data.content);
 	}
 	if (parsed.data.typeId !== undefined) {
+		if (parsed.data.typeId !== null) {
+			const docType = await c.env.DB.prepare(
+				"SELECT id FROM document_types WHERE id = ? AND workspace_id = ?",
+			)
+				.bind(parsed.data.typeId, wid)
+				.first();
+			if (!docType) {
+				return c.json(
+					{ error: { code: "INVALID_TYPE", message: "Document type not found in workspace" } },
+					400,
+				);
+			}
+		}
 		sets.push("type_id = ?");
 		values.push(parsed.data.typeId);
 	}
@@ -261,6 +274,13 @@ documentRoutes.post("/:id/persons", async (c) => {
 	const parsed = addDocPersonSchema.safeParse(body);
 	if (!parsed.success) {
 		return c.json({ error: { code: "VALIDATION_ERROR", issues: parsed.error.issues } }, 400);
+	}
+
+	const doc = await c.env.DB.prepare("SELECT id FROM documents WHERE id = ? AND workspace_id = ?")
+		.bind(id, wid)
+		.first();
+	if (!doc) {
+		return c.json({ error: { code: "NOT_FOUND", message: "Document not found" } }, 404);
 	}
 
 	const person = await c.env.DB.prepare("SELECT id FROM persons WHERE id = ? AND workspace_id = ?")
