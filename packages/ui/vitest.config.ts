@@ -23,6 +23,7 @@ export default defineConfig({
 				"src/components/workspace/**/*.tsx",
 				"src/components/person/**/*.tsx",
 				"src/components/field/**/*.tsx",
+				"src/components/document/**/*.tsx",
 			],
 			exclude: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.d.ts", "src/**/index.ts"],
 			thresholds: {

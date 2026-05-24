@@ -1,18 +1,26 @@
 import { Bell, Globe, Settings as SettingsIcon, Shield } from "lucide-react";
+import { DocTypeManager } from "../components/document/DocTypeManager.js";
 import { FieldDefsManager } from "../components/field/FieldDefsManager.js";
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
+import { useDocTypes } from "../viewmodels/document/use-doc-types.js";
 import { useFieldDefs } from "../viewmodels/field/use-field-defs.js";
 
 export function SettingsPage() {
 	const { workspaceId } = useWorkspaceContext();
 	const fieldDefsVm = useFieldDefs();
+	const docTypesVm = useDocTypes();
 
 	return (
 		<>
 			{workspaceId && (
-				<div className="rounded-xl bg-secondary p-5 mb-4">
-					<FieldDefsManager vm={fieldDefsVm} />
-				</div>
+				<>
+					<div className="rounded-xl bg-secondary p-5 mb-4">
+						<DocTypeManager vm={docTypesVm} />
+					</div>
+					<div className="rounded-xl bg-secondary p-5 mb-4">
+						<FieldDefsManager vm={fieldDefsVm} />
+					</div>
+				</>
 			)}
 
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
