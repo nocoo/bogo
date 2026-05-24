@@ -51,6 +51,11 @@ export function useDocuments(): DocumentsVM {
 			setMutationError(null);
 			return { previous };
 		},
+		onSuccess: (result, { id }) => {
+			queryClient.setQueryData(documentKeys.all(wid), (old: Document[] | undefined) =>
+				(old ?? []).map((d) => (d.id === id ? { ...d, version: result.version } : d)),
+			);
+		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(documentKeys.all(wid), context?.previous);
 			setMutationError(err);

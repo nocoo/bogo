@@ -72,13 +72,13 @@ describe("DocTypeManager", () => {
 		render(<DocTypeManager vm={vm} />);
 		expect(screen.getByLabelText(`Edit ${TYPE_A.name}`)).toBeTruthy();
 		expect(screen.getByLabelText(`Edit ${TYPE_B.name}`)).toBeTruthy();
-		expect(screen.getByLabelText(`Color ${TYPE_A.color}`)).toBeTruthy();
+		expect(screen.getByLabelText(`Change color for ${TYPE_A.name}`)).toBeTruthy();
 	});
 
-	it("does not render color swatch when color is null", () => {
+	it("renders color swatch with fallback when color is null", () => {
 		const vm = createVM({ types: [TYPE_NO_COLOR] });
 		render(<DocTypeManager vm={vm} />);
-		expect(screen.queryByLabelText(/^Color /)).toBeNull();
+		expect(screen.getByLabelText(`Change color for ${TYPE_NO_COLOR.name}`)).toBeTruthy();
 	});
 
 	it("shows mutation error with dismiss", () => {
@@ -236,6 +236,43 @@ describe("DocTypeManager", () => {
 			render(<DocTypeManager vm={vm} />);
 			const btn = screen.getByLabelText(`Move ${TYPE_B.name} down`) as HTMLButtonElement;
 			expect(btn.disabled).toBe(true);
+		});
+	});
+
+	describe("color edit", () => {
+		it("opens color picker on swatch click and updates color", () => {
+			const update = vi.fn();
+			const vm = createVM({ types: [TYPE_A], update });
+			render(<DocTypeManager vm={vm} />);
+
+			fireEvent.click(screen.getByLabelText(`Change color for ${TYPE_A.name}`));
+			expect(screen.getByLabelText("Select color #ef4444")).toBeTruthy();
+
+			fireEvent.click(screen.getByLabelText("Select color #ef4444"));
+			expect(update).toHaveBeenCalledWith("dt-1", { color: "#ef4444" });
+		});
+
+		it("closes color picker after selection", () => {
+			const update = vi.fn();
+			const vm = createVM({ types: [TYPE_A], update });
+			render(<DocTypeManager vm={vm} />);
+
+			fireEvent.click(screen.getByLabelText(`Change color for ${TYPE_A.name}`));
+			expect(screen.getByLabelText("Select color #10b981")).toBeTruthy();
+
+			fireEvent.click(screen.getByLabelText("Select color #10b981"));
+			expect(screen.queryByLabelText("Select color #10b981")).toBeNull();
+		});
+
+		it("toggles color picker off on second click", () => {
+			const vm = createVM({ types: [TYPE_A] });
+			render(<DocTypeManager vm={vm} />);
+
+			fireEvent.click(screen.getByLabelText(`Change color for ${TYPE_A.name}`));
+			expect(screen.getByLabelText("Select color #ef4444")).toBeTruthy();
+
+			fireEvent.click(screen.getByLabelText(`Change color for ${TYPE_A.name}`));
+			expect(screen.queryByLabelText("Select color #ef4444")).toBeNull();
 		});
 	});
 });

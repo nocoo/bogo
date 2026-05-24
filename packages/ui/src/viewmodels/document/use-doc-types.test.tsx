@@ -290,4 +290,48 @@ describe("useDocTypes", () => {
 		act(() => result.current.vm.clearMutationError());
 		expect(result.current.vm.mutationError).toBeNull();
 	});
+
+	it("handles create when cache is empty (undefined fallback)", async () => {
+		mockFetch.mockReturnValue(new Promise(() => undefined));
+		const wrapper = createWrapper();
+		const { result } = renderHook(() => useWithWorkspace(), { wrapper });
+
+		act(() => result.current.ctx.switchWorkspace(WS));
+
+		const newType = { ...TYPE_A, id: "dt-fresh" };
+		mockFetch.mockResolvedValueOnce(ok(newType, 201));
+
+		act(() => result.current.vm.create({ name: "Fresh" }));
+
+		await waitFor(() => expect(result.current.vm.types).toHaveLength(1));
+		expect(result.current.vm.types[0].id).toBe("dt-fresh");
+	});
+
+	it("handles update when cache is undefined", async () => {
+		mockFetch.mockReturnValue(new Promise(() => undefined));
+		const wrapper = createWrapper();
+		const { result } = renderHook(() => useWithWorkspace(), { wrapper });
+
+		act(() => result.current.ctx.switchWorkspace(WS));
+
+		mockFetch.mockResolvedValueOnce(ok({ updated: true })).mockResolvedValueOnce(ok([]));
+
+		act(() => result.current.vm.update("dt-x", { name: "X" }));
+
+		await waitFor(() => expect(result.current.vm.isUpdating).toBe(false));
+	});
+
+	it("handles delete when cache is undefined", async () => {
+		mockFetch.mockReturnValue(new Promise(() => undefined));
+		const wrapper = createWrapper();
+		const { result } = renderHook(() => useWithWorkspace(), { wrapper });
+
+		act(() => result.current.ctx.switchWorkspace(WS));
+
+		mockFetch.mockResolvedValueOnce(ok({ deleted: true })).mockResolvedValueOnce(ok([]));
+
+		act(() => result.current.vm.remove("dt-x"));
+
+		await waitFor(() => expect(result.current.vm.isRemoving).toBe(false));
+	});
 });

@@ -225,11 +225,17 @@ function DocTypeRow({
 	isRemoving: boolean;
 }) {
 	const [editing, setEditing] = useState(false);
+	const [editingColor, setEditingColor] = useState(false);
 	const [editName, setEditName] = useState(docType.name);
 
 	useEffect(() => {
 		setEditName(docType.name);
 	}, [docType.name]);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: close picker when color changes from server
+	useEffect(() => {
+		setEditingColor(false);
+	}, [docType.color]);
 
 	const handleSave = useCallback(() => {
 		const trimmed = editName.trim();
@@ -261,13 +267,34 @@ function DocTypeRow({
 					<ChevronDown className="h-3 w-3" />
 				</button>
 			</div>
-			{docType.color && (
-				<span
-					className="h-4 w-4 shrink-0 rounded-full"
-					style={{ backgroundColor: docType.color }}
-					aria-label={`Color ${docType.color}`}
+			<div className="relative">
+				<button
+					type="button"
+					onClick={() => setEditingColor(!editingColor)}
+					className="h-4 w-4 shrink-0 rounded-full border border-border hover:scale-125 transition-transform"
+					style={{ backgroundColor: docType.color ?? "#6b7280" }}
+					aria-label={`Change color for ${docType.name}`}
 				/>
-			)}
+				{editingColor && (
+					<div className="absolute left-0 top-6 z-10 flex gap-1 rounded-md border border-border bg-card p-2 shadow-md">
+						{PRESET_COLORS.map((c) => (
+							<button
+								key={c}
+								type="button"
+								onClick={() => {
+									onUpdate(docType.id, { color: c });
+									setEditingColor(false);
+								}}
+								className={`h-5 w-5 rounded-full border-2 transition-all ${
+									docType.color === c ? "border-foreground scale-110" : "border-transparent"
+								}`}
+								style={{ backgroundColor: c }}
+								aria-label={`Select color ${c}`}
+							/>
+						))}
+					</div>
+				)}
+			</div>
 			<div className="flex-1 min-w-0">
 				{editing ? (
 					<input

@@ -168,7 +168,7 @@ describe("useDocuments", () => {
 	});
 
 	describe("update", () => {
-		it("optimistically updates document", async () => {
+		it("optimistically updates document and applies returned version", async () => {
 			mockFetch.mockResolvedValue(ok([DOC_A]));
 			const wrapper = createWrapper();
 			const { result } = renderHook(() => useWithWorkspace(), { wrapper });
@@ -177,12 +177,13 @@ describe("useDocuments", () => {
 			await waitFor(() => expect(result.current.vm.documents).toHaveLength(1));
 
 			mockFetch
-				.mockResolvedValueOnce(ok({ updated: true }))
-				.mockResolvedValueOnce(ok([{ ...DOC_A, title: "Q1 Final" }]));
+				.mockResolvedValueOnce(ok({ version: 2 }))
+				.mockResolvedValueOnce(ok([{ ...DOC_A, title: "Q1 Final", version: 2 }]));
 
 			act(() => result.current.vm.update("doc-1", { title: "Q1 Final" }));
 
 			await waitFor(() => expect(result.current.vm.documents[0].title).toBe("Q1 Final"));
+			await waitFor(() => expect(result.current.vm.documents[0].version).toBe(2));
 		});
 
 		it("rolls back on update failure", async () => {
@@ -282,7 +283,7 @@ describe("useDocuments", () => {
 
 		act(() => result.current.ctx.switchWorkspace(WS));
 
-		mockFetch.mockResolvedValueOnce(ok({ updated: true })).mockResolvedValueOnce(ok([]));
+		mockFetch.mockResolvedValueOnce(ok({ version: 2 })).mockResolvedValueOnce(ok([]));
 
 		act(() => result.current.vm.update("doc-x", { title: "X" }));
 
