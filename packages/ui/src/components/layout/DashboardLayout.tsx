@@ -1,4 +1,6 @@
 import { AppSidebar } from "@/components/AppSidebar";
+import type { BreadcrumbItem } from "@/components/layout/Breadcrumbs";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { WorkspaceSelector } from "@/components/workspace/WorkspaceSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -7,7 +9,7 @@ import { Github, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 
-const PAGE_TITLES: Record<string, string> = {
+const SECTION_LABELS: Record<string, string> = {
 	"/": "Overview",
 	"/documents": "Documents",
 	"/people": "People",
@@ -15,16 +17,31 @@ const PAGE_TITLES: Record<string, string> = {
 	"/settings": "Settings",
 };
 
-function resolveTitle(pathname: string): string {
-	if (PAGE_TITLES[pathname]) {
-		return PAGE_TITLES[pathname];
+function resolveBreadcrumbs(pathname: string): BreadcrumbItem[] {
+	if (pathname === "/") {
+		return [{ label: "Overview" }];
 	}
-	for (const [path, title] of Object.entries(PAGE_TITLES)) {
-		if (path !== "/" && pathname.startsWith(`${path}/`)) {
-			return title;
+
+	const items: BreadcrumbItem[] = [{ label: "Home", href: "/" }];
+
+	for (const [path, label] of Object.entries(SECTION_LABELS)) {
+		if (path === "/") {
+			continue;
+		}
+		if (pathname === path) {
+			items.push({ label });
+			return items;
+		}
+		if (pathname.startsWith(`${path}/`)) {
+			items.push({ label, href: path });
+			const rest = pathname.slice(path.length + 1);
+			items.push({ label: rest });
+			return items;
 		}
 	}
-	return "Dashboard";
+
+	items.push({ label: pathname.slice(1) });
+	return items;
 }
 
 export function DashboardLayout() {
@@ -33,7 +50,7 @@ export function DashboardLayout() {
 	const [mobileOpen, setMobileOpen] = useState(false);
 	const location = useLocation();
 
-	const title = resolveTitle(location.pathname);
+	const breadcrumbs = resolveBreadcrumbs(location.pathname);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: close mobile nav on route change
 	useEffect(() => {
@@ -81,7 +98,7 @@ export function DashboardLayout() {
 								<Menu className="h-5 w-5" aria-hidden="true" strokeWidth={1.5} />
 							</button>
 						)}
-						<h1 className="text-lg md:text-xl font-semibold text-foreground">{title}</h1>
+						<Breadcrumbs items={breadcrumbs} />
 					</div>
 					<div className="flex items-center gap-1">
 						<WorkspaceSelector />
