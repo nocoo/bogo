@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { WorkspaceProvider } from "./workspace-context.js";
 
 const queryClient = new QueryClient({
 	defaultOptions: {
@@ -13,5 +14,9 @@ const queryClient = new QueryClient({
 });
 
 export function AppProviders({ children }: { children: ReactNode }) {
-	return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+	return (
+		<QueryClientProvider client={queryClient}>
+			<WorkspaceProvider>{children}</WorkspaceProvider>
+		</QueryClientProvider>
+	);
 }

@@ -57,7 +57,8 @@ function WorkspaceItem({
 						}}
 						onClick={(e) => e.stopPropagation()}
 						className="w-full bg-transparent border-b border-primary text-sm text-foreground outline-none py-0.5"
-						ref={(el) => el?.focus()}
+						// biome-ignore lint/a11y/noAutofocus: intentional focus on edit activation
+						autoFocus={true}
 					/>
 				) : (
 					<>
@@ -165,7 +166,8 @@ export function WorkspaceList() {
 						}}
 						placeholder="Workspace name"
 						className="flex-1 bg-transparent border-b border-border text-sm text-foreground outline-none py-1 placeholder:text-muted-foreground focus:border-primary"
-						ref={(el) => el?.focus()}
+						// biome-ignore lint/a11y/noAutofocus: intentional focus on form activation
+						autoFocus={true}
 					/>
 					<button
 						type="button"

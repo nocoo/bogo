@@ -1,6 +1,7 @@
 import type { Workspace } from "@bogo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
+import { useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { workspaceKeys, workspaceModel } from "../../models/workspace.model.js";
 
 export interface WorkspaceListVM {
@@ -23,10 +24,22 @@ export interface WorkspaceListVM {
 
 export function useWorkspaceList(): WorkspaceListVM {
 	const queryClient = useQueryClient();
-	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const { workspaceId, switchWorkspace } = useWorkspaceContext();
 	const [mutationError, setMutationError] = useState<Error | null>(null);
 
 	const { data, isLoading, error } = useQuery(workspaceModel.listQueryOptions());
+
+	const select = useCallback(
+		(id: string | null) => {
+			if (id === null) {
+				switchWorkspace(null);
+				return;
+			}
+			const ws = data?.find((w) => w.id === id) ?? null;
+			switchWorkspace(ws);
+		},
+		[data, switchWorkspace],
+	);
 
 	const createMutation = useMutation({
 		...workspaceModel.createMutationOptions(),
@@ -65,17 +78,22 @@ export function useWorkspaceList(): WorkspaceListVM {
 		onMutate: async (id) => {
 			await queryClient.cancelQueries({ queryKey: workspaceKeys.all });
 			const previous = queryClient.getQueryData<Workspace[]>(workspaceKeys.all);
+			const previousSelectedId = workspaceId;
 			queryClient.setQueryData(workspaceKeys.all, (old: Workspace[] | undefined) =>
 				(old ?? []).filter((w) => w.id !== id),
 			);
-			if (selectedId === id) {
-				setSelectedId(null);
+			if (workspaceId === id) {
+				switchWorkspace(null);
 			}
 			setMutationError(null);
-			return { previous };
+			return { previous, previousSelectedId };
 		},
 		onError: (err: Error, _id, context) => {
 			queryClient.setQueryData(workspaceKeys.all, context?.previous);
+			if (context?.previousSelectedId && context.previous) {
+				const ws = context.previous.find((w) => w.id === context.previousSelectedId) ?? null;
+				switchWorkspace(ws);
+			}
 			setMutationError(err);
 		},
 		onSettled: () => {
@@ -94,8 +112,8 @@ export function useWorkspaceList(): WorkspaceListVM {
 		workspaces: data ?? [],
 		isLoading,
 		error: error as Error | null,
-		selectedId,
-		select: setSelectedId,
+		selectedId: workspaceId,
+		select,
 		create,
 		rename,
 		remove,

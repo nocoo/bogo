@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { WorkspaceProvider, useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { useWorkspaceList } from "./use-workspace-list.js";
 
 const mockFetch = vi.fn();
@@ -27,7 +28,11 @@ function createWrapper() {
 		defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
 	});
 	return function Wrapper({ children }: { children: ReactNode }) {
-		return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+		return (
+			<QueryClientProvider client={queryClient}>
+				<WorkspaceProvider>{children}</WorkspaceProvider>
+			</QueryClientProvider>
+		);
 	};
 }
 
@@ -210,6 +215,38 @@ describe("useWorkspaceList", () => {
 
 			await waitFor(() => expect(result.current.mutationError).not.toBeNull());
 			await waitFor(() => expect(result.current.workspaces).toHaveLength(2));
+		});
+
+		it("restores selectedId when delete of selected workspace fails", async () => {
+			mockFetch.mockResolvedValue(ok([WS1, WS2]));
+			const { result } = renderHook(() => useWorkspaceList(), { wrapper: createWrapper() });
+			await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+			act(() => result.current.select("ws-1"));
+			expect(result.current.selectedId).toBe("ws-1");
+
+			mockFetch
+				.mockResolvedValueOnce(err(403, "FORBIDDEN", "Not allowed"))
+				.mockResolvedValueOnce(ok([WS1, WS2]));
+			act(() => result.current.remove("ws-1"));
+
+			await waitFor(() => expect(result.current.mutationError).not.toBeNull());
+			await waitFor(() => expect(result.current.selectedId).toBe("ws-1"));
+		});
+	});
+
+	describe("select writes to WorkspaceContext", () => {
+		it("select sets workspace in global context", async () => {
+			mockFetch.mockResolvedValue(ok([WS1, WS2]));
+			const { result } = renderHook(
+				() => ({ vm: useWorkspaceList(), ctx: useWorkspaceContext() }),
+				{ wrapper: createWrapper() },
+			);
+			await waitFor(() => expect(result.current.vm.isLoading).toBe(false));
+
+			act(() => result.current.vm.select("ws-1"));
+			expect(result.current.ctx.workspaceId).toBe("ws-1");
+			expect(result.current.ctx.workspace).toEqual(WS1);
 		});
 	});
 
