@@ -1,6 +1,6 @@
 import type { CustomFieldDefinition, FieldType } from "@bogo/shared";
 import { AlertCircle, ChevronDown, ChevronUp, Loader2, Plus, Trash2, X } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { FieldDefsVM } from "../../viewmodels/field/use-field-defs.js";
 
 const FIELD_TYPE_LABELS: Record<FieldType, string> = {
@@ -133,16 +133,20 @@ function CreateFieldForm({
 		if (!trimmed) {
 			return;
 		}
+		const parsedOptions = options
+			.split(",")
+			.map((o) => o.trim())
+			.filter(Boolean);
+		if (fieldType === "select" && parsedOptions.length === 0) {
+			return;
+		}
 		const input: { name: string; fieldType: FieldType; options?: string[]; required: boolean } = {
 			name: trimmed,
 			fieldType,
 			required,
 		};
-		if (fieldType === "select" && options.trim()) {
-			input.options = options
-				.split(",")
-				.map((o) => o.trim())
-				.filter(Boolean);
+		if (fieldType === "select") {
+			input.options = parsedOptions;
 		}
 		onSubmit(input);
 	}, [name, fieldType, options, required, onSubmit]);
@@ -224,7 +228,11 @@ function CreateFieldForm({
 				<button
 					type="button"
 					onClick={handleSubmit}
-					disabled={!name.trim() || isCreating}
+					disabled={
+						!name.trim() ||
+						isCreating ||
+						(fieldType === "select" && !options.split(",").some((o) => o.trim()))
+					}
 					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
 				>
 					{isCreating ? (
@@ -267,6 +275,10 @@ function FieldDefRow({
 }) {
 	const [editing, setEditing] = useState(false);
 	const [editName, setEditName] = useState(def.name);
+
+	useEffect(() => {
+		setEditName(def.name);
+	}, [def.name]);
 
 	const handleSave = useCallback(() => {
 		const trimmed = editName.trim();

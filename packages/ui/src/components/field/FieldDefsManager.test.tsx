@@ -283,5 +283,66 @@ describe("FieldDefsManager", () => {
 
 			expect(update).not.toHaveBeenCalled();
 		});
+
+		it("syncs editName when def.name changes after rerender", () => {
+			const vm = createVM({ defs: [DEF_TEXT] });
+			const { rerender } = render(<FieldDefsManager vm={vm} />);
+
+			const updatedDef = { ...DEF_TEXT, name: "Division" };
+			const vm2 = createVM({ defs: [updatedDef] });
+			rerender(<FieldDefsManager vm={vm2} />);
+
+			fireEvent.click(screen.getByLabelText("Edit Division"));
+			const input = screen.getByLabelText("Edit name for Division") as HTMLInputElement;
+			expect(input.value).toBe("Division");
+		});
+	});
+
+	describe("create select validation", () => {
+		it("disables create button for select with empty options", () => {
+			const vm = createVM();
+			render(<FieldDefsManager vm={vm} />);
+
+			fireEvent.click(screen.getByLabelText("Add field definition"));
+			fireEvent.change(screen.getByPlaceholderText("Field name"), {
+				target: { value: "Status" },
+			});
+			fireEvent.change(screen.getByLabelText("Type"), { target: { value: "select" } });
+
+			const createBtn = screen.getByText("Create") as HTMLButtonElement;
+			expect(createBtn.disabled).toBe(true);
+		});
+
+		it("does not call create for select with empty options on submit", () => {
+			const create = vi.fn();
+			const vm = createVM({ create });
+			render(<FieldDefsManager vm={vm} />);
+
+			fireEvent.click(screen.getByLabelText("Add field definition"));
+			fireEvent.change(screen.getByPlaceholderText("Field name"), {
+				target: { value: "Status" },
+			});
+			fireEvent.change(screen.getByLabelText("Type"), { target: { value: "select" } });
+			fireEvent.click(screen.getByText("Create"));
+
+			expect(create).not.toHaveBeenCalled();
+		});
+
+		it("enables create button for select with valid options", () => {
+			const vm = createVM();
+			render(<FieldDefsManager vm={vm} />);
+
+			fireEvent.click(screen.getByLabelText("Add field definition"));
+			fireEvent.change(screen.getByPlaceholderText("Field name"), {
+				target: { value: "Status" },
+			});
+			fireEvent.change(screen.getByLabelText("Type"), { target: { value: "select" } });
+			fireEvent.change(screen.getByPlaceholderText("Option 1, Option 2, ..."), {
+				target: { value: "Active, Inactive" },
+			});
+
+			const createBtn = screen.getByText("Create") as HTMLButtonElement;
+			expect(createBtn.disabled).toBe(false);
+		});
 	});
 });
