@@ -46,6 +46,11 @@ jobs:
       - name: Build shared + UI
         run: bun run build
 
+      - name: Apply D1 migrations
+        run: cd packages/worker && npx wrangler d1 migrations apply bogo --remote --env production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
       - name: Deploy Worker
         run: cd packages/worker && npx wrangler deploy --env production
         env:
@@ -104,6 +109,11 @@ jobs:
 
       - name: Build shared + UI
         run: bun run build
+
+      - name: Apply D1 migrations
+        run: cd packages/worker && npx wrangler d1 migrations apply bogo --remote --env production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Deploy Worker
         run: cd packages/worker && npx wrangler deploy --env production
