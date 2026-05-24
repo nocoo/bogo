@@ -8,11 +8,11 @@ import {
 	LogOut,
 	Monitor,
 	Mountain,
+	Network,
 	PanelLeft,
 	ScrollText,
 	Search,
 	Settings,
-	Users,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
@@ -37,7 +37,7 @@ const NAV_GROUPS: NavGroup[] = [
 			{ title: "Dashboard", icon: LayoutDashboard, path: "/" },
 			{ title: "Workspaces", icon: Building2, path: "/workspaces" },
 			{ title: "Analytics", icon: BarChart3, path: "/analytics" },
-			{ title: "Users", icon: Users, path: "/users" },
+			{ title: "People", icon: Network, path: "/users" },
 		],
 	},
 	{
