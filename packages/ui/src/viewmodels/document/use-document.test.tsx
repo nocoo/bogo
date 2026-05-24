@@ -150,7 +150,9 @@ describe("useDocument", () => {
 				.mockResolvedValueOnce(ok(DOC))
 				.mockResolvedValueOnce(ok([VERSION_1]));
 
-			act(() => result.current.vm.update({ title: "" }));
+			act(() => {
+				result.current.vm.update({ title: "" });
+			});
 
 			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
 			expect(result.current.vm.mutationError?.message).toContain("Title too long");
@@ -186,7 +188,9 @@ describe("useDocument", () => {
 			.mockResolvedValueOnce(ok(DOC))
 			.mockResolvedValueOnce(ok([VERSION_1]));
 
-		act(() => result.current.vm.update({ title: "" }));
+		act(() => {
+			result.current.vm.update({ title: "" });
+		});
 
 		await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
 

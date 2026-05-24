@@ -107,7 +107,7 @@ describe("DocumentEditor", () => {
 		});
 		fireEvent.click(screen.getByLabelText("Save document"));
 
-		expect(update).toHaveBeenCalledWith({ title: "New Title" });
+		expect(update).toHaveBeenCalledWith({ title: "New Title" }, expect.any(Object));
 	});
 
 	it("calls update with content when content changes", () => {
@@ -120,7 +120,7 @@ describe("DocumentEditor", () => {
 		});
 		fireEvent.click(screen.getByLabelText("Save document"));
 
-		expect(update).toHaveBeenCalledWith({ content: "New body" });
+		expect(update).toHaveBeenCalledWith({ content: "New body" }, expect.any(Object));
 	});
 
 	it("does not call update when dirty but no actual changes", () => {
@@ -235,5 +235,59 @@ describe("DocumentEditor", () => {
 
 		const preview = screen.getByLabelText("Markdown preview");
 		expect(preview.innerHTML).toContain("<h2>New heading</h2>");
+	});
+
+	it("retains draft and dirty state when save fails", () => {
+		const update = vi.fn();
+		const vm = createVM({ update, mutationError: new Error("Conflict") });
+		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+
+		fireEvent.change(screen.getByLabelText("Document title"), {
+			target: { value: "Edited Title" },
+		});
+		fireEvent.click(screen.getByLabelText("Save document"));
+
+		expect(update).toHaveBeenCalledWith({ title: "Edited Title" }, expect.any(Object));
+		expect((screen.getByLabelText("Document title") as HTMLInputElement).value).toBe(
+			"Edited Title",
+		);
+		expect(screen.getByText("Unsaved changes")).toBeTruthy();
+		const btn = screen.getByLabelText("Save document") as HTMLButtonElement;
+		expect(btn.disabled).toBe(false);
+	});
+
+	it("clears dirty after successful save", () => {
+		const update = vi.fn().mockImplementation((_input, opts) => {
+			opts?.onSuccess?.();
+		});
+		const vm = createVM({ update });
+		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+
+		fireEvent.change(screen.getByLabelText("Document title"), {
+			target: { value: "New Title" },
+		});
+		expect(screen.getByText("Unsaved changes")).toBeTruthy();
+
+		fireEvent.click(screen.getByLabelText("Save document"));
+
+		expect(screen.queryByText("Unsaved changes")).toBeNull();
+		const btn = screen.getByLabelText("Save document") as HTMLButtonElement;
+		expect(btn.disabled).toBe(true);
+	});
+
+	it("allows retry after save failure", () => {
+		const update = vi.fn();
+		const vm = createVM({ update });
+		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+
+		fireEvent.change(screen.getByLabelText("Document title"), {
+			target: { value: "Retry Title" },
+		});
+		fireEvent.click(screen.getByLabelText("Save document"));
+		expect(update).toHaveBeenCalledTimes(1);
+
+		fireEvent.click(screen.getByLabelText("Save document"));
+		expect(update).toHaveBeenCalledTimes(2);
+		expect(update).toHaveBeenLastCalledWith({ title: "Retry Title" }, expect.any(Object));
 	});
 });

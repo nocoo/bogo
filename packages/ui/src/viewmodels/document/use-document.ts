@@ -11,7 +11,7 @@ export interface DocumentVM {
 	isLoadingVersions: boolean;
 	error: Error | null;
 
-	update: (input: UpdateDocumentInput) => void;
+	update: (input: UpdateDocumentInput, opts?: { onSuccess?: () => void }) => void;
 	isUpdating: boolean;
 	mutationError: Error | null;
 	clearMutationError: () => void;
@@ -59,7 +59,8 @@ export function useDocument(id: string): DocumentVM {
 	});
 
 	const update = useCallback(
-		(input: UpdateDocumentInput) => updateMutation.mutate({ id, input }),
+		(input: UpdateDocumentInput, opts?: { onSuccess?: () => void }) =>
+			updateMutation.mutate({ id, input }, { onSuccess: opts?.onSuccess }),
 		[updateMutation, id],
 	);
 	const clearMutationError = useCallback(() => setMutationError(null), []);

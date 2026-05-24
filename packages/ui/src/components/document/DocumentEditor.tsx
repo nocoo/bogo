@@ -16,11 +16,11 @@ export function DocumentEditor({
 	const [dirty, setDirty] = useState(false);
 	const [tab, setTab] = useState<"edit" | "preview">("edit");
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: only sync from server when not dirty (prevents rollback from overwriting user draft)
 	useEffect(() => {
-		if (vm.document) {
+		if (vm.document && !dirty) {
 			setTitle(vm.document.title);
 			setContent(vm.document.content);
-			setDirty(false);
 		}
 	}, [vm.document]);
 
@@ -46,8 +46,7 @@ export function DocumentEditor({
 			input.content = content;
 		}
 		if (Object.keys(input).length > 0) {
-			vm.update(input);
-			setDirty(false);
+			vm.update(input, { onSuccess: () => setDirty(false) });
 		}
 	}, [dirty, title, content, vm]);
 
