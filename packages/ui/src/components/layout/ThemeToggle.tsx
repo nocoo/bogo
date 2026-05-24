@@ -6,7 +6,7 @@ type Theme = "light" | "dark" | "system";
 const THEME_CHANGE_EVENT = "theme-change";
 
 function getStoredTheme(): Theme {
-	return (localStorage.getItem("theme") as Theme) || "system";
+	return (window.localStorage.getItem("theme") as Theme) || "system";
 }
 
 function getSystemTheme(): "light" | "dark" {
@@ -17,7 +17,7 @@ function applyTheme(theme: Theme) {
 	const applied = theme === "system" ? getSystemTheme() : theme;
 	document.documentElement.classList.toggle("dark", applied === "dark");
 	document.documentElement.classList.toggle("light", applied !== "dark");
-	localStorage.setItem("theme", theme);
+	window.localStorage.setItem("theme", theme);
 	window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
 }
 
