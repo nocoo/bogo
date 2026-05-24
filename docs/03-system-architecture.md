@@ -79,10 +79,12 @@ Browser                  CF Access                Worker
 ```
 
 **Key points:**
-- CF Access sits in front of the entire domain — no unauthenticated requests reach the Worker
+- CF Access protects the domain with a bypass rule for `/api/live` (health check must be reachable by uptime monitors without auth)
+- All other routes require a valid CF Access JWT in the `CF-Authorization` cookie
 - JWT verification uses CF's published JWKS endpoint (cached)
 - `owner_id` comes from the `sub` claim (stable identifier)
 - The Worker never stores passwords or sessions — auth is fully delegated
+- The Worker's auth middleware skips `/api/live` and applies to all other `/api/*` routes
 
 ## API Design
 
@@ -94,7 +96,7 @@ All API routes are prefixed with `/api`.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/live` | Health check (no auth required) |
+| GET | `/api/live` | Health check (CF Access bypass + no Worker auth) |
 | GET | `/api/workspaces` | List user's workspaces |
 | POST | `/api/workspaces` | Create workspace |
 | PUT | `/api/workspaces/:id` | Update workspace |
@@ -135,11 +137,13 @@ All API routes are prefixed with `/api`.
 
 ### Workspace Scoping Middleware
 
+The path parameter `:wid` is the only source of workspace identity. No body or query parameter can supply or override `workspace_id`. The middleware validates ownership before any handler executes.
+
 ```typescript
 // Pseudocode — runs before every /api/w/:wid/* handler
 async function workspaceGuard(c: Context, next: Next) {
   const userId = c.get("userId"); // from auth middleware
-  const wid = c.req.param("wid");
+  const wid = c.req.param("wid"); // path param — validated against ownership
 
   const ws = await db.get("SELECT id FROM workspaces WHERE id = ? AND owner_id = ?", [wid, userId]);
   if (!ws) return c.json({ error: { code: "WORKSPACE_NOT_FOUND", message: "..." } }, 404);
@@ -157,10 +161,11 @@ UI                          Worker                         D1
  ├─ PUT /api/w/:wid/docs/:id ▶│                             │
  │   { title, content }       │                             │
  │                            ├─ BEGIN batch ────────────────▶│
+ │                            │  next_ver = version + 1      │
  │                            │  INSERT document_versions    │
- │                            │    (snapshot current state)  │
+ │                            │    (ver=next_ver, NEW content)│
  │                            │  UPDATE documents            │
- │                            │    (new content, version++)  │
+ │                            │    (content=new, ver=next_ver)│
  │                            ├─ COMMIT ────────────────────▶│
  │                            │                             │
  │◀──── 200 { data: doc } ───┤                             │

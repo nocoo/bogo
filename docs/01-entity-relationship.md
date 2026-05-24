@@ -36,9 +36,13 @@ A node in the workspace's org tree. Has one direct manager and optionally one do
 | updated_at | timestamp | |
 
 **Constraints:**
-- Exactly one person per workspace with `is_root = true` and `manager_id = NULL`
-- `manager_id` forms a strict tree (no cycles)
-- `dotted_manager_id` is advisory — not enforced as tree
+- Exactly one person per workspace with `is_root = true` and `manager_id = NULL` (DB: partial unique index + CHECK)
+- Every non-root person MUST have a non-NULL `manager_id` (DB: CHECK constraint)
+- `manager_id` forms a strict tree (no cycles, enforced by API ancestry walk)
+- `manager_id` references must be within the same workspace (DB: composite FK)
+- Deleting a person with reports is rejected (DB: ON DELETE RESTRICT); children must be reassigned first
+- `dotted_manager_id` is advisory — same-workspace composite FK, but no tree enforcement
+- Root person cannot be deleted or moved; created atomically with the workspace
 
 ### Custom Field Definition
 
@@ -51,6 +55,7 @@ Workspace-global schema for additional person attributes.
 | name | string | Field label (e.g. "Department", "Start Date") |
 | field_type | enum | `text`, `number`, `date`, `select`, `boolean` |
 | options | JSON? | For `select` type: array of allowed values |
+| default_value | string? | Used to backfill when adding a required field to existing persons |
 | sort_order | integer | Display ordering |
 | required | boolean | Whether field must have a value |
 | created_at | timestamp | |
@@ -99,16 +104,18 @@ A versioned Markdown document associated with one or more people.
 
 ### Document Version
 
-Immutable history of document edits.
+Immutable, append-only history. Each row is a **complete snapshot** of the document at that version number (not a delta).
 
 | Field | Type | Description |
 |-------|------|-------------|
 | id | UUID | Primary key |
 | document_id | UUID | FK → Document |
-| version | integer | Monotonically increasing |
+| version | integer | Monotonically increasing, starts at 1 |
 | title | string | Title at this version |
 | content | text | Full Markdown content at this version |
 | created_at | timestamp | When this version was saved |
+
+**Lifecycle:** version=1 is created with the document. Each edit inserts a new version row with the **new** content and increments `documents.version`. The `documents.content` field is a denormalized cache of the latest version.
 
 ### Document–Person (Join)
 
@@ -156,8 +163,9 @@ CF Access User
 
 ## Invariants
 
-1. **One root per workspace** — enforced at DB level (partial unique index) and API level.
-2. **Tree integrity** — `manager_id` cannot create cycles. Validated on create/move via ancestry walk (bounded by max depth).
-3. **Workspace isolation** — all queries scoped by `workspace_id`. No cross-workspace references.
-4. **Version immutability** — document versions are append-only, never modified.
-5. **At least one person** — every document must be associated with at least one person.
+1. **Exactly one root per workspace** — DB: partial unique index (at most one) + CHECK (root ⟺ manager_id IS NULL). API: workspace creation atomically inserts root; root deletion always rejected.
+2. **No orphans** — Every non-root person has a non-NULL manager_id (CHECK constraint). Deleting a person with children is rejected (ON DELETE RESTRICT); API must reassign children first.
+3. **Tree integrity** — `manager_id` cannot create cycles. Validated on move via ancestry walk (bounded at depth 50). Root cannot be moved.
+4. **Workspace isolation** — All cross-table references use composite FKs including `workspace_id`. No cross-workspace references are structurally possible at the DB level.
+5. **Version immutability** — document versions are append-only, never modified. Each row is a complete snapshot.
+6. **At least one person** — every document must be associated with at least one person (API-enforced).

@@ -276,10 +276,11 @@ const NAV_GROUPS: NavGroup[] = [
 
 1. User edits document content
 2. Debounce timer (2s) triggers save
-3. Worker snapshots current content → `document_versions`
-4. Worker updates `documents` with new content + increments version
-5. UI updates version indicator
-6. Version history panel shows new entry
+3. Worker computes `next_version = current + 1`
+4. Worker inserts `document_versions` row with **new** content as a complete snapshot
+5. Worker updates `documents` cache (content, version, updated_at)
+6. UI updates version indicator
+7. Version history panel shows new entry (each row = full snapshot, diffable)
 
 ### Bulk Operations (Future)
 
