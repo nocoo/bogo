@@ -63,7 +63,10 @@
 			".wrangler",
 			".claude/skills",
 			"packages/worker/static",
-			"scripts"
+			"scripts",
+			"**/test-results",
+			"**/playwright-report",
+			"**/blob-report"
 		]
 	}
 }
