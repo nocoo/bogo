@@ -6,6 +6,10 @@ vi.mock("../viewmodels/document/use-document.js", () => ({
 	useDocument: vi.fn(),
 }));
 
+vi.mock("../viewmodels/person/use-person-list.js", () => ({
+	usePersonList: vi.fn(),
+}));
+
 vi.mock("../contexts/workspace-context.js", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("../contexts/workspace-context.js")>();
 	return {
@@ -14,20 +18,14 @@ vi.mock("../contexts/workspace-context.js", async (importOriginal) => {
 	};
 });
 
-vi.mock("@tanstack/react-query", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("@tanstack/react-query")>();
-	return {
-		...actual,
-		useQuery: vi.fn().mockReturnValue({ data: [], isLoading: false }),
-	};
-});
-
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
 import { useDocument } from "../viewmodels/document/use-document.js";
+import { usePersonList } from "../viewmodels/person/use-person-list.js";
 import { DocumentEditorPage } from "./DocumentEditorPage.js";
 
 const mockUseWorkspaceContext = vi.mocked(useWorkspaceContext);
 const mockUseDocument = vi.mocked(useDocument);
+const mockUsePersonList = vi.mocked(usePersonList);
 
 function baseVM(overrides = {}) {
 	return {
@@ -52,6 +50,23 @@ function baseVM(overrides = {}) {
 	};
 }
 
+function basePersonListVM() {
+	return {
+		persons: [],
+		isLoading: false,
+		error: null,
+		create: vi.fn(),
+		update: vi.fn(),
+		move: vi.fn(),
+		remove: vi.fn(),
+		isCreating: false,
+		isMoving: false,
+		isRemoving: false,
+		mutationError: null,
+		clearMutationError: vi.fn(),
+	};
+}
+
 function renderAtPath(path: string) {
 	return render(
 		<MemoryRouter initialEntries={[path]}>
@@ -70,6 +85,7 @@ describe("DocumentEditorPage", () => {
 			switchWorkspace: vi.fn(),
 		});
 		mockUseDocument.mockReturnValue(baseVM());
+		mockUsePersonList.mockReturnValue(basePersonListVM());
 
 		renderAtPath("/documents/doc-1");
 		expect(screen.getByText(/Select a workspace/)).toBeTruthy();
@@ -81,6 +97,7 @@ describe("DocumentEditorPage", () => {
 			workspace: null,
 			switchWorkspace: vi.fn(),
 		});
+		mockUsePersonList.mockReturnValue(basePersonListVM());
 
 		mockUseDocument.mockImplementation((id: string) => {
 			return baseVM({

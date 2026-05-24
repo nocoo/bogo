@@ -51,6 +51,8 @@ function renderComponent(overrides: Partial<Parameters<typeof DocumentPersons>[0
 		persons: LINKED,
 		allPersons: PERSONS,
 		isLoading: false,
+		allPersonsLoading: false,
+		allPersonsError: null,
 		onAdd: vi.fn(),
 		isAdding: false,
 		onRemove: vi.fn(),
@@ -159,5 +161,16 @@ describe("DocumentPersons", () => {
 		fireEvent.change(select, { target: { value: "p-2" } });
 		fireEvent.click(screen.getByLabelText("Add person"));
 		expect(select.value).toBe("");
+	});
+
+	it("shows loading indicator and hides add selector when allPersonsLoading", () => {
+		renderComponent({ allPersonsLoading: true });
+		expect(screen.getByLabelText("Loading people")).toBeTruthy();
+		expect(screen.queryByLabelText("Select person to add")).toBeNull();
+	});
+
+	it("shows allPersonsError message", () => {
+		renderComponent({ allPersonsError: new Error("Network failure") });
+		expect(screen.getByText("Failed to load people: Network failure")).toBeTruthy();
 	});
 });

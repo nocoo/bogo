@@ -9,10 +9,14 @@ import { VersionDiff } from "./VersionDiff.js";
 export function DocumentEditor({
 	vm,
 	allPersons,
+	allPersonsLoading,
+	allPersonsError,
 	onBack,
 }: {
 	vm: DocumentVM;
 	allPersons: Person[];
+	allPersonsLoading?: boolean;
+	allPersonsError?: Error | null;
 	onBack: () => void;
 }) {
 	const [title, setTitle] = useState("");
@@ -175,6 +179,8 @@ export function DocumentEditor({
 				persons={vm.persons}
 				allPersons={allPersons}
 				isLoading={vm.isLoadingPersons}
+				allPersonsLoading={allPersonsLoading ?? false}
+				allPersonsError={allPersonsError ?? null}
 				onAdd={vm.addPerson}
 				isAdding={vm.isAddingPerson}
 				onRemove={vm.removePerson}

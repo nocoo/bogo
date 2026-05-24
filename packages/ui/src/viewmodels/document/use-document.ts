@@ -93,9 +93,7 @@ export function useDocument(id: string): DocumentVM {
 			return { previous };
 		},
 		onError: (err: Error, _vars, context) => {
-			if (context?.previous) {
-				queryClient.setQueryData(documentKeys.persons(wid, id), context.previous);
-			}
+			queryClient.setQueryData(documentKeys.persons(wid, id), context?.previous ?? []);
 			setPersonError(err);
 		},
 		onSettled: () => {
@@ -116,9 +114,7 @@ export function useDocument(id: string): DocumentVM {
 			return { previous };
 		},
 		onError: (err: Error, _vars, context) => {
-			if (context?.previous) {
-				queryClient.setQueryData(documentKeys.persons(wid, id), context.previous);
-			}
+			queryClient.setQueryData(documentKeys.persons(wid, id), context?.previous ?? []);
 			setPersonError(err);
 		},
 		onSettled: () => {

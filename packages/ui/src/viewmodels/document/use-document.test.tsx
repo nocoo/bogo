@@ -305,4 +305,29 @@ describe("useDocument", () => {
 			expect(result.current.vm.persons).toHaveLength(1);
 		});
 	});
+
+	describe("addPerson with undefined cache", () => {
+		it("restores empty array on failure when persons cache is undefined", async () => {
+			mockFetch
+				.mockResolvedValueOnce(ok(DOC))
+				.mockResolvedValueOnce(ok([VERSION_1]))
+				.mockResolvedValueOnce(ok([]));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.document).not.toBeNull());
+			await waitFor(() => expect(result.current.vm.persons).toHaveLength(0));
+
+			mockFetch
+				.mockResolvedValueOnce(err(400, "INVALID_PERSON", "Person not found"))
+				.mockResolvedValueOnce(ok([]));
+
+			act(() => result.current.vm.addPerson({ personId: "p-bad" }));
+
+			await waitFor(() => expect(result.current.vm.personError).not.toBeNull());
+			expect(result.current.vm.personError?.message).toContain("Person not found");
+			await waitFor(() => expect(result.current.vm.persons).toHaveLength(0));
+		});
+	});
 });
