@@ -17,6 +17,15 @@ import { PersonNode } from "./PersonNode.js";
 
 const nodeTypes = { person: PersonNode };
 
+export function getNodeCenter(nodeId: string): { x: number; y: number } | null {
+	const el = document.querySelector(`[data-id="${nodeId}"]`) as HTMLElement | null;
+	if (!el) {
+		return null;
+	}
+	const rect = el.getBoundingClientRect();
+	return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+}
+
 function PersonTreeInner() {
 	const vm = usePersonTree();
 	const { workspaceId } = useWorkspaceContext();
@@ -36,22 +45,18 @@ function PersonTreeInner() {
 
 	const handleNodeDragStop = useCallback(
 		(_: React.MouseEvent, node: { id: string }, _nodes: unknown[]) => {
-			const el = document.querySelector(`[data-id="${node.id}"]`) as HTMLElement | null;
-			if (!el) {
+			const screenCenter = getNodeCenter(node.id);
+			if (!screenCenter) {
 				return;
 			}
-			const rect = el.getBoundingClientRect();
-			const flowPos = screenToFlowPosition({
-				x: rect.left + rect.width / 2,
-				y: rect.top + rect.height / 2,
-			});
+			const flowPos = screenToFlowPosition(screenCenter);
 			vm.handleDrop(node.id, flowPos);
 		},
 		[vm, screenToFlowPosition],
 	);
 
 	const handleCreate = useCallback(
-		(name: string, managerId: string | null) => {
+		(name: string, managerId: string) => {
 			vm.create(name, managerId);
 			setShowCreate(false);
 		},
@@ -90,21 +95,7 @@ function PersonTreeInner() {
 	}
 
 	if (vm.persons.length === 0) {
-		return (
-			<div className="relative h-full">
-				<EmptyPersonState onAdd={() => setShowCreate(true)} />
-				{showCreate && (
-					<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-						<CreatePersonDialog
-							persons={vm.persons}
-							onSubmit={handleCreate}
-							onClose={() => setShowCreate(false)}
-							isCreating={vm.isCreating}
-						/>
-					</div>
-				)}
-			</div>
-		);
+		return <EmptyPersonState />;
 	}
 
 	return (

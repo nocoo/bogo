@@ -9,16 +9,17 @@ export function CreatePersonDialog({
 	isCreating,
 }: {
 	persons: Person[];
-	onSubmit: (name: string, managerId: string | null) => void;
+	onSubmit: (name: string, managerId: string) => void;
 	onClose: () => void;
 	isCreating: boolean;
 }) {
+	const root = persons.find((p) => p.isRoot);
 	const [name, setName] = useState("");
-	const [managerId, setManagerId] = useState<string | null>(null);
+	const [managerId, setManagerId] = useState<string>(root?.id ?? persons[0]?.id ?? "");
 
 	const handleSubmit = useCallback(() => {
 		const trimmed = name.trim();
-		if (trimmed) {
+		if (trimmed && managerId) {
 			onSubmit(trimmed, managerId);
 		}
 	}, [name, managerId, onSubmit]);
@@ -68,11 +69,10 @@ export function CreatePersonDialog({
 					</label>
 					<select
 						id="person-manager"
-						value={managerId ?? ""}
-						onChange={(e) => setManagerId(e.target.value || null)}
+						value={managerId}
+						onChange={(e) => setManagerId(e.target.value)}
 						className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary"
 					>
-						<option value="">None (root)</option>
 						{persons.map((p) => (
 							<option key={p.id} value={p.id}>
 								{p.name}
@@ -85,7 +85,7 @@ export function CreatePersonDialog({
 					<button
 						type="button"
 						onClick={handleSubmit}
-						disabled={!name.trim() || isCreating}
+						disabled={!(name.trim() && managerId) || isCreating}
 						className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
 					>
 						{isCreating ? (
@@ -108,19 +108,14 @@ export function CreatePersonDialog({
 	);
 }
 
-export function EmptyPersonState({ onAdd }: { onAdd: () => void }) {
+export function EmptyPersonState() {
 	return (
 		<div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
 			<UserX className="h-12 w-12 text-muted-foreground" strokeWidth={1} />
 			<p className="mt-4 text-sm text-muted-foreground">No people in this workspace yet</p>
-			<button
-				type="button"
-				onClick={onAdd}
-				className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-			>
-				<Plus className="h-4 w-4" strokeWidth={1.5} />
-				Add first person
-			</button>
+			<p className="mt-1 text-xs text-muted-foreground">
+				The workspace root person is created automatically
+			</p>
 		</div>
 	);
 }

@@ -21,6 +21,7 @@ export default defineConfig({
 				"src/viewmodels/**/*.ts",
 				"src/contexts/**/*.tsx",
 				"src/components/workspace/**/*.tsx",
+				"src/components/person/**/*.tsx",
 			],
 			exclude: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.d.ts", "src/**/index.ts"],
 			thresholds: {

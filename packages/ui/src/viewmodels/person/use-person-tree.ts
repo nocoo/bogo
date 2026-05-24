@@ -24,7 +24,10 @@ export interface PersonTreeVM {
 	clearDropError: () => void;
 
 	create: (name: string, managerId: string | null) => void;
-	update: (id: string, fields: { name?: string; title?: string }) => void;
+	update: (
+		id: string,
+		fields: { name?: string; title?: string; dottedManagerId?: string | null },
+	) => void;
 	remove: (id: string) => void;
 
 	isCreating: boolean;
