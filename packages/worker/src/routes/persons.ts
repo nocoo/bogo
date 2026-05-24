@@ -54,6 +54,25 @@ personRoutes.post("/", async (c) => {
 		);
 	}
 
+	if (input.dottedManagerId) {
+		const dotted = await c.env.DB.prepare(
+			"SELECT id FROM persons WHERE id = ? AND workspace_id = ?",
+		)
+			.bind(input.dottedManagerId, wid)
+			.first();
+		if (!dotted) {
+			return c.json(
+				{
+					error: {
+						code: "INVALID_DOTTED_MANAGER",
+						message: "Dotted manager not found in workspace",
+					},
+				},
+				400,
+			);
+		}
+	}
+
 	const id = generateId();
 	const now = new Date().toISOString();
 
@@ -134,6 +153,24 @@ personRoutes.put("/:id", async (c) => {
 		values.push(parsed.data.title);
 	}
 	if (parsed.data.dottedManagerId !== undefined) {
+		if (parsed.data.dottedManagerId !== null) {
+			const dotted = await c.env.DB.prepare(
+				"SELECT id FROM persons WHERE id = ? AND workspace_id = ?",
+			)
+				.bind(parsed.data.dottedManagerId, wid)
+				.first();
+			if (!dotted) {
+				return c.json(
+					{
+						error: {
+							code: "INVALID_DOTTED_MANAGER",
+							message: "Dotted manager not found in workspace",
+						},
+					},
+					400,
+				);
+			}
+		}
 		sets.push("dotted_manager_id = ?");
 		values.push(parsed.data.dottedManagerId);
 	}

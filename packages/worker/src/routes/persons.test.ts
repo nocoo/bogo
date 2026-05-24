@@ -115,6 +115,25 @@ describe("person routes", () => {
 			expect(json.error.code).toBe("INVALID_PARENT");
 		});
 
+		it("rejects invalid dottedManagerId", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: UUID1 } }, // parent exists
+				{ type: "first", value: null }, // dotted manager NOT found
+			]);
+
+			const res = await app.fetch(
+				makeRequest("POST", BASE, {
+					name: "Engineer",
+					managerId: UUID1,
+					dottedManagerId: UUID2,
+				}),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_DOTTED_MANAGER");
+		});
+
 		it("rejects empty name", async () => {
 			const { db } = createMockD1();
 			const res = await app.fetch(makeRequest("POST", BASE, { name: "", managerId: null }), {
@@ -227,6 +246,21 @@ describe("person routes", () => {
 				ENVIRONMENT: "test",
 			});
 			expect(res.status).toBe(400);
+		});
+
+		it("rejects invalid dottedManagerId in update", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "p-1" } }, // exists check
+				{ type: "first", value: null }, // dotted manager NOT found
+			]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/p-1`, { dottedManagerId: UUID2 }), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_DOTTED_MANAGER");
 		});
 	});
 
