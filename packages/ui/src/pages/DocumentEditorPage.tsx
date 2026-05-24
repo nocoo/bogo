@@ -1,6 +1,8 @@
 import { DocumentEditor } from "@/components/document/DocumentEditor";
 import { useWorkspaceContext } from "@/contexts/workspace-context";
+import { personModel } from "@/models/person.model";
 import { useDocument } from "@/viewmodels/document/use-document";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
 
 export function DocumentEditorPage() {
@@ -8,6 +10,7 @@ export function DocumentEditorPage() {
 	const { id } = useParams<{ id: string }>();
 	const vm = useDocument(id ?? "");
 	const navigate = useNavigate();
+	const { data: allPersons } = useQuery(personModel.listQueryOptions(workspaceId ?? ""));
 
 	if (!workspaceId) {
 		return (
@@ -18,6 +21,11 @@ export function DocumentEditorPage() {
 	}
 
 	return (
-		<DocumentEditor key={`${workspaceId}:${id}`} vm={vm} onBack={() => navigate("/documents")} />
+		<DocumentEditor
+			key={`${workspaceId}:${id}`}
+			vm={vm}
+			allPersons={allPersons ?? []}
+			onBack={() => navigate("/documents")}
+		/>
 	);
 }

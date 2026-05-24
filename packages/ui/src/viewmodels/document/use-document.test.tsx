@@ -214,4 +214,95 @@ describe("useDocument", () => {
 
 		await waitFor(() => expect(result.current.vm.isUpdating).toBe(false));
 	});
+
+	describe("addPerson", () => {
+		it("optimistically adds person and settles", async () => {
+			mockFetch
+				.mockResolvedValueOnce(ok(DOC))
+				.mockResolvedValueOnce(ok([VERSION_1]))
+				.mockResolvedValueOnce(ok([]));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.document).not.toBeNull());
+			await waitFor(() => expect(result.current.vm.persons).toHaveLength(0));
+
+			const linked = [
+				{ workspaceId: "ws-1", documentId: "doc-1", personId: "p-1", role: "subject" },
+			];
+			mockFetch.mockResolvedValueOnce(ok({ added: true })).mockResolvedValueOnce(ok(linked));
+
+			act(() => result.current.vm.addPerson({ personId: "p-1" }));
+
+			await waitFor(() => expect(result.current.vm.persons).toHaveLength(1));
+			expect(result.current.vm.persons[0].personId).toBe("p-1");
+		});
+
+		it("rolls back on add failure", async () => {
+			mockFetch
+				.mockResolvedValueOnce(ok(DOC))
+				.mockResolvedValueOnce(ok([VERSION_1]))
+				.mockResolvedValueOnce(ok([]));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.document).not.toBeNull());
+
+			mockFetch
+				.mockResolvedValueOnce(err(409, "DUPLICATE", "Already linked"))
+				.mockResolvedValueOnce(ok([]));
+
+			act(() => result.current.vm.addPerson({ personId: "p-1" }));
+
+			await waitFor(() => expect(result.current.vm.personError).not.toBeNull());
+			expect(result.current.vm.personError?.message).toContain("Already linked");
+			expect(result.current.vm.persons).toHaveLength(0);
+		});
+	});
+
+	describe("removePerson", () => {
+		const LINKED = [{ workspaceId: "ws-1", documentId: "doc-1", personId: "p-1", role: "subject" }];
+
+		it("optimistically removes person and settles", async () => {
+			mockFetch
+				.mockResolvedValueOnce(ok(DOC))
+				.mockResolvedValueOnce(ok([VERSION_1]))
+				.mockResolvedValueOnce(ok(LINKED));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.persons).toHaveLength(1));
+
+			mockFetch.mockResolvedValueOnce(ok({ removed: true })).mockResolvedValueOnce(ok([]));
+
+			act(() => result.current.vm.removePerson("p-1"));
+
+			await waitFor(() => expect(result.current.vm.persons).toHaveLength(0));
+		});
+
+		it("rolls back on remove failure", async () => {
+			mockFetch
+				.mockResolvedValueOnce(ok(DOC))
+				.mockResolvedValueOnce(ok([VERSION_1]))
+				.mockResolvedValueOnce(ok(LINKED));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.persons).toHaveLength(1));
+
+			mockFetch
+				.mockResolvedValueOnce(err(404, "NOT_FOUND", "Association not found"))
+				.mockResolvedValueOnce(ok(LINKED));
+
+			act(() => result.current.vm.removePerson("p-1"));
+
+			await waitFor(() => expect(result.current.vm.personError).not.toBeNull());
+			expect(result.current.vm.personError?.message).toContain("Association not found");
+			expect(result.current.vm.persons).toHaveLength(1);
+		});
+	});
 });

@@ -21,13 +21,21 @@ function createVM(overrides: Partial<DocumentVM> = {}): DocumentVM {
 			updatedAt: "2026-01-01",
 		},
 		versions: [],
+		persons: [],
 		isLoading: false,
 		isLoadingVersions: false,
+		isLoadingPersons: false,
 		error: null,
 		update: vi.fn(),
 		isUpdating: false,
 		mutationError: null,
 		clearMutationError: vi.fn(),
+		addPerson: vi.fn(),
+		isAddingPerson: false,
+		removePerson: vi.fn(),
+		isRemovingPerson: false,
+		personError: null,
+		clearPersonError: vi.fn(),
 		...overrides,
 	};
 }
@@ -35,25 +43,25 @@ function createVM(overrides: Partial<DocumentVM> = {}): DocumentVM {
 describe("DocumentEditor", () => {
 	it("shows loading state", () => {
 		const vm = createVM({ document: null, isLoading: true });
-		const { container } = render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		const { container } = render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		expect(container.querySelector(".animate-spin")).not.toBeNull();
 	});
 
 	it("shows error state", () => {
 		const vm = createVM({ document: null, error: new Error("Not found") });
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		expect(screen.getByText(/Not found/)).toBeTruthy();
 	});
 
 	it("shows not found when document is null", () => {
 		const vm = createVM({ document: null });
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		expect(screen.getByText("Document not found")).toBeTruthy();
 	});
 
 	it("renders title and content from document", () => {
 		const vm = createVM();
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		expect(screen.getByLabelText("Document title")).toBeTruthy();
 		expect((screen.getByLabelText("Document title") as HTMLInputElement).value).toBe("Q1 Report");
 		expect((screen.getByLabelText("Document content") as HTMLTextAreaElement).value).toBe(
@@ -63,28 +71,28 @@ describe("DocumentEditor", () => {
 
 	it("shows version number", () => {
 		const vm = createVM();
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		expect(screen.getByText("v1")).toBeTruthy();
 	});
 
 	it("calls onBack when back button clicked", () => {
 		const onBack = vi.fn();
 		const vm = createVM();
-		render(<DocumentEditor vm={vm} onBack={onBack} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={onBack} />);
 		fireEvent.click(screen.getByLabelText("Back to documents"));
 		expect(onBack).toHaveBeenCalled();
 	});
 
 	it("disables save when not dirty", () => {
 		const vm = createVM();
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		const btn = screen.getByLabelText("Save document") as HTMLButtonElement;
 		expect(btn.disabled).toBe(true);
 	});
 
 	it("enables save after editing title", () => {
 		const vm = createVM();
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		fireEvent.change(screen.getByLabelText("Document title"), {
 			target: { value: "Updated Title" },
 		});
@@ -94,7 +102,7 @@ describe("DocumentEditor", () => {
 
 	it("shows unsaved changes indicator", () => {
 		const vm = createVM();
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		fireEvent.change(screen.getByLabelText("Document content"), {
 			target: { value: "New content" },
 		});
@@ -104,7 +112,7 @@ describe("DocumentEditor", () => {
 	it("calls update with only changed fields on save", () => {
 		const update = vi.fn();
 		const vm = createVM({ update });
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 
 		fireEvent.change(screen.getByLabelText("Document title"), {
 			target: { value: "New Title" },
@@ -117,7 +125,7 @@ describe("DocumentEditor", () => {
 	it("calls update with content when content changes", () => {
 		const update = vi.fn();
 		const vm = createVM({ update });
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 
 		fireEvent.change(screen.getByLabelText("Document content"), {
 			target: { value: "New body" },
@@ -130,7 +138,7 @@ describe("DocumentEditor", () => {
 	it("does not call update when dirty but no actual changes", () => {
 		const update = vi.fn();
 		const vm = createVM({ update });
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 
 		fireEvent.change(screen.getByLabelText("Document title"), {
 			target: { value: "Q1 Report" },
@@ -146,7 +154,7 @@ describe("DocumentEditor", () => {
 			mutationError: new Error("Conflict"),
 			clearMutationError,
 		});
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		expect(screen.getByText(/Conflict/)).toBeTruthy();
 
 		fireEvent.click(screen.getByLabelText("Dismiss error"));
@@ -174,7 +182,7 @@ describe("DocumentEditor", () => {
 				},
 			],
 		});
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		expect(screen.getByText("Version History")).toBeTruthy();
 		expect(screen.getByText("v2")).toBeTruthy();
 		expect(screen.getByText("Q1 Final")).toBeTruthy();
@@ -193,7 +201,7 @@ describe("DocumentEditor", () => {
 				},
 			],
 		});
-		const { container } = render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		const { container } = render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		const highlighted = container.querySelector(".bg-primary\\/10");
 		expect(highlighted).not.toBeNull();
 		expect(highlighted?.textContent).toContain("v1");
@@ -220,7 +228,7 @@ describe("DocumentEditor", () => {
 				},
 			],
 		});
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		const compareBtn = screen.getByLabelText("Compare v1 to v2");
 		expect(compareBtn).toBeTruthy();
 
@@ -231,7 +239,7 @@ describe("DocumentEditor", () => {
 
 	it("disables save while updating", () => {
 		const vm = createVM({ isUpdating: true });
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		const btn = screen.getByLabelText("Save document") as HTMLButtonElement;
 		expect(btn.disabled).toBe(true);
 	});
@@ -250,7 +258,7 @@ describe("DocumentEditor", () => {
 				updatedAt: "2026-01-01",
 			},
 		});
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 		fireEvent.click(screen.getByLabelText("Preview tab"));
 
 		const preview = screen.getByLabelText("Markdown preview");
@@ -260,7 +268,7 @@ describe("DocumentEditor", () => {
 
 	it("preview updates when content changes then tab switches", () => {
 		const vm = createVM();
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 
 		fireEvent.change(screen.getByLabelText("Document content"), {
 			target: { value: "## New heading" },
@@ -274,7 +282,7 @@ describe("DocumentEditor", () => {
 	it("retains draft and dirty state when save fails", () => {
 		const update = vi.fn();
 		const vm = createVM({ update, mutationError: new Error("Conflict") });
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 
 		fireEvent.change(screen.getByLabelText("Document title"), {
 			target: { value: "Edited Title" },
@@ -295,7 +303,7 @@ describe("DocumentEditor", () => {
 			opts?.onSuccess?.();
 		});
 		const vm = createVM({ update });
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 
 		fireEvent.change(screen.getByLabelText("Document title"), {
 			target: { value: "New Title" },
@@ -312,7 +320,7 @@ describe("DocumentEditor", () => {
 	it("allows retry after save failure", () => {
 		const update = vi.fn();
 		const vm = createVM({ update });
-		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 
 		fireEvent.change(screen.getByLabelText("Document title"), {
 			target: { value: "Retry Title" },
@@ -339,7 +347,7 @@ describe("DocumentEditor", () => {
 			updatedAt: "2026-01-01",
 		};
 		const vm = createVM({ update, document: originalDoc });
-		const { rerender } = render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		const { rerender } = render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 
 		fireEvent.change(screen.getByLabelText("Document title"), {
 			target: { value: "My Draft" },
@@ -351,7 +359,7 @@ describe("DocumentEditor", () => {
 			document: originalDoc,
 			mutationError: new Error("Conflict"),
 		});
-		rerender(<DocumentEditor vm={rolledBackVm} onBack={vi.fn()} />);
+		rerender(<DocumentEditor vm={rolledBackVm} allPersons={[]} onBack={vi.fn()} />);
 
 		expect((screen.getByLabelText("Document title") as HTMLInputElement).value).toBe("My Draft");
 		expect(screen.getByText("Unsaved changes")).toBeTruthy();
@@ -387,13 +395,15 @@ describe("DocumentEditor", () => {
 			},
 		});
 
-		const { rerender } = render(<DocumentEditor key="ws-1:doc-1" vm={vm1} onBack={vi.fn()} />);
+		const { rerender } = render(
+			<DocumentEditor key="ws-1:doc-1" vm={vm1} allPersons={[]} onBack={vi.fn()} />,
+		);
 
 		fireEvent.change(screen.getByLabelText("Document title"), {
 			target: { value: "Draft in Doc1" },
 		});
 
-		rerender(<DocumentEditor key="ws-1:doc-2" vm={vm2} onBack={vi.fn()} />);
+		rerender(<DocumentEditor key="ws-1:doc-2" vm={vm2} allPersons={[]} onBack={vi.fn()} />);
 
 		expect((screen.getByLabelText("Document title") as HTMLInputElement).value).toBe("Second Doc");
 		expect(screen.queryByText("Unsaved changes")).toBeNull();

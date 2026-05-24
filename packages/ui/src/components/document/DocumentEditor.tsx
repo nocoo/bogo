@@ -1,15 +1,18 @@
-import type { DocumentVersion, UpdateDocumentInput } from "@bogo/shared";
+import type { DocumentVersion, Person, UpdateDocumentInput } from "@bogo/shared";
 import { AlertCircle, ArrowLeft, GitCompareArrows, Loader2, Save, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { renderMarkdown } from "../../lib/markdown.js";
 import type { DocumentVM } from "../../viewmodels/document/use-document.js";
+import { DocumentPersons } from "./DocumentPersons.js";
 import { VersionDiff } from "./VersionDiff.js";
 
 export function DocumentEditor({
 	vm,
+	allPersons,
 	onBack,
 }: {
 	vm: DocumentVM;
+	allPersons: Person[];
 	onBack: () => void;
 }) {
 	const [title, setTitle] = useState("");
@@ -167,6 +170,18 @@ export function DocumentEditor({
 			) : (
 				<MarkdownPreview content={content} />
 			)}
+
+			<DocumentPersons
+				persons={vm.persons}
+				allPersons={allPersons}
+				isLoading={vm.isLoadingPersons}
+				onAdd={vm.addPerson}
+				isAdding={vm.isAddingPerson}
+				onRemove={vm.removePerson}
+				isRemoving={vm.isRemovingPerson}
+				error={vm.personError}
+				onDismissError={vm.clearPersonError}
+			/>
 
 			{vm.versions.length > 0 && (
 				<VersionList versions={vm.versions} currentVersion={vm.document.version} />

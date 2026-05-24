@@ -14,6 +14,14 @@ vi.mock("../contexts/workspace-context.js", async (importOriginal) => {
 	};
 });
 
+vi.mock("@tanstack/react-query", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("@tanstack/react-query")>();
+	return {
+		...actual,
+		useQuery: vi.fn().mockReturnValue({ data: [], isLoading: false }),
+	};
+});
+
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
 import { useDocument } from "../viewmodels/document/use-document.js";
 import { DocumentEditorPage } from "./DocumentEditorPage.js";
@@ -25,13 +33,21 @@ function baseVM(overrides = {}) {
 	return {
 		document: null,
 		versions: [],
+		persons: [],
 		isLoading: false,
 		isLoadingVersions: false,
+		isLoadingPersons: false,
 		error: null,
 		update: vi.fn(),
 		isUpdating: false,
 		mutationError: null,
 		clearMutationError: vi.fn(),
+		addPerson: vi.fn(),
+		isAddingPerson: false,
+		removePerson: vi.fn(),
+		isRemovingPerson: false,
+		personError: null,
+		clearPersonError: vi.fn(),
 		...overrides,
 	};
 }

@@ -1,4 +1,4 @@
-import type { CreateDocumentInput, UpdateDocumentInput } from "@bogo/shared";
+import type { AddDocPersonInput, CreateDocumentInput, UpdateDocumentInput } from "@bogo/shared";
 import { queryOptions } from "@tanstack/react-query";
 import { api } from "../lib/api/index.js";
 
@@ -6,6 +6,7 @@ export const documentKeys = {
 	all: (wid: string) => ["documents", wid] as const,
 	detail: (wid: string, id: string) => ["documents", wid, id] as const,
 	versions: (wid: string, id: string) => ["documents", wid, id, "versions"] as const,
+	persons: (wid: string, id: string) => ["documents", wid, id, "persons"] as const,
 };
 
 export const documentModel = {
@@ -30,6 +31,13 @@ export const documentModel = {
 			enabled: !!wid && !!id,
 		}),
 
+	personsQueryOptions: (wid: string, id: string) =>
+		queryOptions({
+			queryKey: documentKeys.persons(wid, id),
+			queryFn: () => api.documents.listPersons(wid, id),
+			enabled: !!wid && !!id,
+		}),
+
 	createMutationOptions: (wid: string) => ({
 		mutationFn: (input: CreateDocumentInput) => api.documents.create(wid, input),
 	}),
@@ -41,5 +49,15 @@ export const documentModel = {
 
 	deleteMutationOptions: (wid: string) => ({
 		mutationFn: (id: string) => api.documents.delete(wid, id),
+	}),
+
+	addPersonMutationOptions: (wid: string) => ({
+		mutationFn: ({ docId, input }: { docId: string; input: AddDocPersonInput }) =>
+			api.documents.addPerson(wid, docId, input),
+	}),
+
+	removePersonMutationOptions: (wid: string) => ({
+		mutationFn: ({ docId, personId }: { docId: string; personId: string }) =>
+			api.documents.removePerson(wid, docId, personId),
 	}),
 };
