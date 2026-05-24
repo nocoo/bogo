@@ -167,6 +167,13 @@ fieldRoutes.put("/values/:personId/:fieldDefId", async (c) => {
 		);
 	}
 
+	const person = await c.env.DB.prepare("SELECT id FROM persons WHERE id = ? AND workspace_id = ?")
+		.bind(personId, wid)
+		.first();
+	if (!person) {
+		return c.json({ error: { code: "NOT_FOUND", message: "Person not found in workspace" } }, 404);
+	}
+
 	const fieldType = fieldDef.field_type as string;
 	const value = parsed.data.value;
 	const validationError = validateFieldValue(fieldType, value, fieldDef.options as string | null);
@@ -204,16 +211,24 @@ function validateFieldValue(
 	optionsJson: string | null,
 ): string | null {
 	switch (fieldType) {
-		case "number":
-			if (Number.isNaN(Number(value))) {
-				return "Value must be a valid number";
+		case "number": {
+			const n = Number(value);
+			if (value.trim() === "" || Number.isNaN(n) || !Number.isFinite(n)) {
+				return "Value must be a valid finite number";
 			}
 			break;
-		case "date":
+		}
+		case "date": {
 			if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
 				return "Value must be a valid date (YYYY-MM-DD)";
 			}
+			const [y, m, d] = value.split("-").map(Number);
+			const date = new Date(y, m - 1, d);
+			if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) {
+				return "Value must be a valid date (YYYY-MM-DD)";
+			}
 			break;
+		}
 		case "boolean":
 			if (value !== "true" && value !== "false") {
 				return "Value must be 'true' or 'false'";
@@ -221,7 +236,7 @@ function validateFieldValue(
 			break;
 		case "select": {
 			if (!optionsJson) {
-				break;
+				return "Field has no options defined";
 			}
 			const options: string[] = JSON.parse(optionsJson);
 			if (!options.includes(value)) {

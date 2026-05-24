@@ -246,6 +246,7 @@ describe("field routes", () => {
 		it("sets text field value (upsert)", async () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { field_type: "text", options: null } }, // field def
+				{ type: "first", value: { id: "p-1" } }, // person exists
 				{ type: "run", value: { success: true, meta: { changes: 1 } } }, // upsert
 			]);
 
@@ -270,9 +271,23 @@ describe("field routes", () => {
 			expect(res.status).toBe(404);
 		});
 
+		it("returns 404 for missing person", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "text", options: null } }, // field def exists
+				{ type: "first", value: null }, // person NOT found
+			]);
+
+			const res = await app.fetch(
+				makeRequest("PUT", `${BASE}/values/p-missing/f-1`, { value: "X" }),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(404);
+		});
+
 		it("rejects invalid number value", async () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { field_type: "number", options: null } },
+				{ type: "first", value: { id: "p-1" } }, // person exists
 			]);
 
 			const res = await app.fetch(
@@ -284,9 +299,40 @@ describe("field routes", () => {
 			expect(json.error.code).toBe("INVALID_VALUE");
 		});
 
+		it("rejects Infinity as number value", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "number", options: null } },
+				{ type: "first", value: { id: "p-1" } }, // person exists
+			]);
+
+			const res = await app.fetch(
+				makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "Infinity" }),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_VALUE");
+		});
+
+		it("rejects whitespace-only number value", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "number", options: null } },
+				{ type: "first", value: { id: "p-1" } }, // person exists
+			]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "  " }), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_VALUE");
+		});
+
 		it("rejects invalid date value", async () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { field_type: "date", options: null } },
+				{ type: "first", value: { id: "p-1" } }, // person exists
 			]);
 
 			const res = await app.fetch(
@@ -298,9 +344,25 @@ describe("field routes", () => {
 			expect(json.error.code).toBe("INVALID_VALUE");
 		});
 
+		it("rejects impossible date like 2026-99-99", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "date", options: null } },
+				{ type: "first", value: { id: "p-1" } }, // person exists
+			]);
+
+			const res = await app.fetch(
+				makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "2026-99-99" }),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_VALUE");
+		});
+
 		it("rejects invalid boolean value", async () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { field_type: "boolean", options: null } },
+				{ type: "first", value: { id: "p-1" } }, // person exists
 			]);
 
 			const res = await app.fetch(makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "yes" }), {
@@ -315,6 +377,7 @@ describe("field routes", () => {
 		it("rejects invalid select value", async () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { field_type: "select", options: '["A","B","C"]' } },
+				{ type: "first", value: { id: "p-1" } }, // person exists
 			]);
 
 			const res = await app.fetch(makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "D" }), {
@@ -326,9 +389,25 @@ describe("field routes", () => {
 			expect(json.error.code).toBe("INVALID_VALUE");
 		});
 
+		it("rejects select value when field has no options", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { field_type: "select", options: null } },
+				{ type: "first", value: { id: "p-1" } }, // person exists
+			]);
+
+			const res = await app.fetch(
+				makeRequest("PUT", `${BASE}/values/p-1/f-1`, { value: "anything" }),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_VALUE");
+		});
+
 		it("accepts valid select value", async () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { field_type: "select", options: '["NYC","SF"]' } },
+				{ type: "first", value: { id: "p-1" } }, // person exists
 				{ type: "run", value: { success: true, meta: { changes: 1 } } },
 			]);
 
@@ -344,6 +423,7 @@ describe("field routes", () => {
 		it("accepts valid number value", async () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { field_type: "number", options: null } },
+				{ type: "first", value: { id: "p-1" } }, // person exists
 				{ type: "run", value: { success: true, meta: { changes: 1 } } },
 			]);
 
@@ -357,6 +437,7 @@ describe("field routes", () => {
 		it("accepts valid date value", async () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { field_type: "date", options: null } },
+				{ type: "first", value: { id: "p-1" } }, // person exists
 				{ type: "run", value: { success: true, meta: { changes: 1 } } },
 			]);
 
@@ -370,6 +451,7 @@ describe("field routes", () => {
 		it("accepts valid boolean value", async () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { field_type: "boolean", options: null } },
+				{ type: "first", value: { id: "p-1" } }, // person exists
 				{ type: "run", value: { success: true, meta: { changes: 1 } } },
 			]);
 
