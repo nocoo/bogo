@@ -35,6 +35,7 @@ function baseVM(overrides = {}) {
 		isLoading: false,
 		isLoadingVersions: false,
 		isLoadingPersons: false,
+		personsError: null,
 		error: null,
 		update: vi.fn(),
 		isUpdating: false,

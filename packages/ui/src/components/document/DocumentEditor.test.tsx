@@ -25,6 +25,7 @@ function createVM(overrides: Partial<DocumentVM> = {}): DocumentVM {
 		isLoading: false,
 		isLoadingVersions: false,
 		isLoadingPersons: false,
+		personsError: null,
 		error: null,
 		update: vi.fn(),
 		isUpdating: false,

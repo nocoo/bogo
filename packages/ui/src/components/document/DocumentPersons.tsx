@@ -7,6 +7,7 @@ export function DocumentPersons({
 	persons,
 	allPersons,
 	isLoading,
+	personsError,
 	allPersonsLoading,
 	allPersonsError,
 	onAdd,
@@ -19,6 +20,7 @@ export function DocumentPersons({
 	persons: DocumentPerson[];
 	allPersons: Person[];
 	isLoading: boolean;
+	personsError: Error | null;
 	allPersonsLoading: boolean;
 	allPersonsError: Error | null;
 	onAdd: (input: AddPersonInput, opts?: { onSuccess?: () => void }) => void;
@@ -52,6 +54,12 @@ export function DocumentPersons({
 	return (
 		<div className="space-y-2">
 			<h3 className="text-sm font-semibold text-foreground">Associated People</h3>
+
+			{personsError && (
+				<div className="rounded-md border border-red-500/20 bg-red-500/5 p-2 text-xs text-red-400">
+					Failed to load associations: {personsError.message}
+				</div>
+			)}
 
 			{error && (
 				<div className="flex items-center gap-2 rounded-md border border-red-500/20 bg-red-500/5 p-2 text-xs text-red-400">

@@ -307,17 +307,17 @@ describe("useDocument", () => {
 	});
 
 	describe("addPerson with undefined cache", () => {
-		it("restores empty array on failure when persons cache is undefined", async () => {
+		it("restores empty array on failure when persons cache is truly undefined", async () => {
 			mockFetch
 				.mockResolvedValueOnce(ok(DOC))
 				.mockResolvedValueOnce(ok([VERSION_1]))
-				.mockResolvedValueOnce(ok([]));
+				.mockReturnValueOnce(new Promise(() => undefined));
 			const wrapper = createWrapper();
 			const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
 
 			act(() => result.current.ctx.switchWorkspace(WS));
 			await waitFor(() => expect(result.current.vm.document).not.toBeNull());
-			await waitFor(() => expect(result.current.vm.persons).toHaveLength(0));
+			expect(result.current.vm.isLoadingPersons).toBe(true);
 
 			mockFetch
 				.mockResolvedValueOnce(err(400, "INVALID_PERSON", "Person not found"))
@@ -328,6 +328,23 @@ describe("useDocument", () => {
 			await waitFor(() => expect(result.current.vm.personError).not.toBeNull());
 			expect(result.current.vm.personError?.message).toContain("Person not found");
 			await waitFor(() => expect(result.current.vm.persons).toHaveLength(0));
+		});
+	});
+
+	describe("personsError", () => {
+		it("exposes persons query error when fetch fails", async () => {
+			mockFetch
+				.mockResolvedValueOnce(ok(DOC))
+				.mockResolvedValueOnce(ok([VERSION_1]))
+				.mockResolvedValueOnce(err(500, "INTERNAL", "DB connection lost"));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+
+			await waitFor(() => expect(result.current.vm.personsError).not.toBeNull());
+			expect(result.current.vm.personsError?.message).toContain("DB connection lost");
+			expect(result.current.vm.persons).toHaveLength(0);
 		});
 	});
 });

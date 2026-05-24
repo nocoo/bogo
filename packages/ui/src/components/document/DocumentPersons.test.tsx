@@ -51,6 +51,7 @@ function renderComponent(overrides: Partial<Parameters<typeof DocumentPersons>[0
 		persons: LINKED,
 		allPersons: PERSONS,
 		isLoading: false,
+		personsError: null,
 		allPersonsLoading: false,
 		allPersonsError: null,
 		onAdd: vi.fn(),
@@ -172,5 +173,10 @@ describe("DocumentPersons", () => {
 	it("shows allPersonsError message", () => {
 		renderComponent({ allPersonsError: new Error("Network failure") });
 		expect(screen.getByText("Failed to load people: Network failure")).toBeTruthy();
+	});
+
+	it("shows personsError message for association query failure", () => {
+		renderComponent({ personsError: new Error("DB timeout"), persons: [] });
+		expect(screen.getByText("Failed to load associations: DB timeout")).toBeTruthy();
 	});
 });

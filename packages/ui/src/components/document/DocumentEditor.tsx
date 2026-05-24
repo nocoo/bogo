@@ -179,6 +179,7 @@ export function DocumentEditor({
 				persons={vm.persons}
 				allPersons={allPersons}
 				isLoading={vm.isLoadingPersons}
+				personsError={vm.personsError}
 				allPersonsLoading={allPersonsLoading ?? false}
 				allPersonsError={allPersonsError ?? null}
 				onAdd={vm.addPerson}

@@ -16,6 +16,7 @@ export interface DocumentVM {
 	isLoading: boolean;
 	isLoadingVersions: boolean;
 	isLoadingPersons: boolean;
+	personsError: Error | null;
 	error: Error | null;
 
 	update: (input: UpdateDocumentInput, opts?: { onSuccess?: () => void }) => void;
@@ -44,9 +45,11 @@ export function useDocument(id: string): DocumentVM {
 		documentModel.versionsQueryOptions(wid, id),
 	);
 
-	const { data: persons, isLoading: isLoadingPersons } = useQuery(
-		documentModel.personsQueryOptions(wid, id),
-	);
+	const {
+		data: persons,
+		isLoading: isLoadingPersons,
+		error: personsError,
+	} = useQuery(documentModel.personsQueryOptions(wid, id));
 
 	const updateMutation = useMutation({
 		...documentModel.updateMutationOptions(wid),
@@ -153,6 +156,7 @@ export function useDocument(id: string): DocumentVM {
 		isLoading,
 		isLoadingVersions,
 		isLoadingPersons: isLoadingPersons,
+		personsError: personsError as Error | null,
 		error: error as Error | null,
 		update,
 		isUpdating: updateMutation.isPending,
