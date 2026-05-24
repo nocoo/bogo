@@ -1,7 +1,8 @@
 import { AppSidebar } from "@/components/AppSidebar";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { Menu } from "lucide-react";
+import { Github, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 
@@ -83,6 +84,18 @@ export function DashboardLayout() {
 							</button>
 						)}
 						<h1 className="text-lg md:text-xl font-semibold text-foreground">{title}</h1>
+					</div>
+					<div className="flex items-center gap-1">
+						<a
+							href="https://github.com/nocoo/bogo"
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label="GitHub repository"
+							className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+						>
+							<Github className="h-[18px] w-[18px]" aria-hidden="true" strokeWidth={1.5} />
+						</a>
+						<ThemeToggle />
 					</div>
 				</header>
 				<div className={cn("flex-1 px-2 pb-2 md:px-3 md:pb-3")}>
