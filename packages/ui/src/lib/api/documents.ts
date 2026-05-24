@@ -24,8 +24,8 @@ export function documentApi(client: Client) {
 				body: input,
 			});
 		},
-		update(wid: string, id: string, input: UpdateDocumentInput): Promise<Document> {
-			return client.request<Document>(`${base(wid)}/${id}`, {
+		update(wid: string, id: string, input: UpdateDocumentInput): Promise<{ version: number }> {
+			return client.request<{ version: number }>(`${base(wid)}/${id}`, {
 				method: "PUT",
 				body: input,
 			});
@@ -41,8 +41,8 @@ export function documentApi(client: Client) {
 		listPersons(wid: string, id: string): Promise<DocumentPerson[]> {
 			return client.request<DocumentPerson[]>(`${base(wid)}/${id}/persons`);
 		},
-		addPerson(wid: string, id: string, input: AddDocPersonInput): Promise<DocumentPerson> {
-			return client.request<DocumentPerson>(`${base(wid)}/${id}/persons`, {
+		addPerson(wid: string, id: string, input: AddDocPersonInput): Promise<{ added: boolean }> {
+			return client.request<{ added: boolean }>(`${base(wid)}/${id}/persons`, {
 				method: "POST",
 				body: input,
 			});

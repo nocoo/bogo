@@ -9,9 +9,7 @@ export function workspaceApi(client: Client) {
 		get(id: string): Promise<Workspace> {
 			return client.request<Workspace>(`/api/workspaces/${id}`);
 		},
-		create(
-			input: CreateWorkspaceInput & { ownerId: string; rootPersonName: string },
-		): Promise<Workspace> {
+		create(input: CreateWorkspaceInput): Promise<Workspace> {
 			return client.request<Workspace>("/api/workspaces", {
 				method: "POST",
 				body: input,

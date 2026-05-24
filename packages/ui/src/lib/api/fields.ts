@@ -7,6 +7,12 @@ import type {
 } from "@bogo/shared";
 import type { Client } from "./client.js";
 
+export interface FieldValueResult {
+	personId: string;
+	fieldDefId: string;
+	value: string;
+}
+
 export function fieldApi(client: Client) {
 	const base = (wid: string) => `/api/w/${wid}/fields`;
 
@@ -39,8 +45,8 @@ export function fieldApi(client: Client) {
 			personId: string,
 			fieldDefId: string,
 			input: SetFieldValueInput,
-		): Promise<CustomFieldValue> {
-			return client.request<CustomFieldValue>(`${base(wid)}/values/${personId}/${fieldDefId}`, {
+		): Promise<FieldValueResult> {
+			return client.request<FieldValueResult>(`${base(wid)}/values/${personId}/${fieldDefId}`, {
 				method: "PUT",
 				body: input,
 			});
