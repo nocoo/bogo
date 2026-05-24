@@ -1,21 +1,12 @@
-export const BOGO_VERSION = "0.1.0";
-
-export interface LiveResponse {
-	status: "ok" | "error";
-	version: string;
-	component: string;
-	timestamp: string;
-	uptime: number;
-}
-
-export { generateId } from "./id.js";
-
 export {
 	createWorkspaceSchema,
 	updateWorkspaceSchema,
 	type CreateWorkspaceInput,
 	type UpdateWorkspaceInput,
 	type Workspace,
+} from "./workspace.js";
+
+export {
 	createPersonSchema,
 	updatePersonSchema,
 	movePersonSchema,
@@ -23,6 +14,9 @@ export {
 	type UpdatePersonInput,
 	type MovePersonInput,
 	type Person,
+} from "./person.js";
+
+export {
 	fieldTypes,
 	createFieldDefSchema,
 	updateFieldDefSchema,
@@ -33,18 +27,27 @@ export {
 	type SetFieldValueInput,
 	type CustomFieldDefinition,
 	type CustomFieldValue,
+} from "./custom-field.js";
+
+export {
 	createDocumentSchema,
 	updateDocumentSchema,
 	type CreateDocumentInput,
 	type UpdateDocumentInput,
 	type Document,
 	type DocumentVersion,
+} from "./document.js";
+
+export {
 	createDocTypeSchema,
 	updateDocTypeSchema,
 	type CreateDocTypeInput,
 	type UpdateDocTypeInput,
 	type DocumentType,
+} from "./document-type.js";
+
+export {
 	addDocPersonSchema,
 	type AddDocPersonInput,
 	type DocumentPerson,
-} from "./schemas/index.js";
+} from "./document-person.js";
