@@ -268,4 +268,55 @@ describe("PersonFieldValues", () => {
 		expect(screen.getByLabelText("Level")).toBeTruthy();
 		expect(screen.getByLabelText("Active")).toBeTruthy();
 	});
+
+	it("syncs localValue when currentValue changes (person switch)", () => {
+		let returnValue = "Engineering";
+		const getValueFor = vi.fn().mockImplementation(() => returnValue);
+		const vm = createVM({ getValueFor });
+		const { rerender } = render(<PersonFieldValues defs={[DEF_TEXT]} vm={vm} />);
+
+		expect((screen.getByLabelText("Department") as HTMLInputElement).value).toBe("Engineering");
+
+		returnValue = "Product";
+		rerender(<PersonFieldValues defs={[DEF_TEXT]} vm={vm} />);
+
+		expect((screen.getByLabelText("Department") as HTMLInputElement).value).toBe("Product");
+	});
+
+	it("clears validation error when currentValue changes", () => {
+		let returnValue = "";
+		const getValueFor = vi.fn().mockImplementation(() => returnValue);
+		const validate = vi.fn().mockReturnValue("Invalid");
+		const vm = createVM({ getValueFor, validate });
+		const { rerender } = render(<PersonFieldValues defs={[DEF_TEXT]} vm={vm} />);
+
+		const input = screen.getByLabelText("Department");
+		fireEvent.change(input, { target: { value: "bad" } });
+		fireEvent.blur(input);
+		expect(screen.getByRole("alert")).toBeTruthy();
+
+		returnValue = "Good";
+		rerender(<PersonFieldValues defs={[DEF_TEXT]} vm={vm} />);
+		expect(screen.queryByRole("alert")).toBeNull();
+	});
+
+	it("shows error state when vm.error is set", () => {
+		const vm = createVM({ error: new Error("Network failure") });
+		render(<PersonFieldValues defs={[DEF_TEXT]} vm={vm} />);
+		expect(screen.getByText(/Failed to load field values/)).toBeTruthy();
+		expect(screen.getByText(/Network failure/)).toBeTruthy();
+	});
+
+	it("shows mutation error with dismiss", () => {
+		const clearMutationError = vi.fn();
+		const vm = createVM({
+			mutationError: new Error("Save failed"),
+			clearMutationError,
+		});
+		render(<PersonFieldValues defs={[DEF_TEXT]} vm={vm} />);
+
+		expect(screen.getByText("Save failed")).toBeTruthy();
+		fireEvent.click(screen.getByLabelText("Dismiss error"));
+		expect(clearMutationError).toHaveBeenCalled();
+	});
 });

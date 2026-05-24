@@ -1,6 +1,6 @@
 import type { CustomFieldDefinition } from "@bogo/shared";
-import { Loader2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { AlertCircle, Loader2, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
 
 export function PersonFieldValues({
@@ -18,6 +18,14 @@ export function PersonFieldValues({
 		);
 	}
 
+	if (vm.error) {
+		return (
+			<div className="rounded-md border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-400">
+				Failed to load field values: {vm.error.message}
+			</div>
+		);
+	}
+
 	if (defs.length === 0) {
 		return null;
 	}
@@ -27,6 +35,22 @@ export function PersonFieldValues({
 			<h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
 				Custom Fields
 			</h4>
+
+			{vm.mutationError && (
+				<div className="flex items-center gap-2 rounded-md border border-red-500/20 bg-red-500/5 p-2 text-xs text-red-400">
+					<AlertCircle className="h-3 w-3 shrink-0" />
+					<span className="flex-1">{vm.mutationError.message}</span>
+					<button
+						type="button"
+						onClick={vm.clearMutationError}
+						className="shrink-0 text-red-400 hover:text-red-300"
+						aria-label="Dismiss error"
+					>
+						<X className="h-3 w-3" />
+					</button>
+				</div>
+			)}
+
 			{defs.map((def) => (
 				<FieldValueRow key={def.id} def={def} vm={vm} />
 			))}
@@ -44,6 +68,11 @@ function FieldValueRow({
 	const currentValue = vm.getValueFor(def.id);
 	const [localValue, setLocalValue] = useState(currentValue);
 	const [validationError, setValidationError] = useState<string | null>(null);
+
+	useEffect(() => {
+		setLocalValue(currentValue);
+		setValidationError(null);
+	}, [currentValue]);
 
 	const handleBlur = useCallback(() => {
 		if (localValue === currentValue) {
