@@ -94,7 +94,7 @@ Every data-fetching view handles exactly these states:
 ```
 
 **States**:
-- **Loading**: Canvas with single centered skeleton node
+- **Loading**: Graph viewport with single centered skeleton node
 - **Empty** (only root exists): Root node + "Add your first team member" floating tooltip
 - **Data**: Full tree rendered with dagre layout
 - **Error**: Error banner above graph viewport, tree shows last cached state

@@ -324,7 +324,7 @@ src/components/person/
 | API responses | MSW (mocked) | Real Worker (local dev server) |
 | React Query | Real client (test config) | Real (browser) |
 | @xyflow graph viewport | Mocked (SVG viewport not in jsdom) | Real (browser DOM/SVG) |
-| @pierre/diffs | Mocked | Real (browser Shadow DOM) |
+| @pierre/diffs | Mocked | Real (browser DOM) |
 | D1 database | Not involved | Real (local miniflare) |
 | Browser APIs | Stubbed | Real |
 

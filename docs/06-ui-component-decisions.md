@@ -248,7 +248,7 @@ const virtualizer = useVirtualizer({
 ```
 
 Total new production dependencies: 12 (excluding react/react-dom/react-router already present).
-Total new dev dependencies: 4 (for 95%+ coverage gate — MSW mocks API, user-event simulates interactions).
+Test dev dependencies listed: 4 (2 already present: `@testing-library/react`, `vitest`; 2 newly added: `msw`, `@testing-library/user-event`).
 
 ## Migration Path Notes
 
