@@ -155,6 +155,9 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
 						<nav className="flex-1 overflow-y-auto pt-2">
 							<div className="flex flex-col gap-0.5 px-3">
+								<span className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+									Workspace
+								</span>
 								{NAV_ITEMS.map((item) => {
 									const isActive =
 										item.path === "/" ? pathname === "/" : pathname.startsWith(item.path);
