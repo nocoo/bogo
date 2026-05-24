@@ -27,10 +27,9 @@ wait_stage() {
   fi
 }
 
-# Launch all stages concurrently
+# Launch non-git-modifying stages concurrently
 run_bg unit_cov   bash scripts/check-coverage.sh 90 95
 run_bg typecheck  bun turbo typecheck
-run_bg lint       bunx lint-staged
 run_bg gitleaks   gitleaks protect --staged --no-banner
 run_bg routes     bun run gate:routes
 run_bg pages      bun run gate:pages
@@ -38,9 +37,16 @@ run_bg pages      bun run gate:pages
 # Wait in declaration order so logs print deterministically
 wait_stage unit_cov
 wait_stage typecheck
-wait_stage lint
 wait_stage gitleaks
 wait_stage routes
 wait_stage pages
+
+# lint-staged uses git stash which conflicts with concurrent stages
+echo "━━━ lint (exit=pending) ━━━"
+if ! bunx lint-staged; then
+  echo "❌ pre-commit stage 'lint' failed" >&2
+  exit 1
+fi
+echo "━━━ lint (exit=0) ━━━"
 
 echo "✔ pre-commit passed (L1 + G1)"

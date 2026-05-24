@@ -4,6 +4,7 @@ import {
 	BarChart3,
 	Building2,
 	ChevronUp,
+	FileText,
 	LayoutDashboard,
 	LogOut,
 	Monitor,
@@ -36,6 +37,7 @@ const NAV_GROUPS: NavGroup[] = [
 		items: [
 			{ title: "Dashboard", icon: LayoutDashboard, path: "/" },
 			{ title: "Workspaces", icon: Building2, path: "/workspaces" },
+			{ title: "Documents", icon: FileText, path: "/documents" },
 			{ title: "Analytics", icon: BarChart3, path: "/analytics" },
 			{ title: "People", icon: Network, path: "/users" },
 		],
