@@ -1,6 +1,8 @@
-import type { Person } from "@bogo/shared";
+import type { CustomFieldDefinition, Person } from "@bogo/shared";
 import { Loader2, Save, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
+import { PersonFieldValues } from "../field/PersonFieldValues.js";
 
 export function EditPersonPanel({
 	person,
@@ -9,6 +11,8 @@ export function EditPersonPanel({
 	onRemove,
 	onClose,
 	isRemoving,
+	fieldDefs,
+	fieldValuesVm,
 }: {
 	person: Person;
 	persons: Person[];
@@ -19,6 +23,8 @@ export function EditPersonPanel({
 	onRemove: (id: string) => void;
 	onClose: () => void;
 	isRemoving: boolean;
+	fieldDefs?: CustomFieldDefinition[];
+	fieldValuesVm?: FieldValuesVM;
 }) {
 	const [name, setName] = useState(person.name);
 	const [title, setTitle] = useState(person.title);
@@ -110,6 +116,10 @@ export function EditPersonPanel({
 						))}
 					</select>
 				</div>
+
+				{fieldDefs && fieldValuesVm && fieldDefs.length > 0 && (
+					<PersonFieldValues defs={fieldDefs} vm={fieldValuesVm} />
+				)}
 
 				<div className="flex items-center justify-between pt-2 border-t border-border">
 					<button

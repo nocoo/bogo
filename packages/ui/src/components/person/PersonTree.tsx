@@ -1,4 +1,6 @@
 import { useWorkspaceContext } from "@/contexts/workspace-context.js";
+import { useFieldDefs } from "@/viewmodels/field/use-field-defs.js";
+import { useFieldValues } from "@/viewmodels/field/use-field-values.js";
 import { usePersonTree } from "@/viewmodels/person/use-person-tree.js";
 import {
 	Background,
@@ -31,6 +33,8 @@ function PersonTreeInner() {
 	const { workspaceId } = useWorkspaceContext();
 	const { screenToFlowPosition } = useReactFlow();
 	const [showCreate, setShowCreate] = useState(false);
+	const fieldDefsVm = useFieldDefs();
+	const fieldValuesVm = useFieldValues(vm.selectedPersonId ?? "");
 
 	const handleNodeClick = useCallback(
 		(_: React.MouseEvent, node: { id: string }) => {
@@ -148,6 +152,8 @@ function PersonTreeInner() {
 						onRemove={vm.remove}
 						onClose={() => vm.selectPerson(null)}
 						isRemoving={vm.isRemoving}
+						fieldDefs={fieldDefsVm.defs}
+						fieldValuesVm={fieldValuesVm}
 					/>
 				</div>
 			)}
