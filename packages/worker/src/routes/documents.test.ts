@@ -196,28 +196,33 @@ describe("document routes", () => {
 
 	describe("GET /api/w/:wid/documents/:id/versions", () => {
 		it("returns version history", async () => {
-			const { db, mockAll } = createMockD1();
-			mockAll.mockResolvedValue({
-				results: [
-					{
-						id: "v-2",
-						document_id: "d-1",
-						version: 2,
-						title: "Updated",
-						content: "New",
-						created_at: "2026-05-21T00:00:00Z",
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "d-1" } }, // document exists in workspace
+				{
+					type: "all",
+					value: {
+						results: [
+							{
+								id: "v-2",
+								document_id: "d-1",
+								version: 2,
+								title: "Updated",
+								content: "New",
+								created_at: "2026-05-21T00:00:00Z",
+							},
+							{
+								id: "v-1",
+								document_id: "d-1",
+								version: 1,
+								title: "Initial",
+								content: "Old",
+								created_at: "2026-05-20T00:00:00Z",
+							},
+						],
+						success: true,
 					},
-					{
-						id: "v-1",
-						document_id: "d-1",
-						version: 1,
-						title: "Initial",
-						content: "Old",
-						created_at: "2026-05-20T00:00:00Z",
-					},
-				],
-				success: true,
-			});
+				},
+			]);
 
 			const res = await app.fetch(makeRequest("GET", `${BASE}/d-1/versions`), {
 				DB: db,
@@ -227,6 +232,16 @@ describe("document routes", () => {
 			const json = await res.json();
 			expect(json.data).toHaveLength(2);
 			expect(json.data[0].version).toBe(2);
+		});
+
+		it("returns 404 when document not in workspace", async () => {
+			const { db } = createSequenceD1([{ type: "first", value: null }]);
+
+			const res = await app.fetch(makeRequest("GET", `${BASE}/other-doc/versions`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(404);
 		});
 	});
 

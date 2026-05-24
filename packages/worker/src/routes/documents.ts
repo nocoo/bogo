@@ -173,7 +173,16 @@ documentRoutes.delete("/:id", async (c) => {
 
 // Document versions
 documentRoutes.get("/:id/versions", async (c) => {
+	const wid = c.req.param("wid") as string;
 	const { id } = c.req.param();
+
+	const doc = await c.env.DB.prepare("SELECT id FROM documents WHERE id = ? AND workspace_id = ?")
+		.bind(id, wid)
+		.first();
+	if (!doc) {
+		return c.json({ error: { code: "NOT_FOUND", message: "Document not found" } }, 404);
+	}
+
 	const rows = await c.env.DB.prepare(
 		"SELECT id, document_id, version, title, content, created_at FROM document_versions WHERE document_id = ? ORDER BY version DESC",
 	)
