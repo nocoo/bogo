@@ -1,8 +1,9 @@
 import type { DocumentVersion, UpdateDocumentInput } from "@bogo/shared";
-import { AlertCircle, ArrowLeft, Loader2, Save, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, GitCompareArrows, Loader2, Save, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { renderMarkdown } from "../../lib/markdown.js";
 import type { DocumentVM } from "../../viewmodels/document/use-document.js";
+import { VersionDiff } from "./VersionDiff.js";
 
 export function DocumentEditor({
 	vm,
@@ -194,11 +195,15 @@ function VersionList({
 	versions: DocumentVersion[];
 	currentVersion: number;
 }) {
+	const [diffIndex, setDiffIndex] = useState<number | null>(null);
+
+	const sorted = useMemo(() => [...versions].sort((a, b) => b.version - a.version), [versions]);
+
 	return (
 		<div className="space-y-2">
 			<h3 className="text-sm font-semibold text-foreground">Version History</h3>
 			<div className="space-y-1">
-				{versions.map((v) => (
+				{sorted.map((v, i) => (
 					<div
 						key={v.id}
 						className={`flex items-center gap-3 rounded-md px-3 py-2 text-xs ${
@@ -208,9 +213,24 @@ function VersionList({
 						<span className="font-medium">v{v.version}</span>
 						<span className="flex-1 truncate">{v.title}</span>
 						<span>{v.createdAt}</span>
+						{i < sorted.length - 1 && (
+							<button
+								type="button"
+								onClick={() => setDiffIndex(diffIndex === i ? null : i)}
+								className={`shrink-0 transition-colors ${
+									diffIndex === i ? "text-primary" : "text-muted-foreground hover:text-foreground"
+								}`}
+								aria-label={`Compare v${sorted[i + 1].version} to v${v.version}`}
+							>
+								<GitCompareArrows className="h-3.5 w-3.5" />
+							</button>
+						)}
 					</div>
 				))}
 			</div>
+			{diffIndex !== null && diffIndex < sorted.length - 1 && (
+				<VersionDiff oldVersion={sorted[diffIndex + 1]} newVersion={sorted[diffIndex]} />
+			)}
 		</div>
 	);
 }

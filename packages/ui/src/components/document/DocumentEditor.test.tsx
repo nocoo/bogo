@@ -3,6 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import type { DocumentVM } from "../../viewmodels/document/use-document.js";
 import { DocumentEditor } from "./DocumentEditor.js";
 
+vi.mock("@pierre/diffs/react", () => ({
+	MultiFileDiff: vi.fn(() => <div data-testid="multi-file-diff" />),
+}));
+
 function createVM(overrides: Partial<DocumentVM> = {}): DocumentVM {
 	return {
 		document: {
@@ -193,6 +197,35 @@ describe("DocumentEditor", () => {
 		const highlighted = container.querySelector(".bg-primary\\/10");
 		expect(highlighted).not.toBeNull();
 		expect(highlighted?.textContent).toContain("v1");
+	});
+
+	it("shows compare button and renders diff on click", () => {
+		const vm = createVM({
+			versions: [
+				{
+					id: "v-1",
+					documentId: "doc-1",
+					version: 1,
+					title: "Q1 Report",
+					content: "# Summary",
+					createdAt: "2026-01-01",
+				},
+				{
+					id: "v-2",
+					documentId: "doc-1",
+					version: 2,
+					title: "Q1 Final",
+					content: "# Final",
+					createdAt: "2026-01-02",
+				},
+			],
+		});
+		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		const compareBtn = screen.getByLabelText("Compare v1 to v2");
+		expect(compareBtn).toBeTruthy();
+
+		fireEvent.click(compareBtn);
+		expect(screen.getByText(/Comparing v1 → v2/)).toBeTruthy();
 	});
 
 	it("disables save while updating", () => {
