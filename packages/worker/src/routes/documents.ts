@@ -293,8 +293,20 @@ documentRoutes.post("/:id/persons", async (c) => {
 		);
 	}
 
+	const existing = await c.env.DB.prepare(
+		"SELECT 1 FROM document_persons WHERE workspace_id = ? AND document_id = ? AND person_id = ?",
+	)
+		.bind(wid, id, parsed.data.personId)
+		.first();
+	if (existing) {
+		return c.json(
+			{ error: { code: "DUPLICATE_ASSOCIATION", message: "Person already associated" } },
+			409,
+		);
+	}
+
 	await c.env.DB.prepare(
-		"INSERT OR IGNORE INTO document_persons (workspace_id, document_id, person_id, role) VALUES (?, ?, ?, ?)",
+		"INSERT INTO document_persons (workspace_id, document_id, person_id, role) VALUES (?, ?, ?, ?)",
 	)
 		.bind(wid, id, parsed.data.personId, parsed.data.role ?? "subject")
 		.run();

@@ -331,6 +331,7 @@ describe("document routes", () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { id: "d-1" } }, // doc exists
 				{ type: "first", value: { id: "550e8400-e29b-41d4-a716-446655440000" } }, // person exists
+				{ type: "first", value: null }, // not already associated
 				{ type: "run", value: { success: true, meta: { changes: 1 } } },
 			]);
 
@@ -341,6 +342,24 @@ describe("document routes", () => {
 				{ DB: db, ENVIRONMENT: "test" },
 			);
 			expect(res.status).toBe(201);
+		});
+
+		it("POST /:id/persons returns 409 for duplicate association", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "d-1" } }, // doc exists
+				{ type: "first", value: { id: "550e8400-e29b-41d4-a716-446655440000" } }, // person exists
+				{ type: "first", value: { 1: 1 } }, // already associated
+			]);
+
+			const res = await app.fetch(
+				makeRequest("POST", `${BASE}/d-1/persons`, {
+					personId: "550e8400-e29b-41d4-a716-446655440000",
+				}),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(409);
+			const json = await res.json();
+			expect(json.error.code).toBe("DUPLICATE_ASSOCIATION");
 		});
 
 		it("POST /:id/persons rejects non-existent document", async () => {
