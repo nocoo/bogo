@@ -290,4 +290,78 @@ describe("DocumentEditor", () => {
 		expect(update).toHaveBeenCalledTimes(2);
 		expect(update).toHaveBeenLastCalledWith({ title: "Retry Title" }, expect.any(Object));
 	});
+
+	it("retains draft after rerender with rolled-back vm.document", () => {
+		const update = vi.fn();
+		const originalDoc = {
+			id: "doc-1",
+			workspaceId: "ws-1",
+			typeId: "dt-1",
+			title: "Q1 Report",
+			content: "# Summary",
+			eventDate: "2026-03-01",
+			version: 1,
+			createdAt: "2026-01-01",
+			updatedAt: "2026-01-01",
+		};
+		const vm = createVM({ update, document: originalDoc });
+		const { rerender } = render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+
+		fireEvent.change(screen.getByLabelText("Document title"), {
+			target: { value: "My Draft" },
+		});
+		fireEvent.click(screen.getByLabelText("Save document"));
+
+		const rolledBackVm = createVM({
+			update,
+			document: originalDoc,
+			mutationError: new Error("Conflict"),
+		});
+		rerender(<DocumentEditor vm={rolledBackVm} onBack={vi.fn()} />);
+
+		expect((screen.getByLabelText("Document title") as HTMLInputElement).value).toBe("My Draft");
+		expect(screen.getByText("Unsaved changes")).toBeTruthy();
+		const btn = screen.getByLabelText("Save document") as HTMLButtonElement;
+		expect(btn.disabled).toBe(false);
+	});
+
+	it("syncs new document when remounted with different key", () => {
+		const vm1 = createVM({
+			document: {
+				id: "doc-1",
+				workspaceId: "ws-1",
+				typeId: null,
+				title: "First Doc",
+				content: "Content A",
+				eventDate: null,
+				version: 1,
+				createdAt: "2026-01-01",
+				updatedAt: "2026-01-01",
+			},
+		});
+		const vm2 = createVM({
+			document: {
+				id: "doc-2",
+				workspaceId: "ws-1",
+				typeId: null,
+				title: "Second Doc",
+				content: "Content B",
+				eventDate: null,
+				version: 1,
+				createdAt: "2026-01-02",
+				updatedAt: "2026-01-02",
+			},
+		});
+
+		const { rerender } = render(<DocumentEditor key="ws-1:doc-1" vm={vm1} onBack={vi.fn()} />);
+
+		fireEvent.change(screen.getByLabelText("Document title"), {
+			target: { value: "Draft in Doc1" },
+		});
+
+		rerender(<DocumentEditor key="ws-1:doc-2" vm={vm2} onBack={vi.fn()} />);
+
+		expect((screen.getByLabelText("Document title") as HTMLInputElement).value).toBe("Second Doc");
+		expect(screen.queryByText("Unsaved changes")).toBeNull();
+	});
 });

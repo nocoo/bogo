@@ -17,5 +17,7 @@ export function DocumentEditorPage() {
 		);
 	}
 
-	return <DocumentEditor vm={vm} onBack={() => navigate("/documents")} />;
+	return (
+		<DocumentEditor key={`${workspaceId}:${id}`} vm={vm} onBack={() => navigate("/documents")} />
+	);
 }
