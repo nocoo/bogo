@@ -9,24 +9,22 @@ export function validateFieldValue(
 	fieldType: FieldType,
 	options: string[] | null,
 ): string | null {
-	if (!value) {
-		return null;
-	}
 	switch (fieldType) {
 		case "number": {
 			const n = Number(value);
-			if (!Number.isFinite(n)) {
-				return "Must be a valid number";
+			if (value.trim() === "" || Number.isNaN(n) || !Number.isFinite(n)) {
+				return "Must be a valid finite number";
 			}
 			return null;
 		}
 		case "date": {
 			if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-				return "Must be YYYY-MM-DD format";
+				return "Must be a valid date (YYYY-MM-DD)";
 			}
-			const d = new Date(value);
-			if (Number.isNaN(d.getTime())) {
-				return "Must be a valid date";
+			const [y, m, d] = value.split("-").map(Number);
+			const date = new Date(y, m - 1, d);
+			if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) {
+				return "Must be a valid date (YYYY-MM-DD)";
 			}
 			return null;
 		}
@@ -37,7 +35,10 @@ export function validateFieldValue(
 			return null;
 		}
 		case "select": {
-			if (options && !options.includes(value)) {
+			if (!options) {
+				return "Field has no options defined";
+			}
+			if (!options.includes(value)) {
 				return `Must be one of: ${options.join(", ")}`;
 			}
 			return null;

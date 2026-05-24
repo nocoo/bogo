@@ -68,32 +68,45 @@ const VALUE_2 = {
 };
 
 describe("validateFieldValue", () => {
-	it("returns null for empty value (no validation needed)", () => {
-		expect(validateFieldValue("", "number", null)).toBeNull();
-	});
-
 	it("validates number: accepts finite numbers", () => {
 		expect(validateFieldValue("42", "number", null)).toBeNull();
 		expect(validateFieldValue("-3.14", "number", null)).toBeNull();
+		expect(validateFieldValue("0", "number", null)).toBeNull();
 	});
 
 	it("validates number: rejects non-numbers", () => {
-		expect(validateFieldValue("abc", "number", null)).toBe("Must be a valid number");
-		expect(validateFieldValue("Infinity", "number", null)).toBe("Must be a valid number");
-		expect(validateFieldValue("NaN", "number", null)).toBe("Must be a valid number");
+		expect(validateFieldValue("abc", "number", null)).toBe("Must be a valid finite number");
+		expect(validateFieldValue("Infinity", "number", null)).toBe("Must be a valid finite number");
+		expect(validateFieldValue("NaN", "number", null)).toBe("Must be a valid finite number");
+	});
+
+	it("validates number: rejects empty and whitespace-only", () => {
+		expect(validateFieldValue("", "number", null)).toBe("Must be a valid finite number");
+		expect(validateFieldValue("   ", "number", null)).toBe("Must be a valid finite number");
 	});
 
 	it("validates date: accepts YYYY-MM-DD", () => {
 		expect(validateFieldValue("2026-05-24", "date", null)).toBeNull();
+		expect(validateFieldValue("2026-01-31", "date", null)).toBeNull();
 	});
 
 	it("validates date: rejects bad format", () => {
-		expect(validateFieldValue("05/24/2026", "date", null)).toBe("Must be YYYY-MM-DD format");
-		expect(validateFieldValue("2026-13-01", "date", null)).toBe("Must be a valid date");
+		expect(validateFieldValue("05/24/2026", "date", null)).toBe(
+			"Must be a valid date (YYYY-MM-DD)",
+		);
 	});
 
-	it("validates date: rejects invalid date", () => {
-		expect(validateFieldValue("0000-00-00", "date", null)).toBe("Must be a valid date");
+	it("validates date: rejects non-existent calendar date", () => {
+		expect(validateFieldValue("2026-02-31", "date", null)).toBe(
+			"Must be a valid date (YYYY-MM-DD)",
+		);
+		expect(validateFieldValue("2026-13-01", "date", null)).toBe(
+			"Must be a valid date (YYYY-MM-DD)",
+		);
+	});
+
+	it("validates date: rejects empty value", () => {
+		expect(validateFieldValue("", "date", null)).toBe("Must be a valid date (YYYY-MM-DD)");
 	});
 
 	it("validates boolean: accepts true/false", () => {
@@ -106,6 +119,10 @@ describe("validateFieldValue", () => {
 		expect(validateFieldValue("1", "boolean", null)).toBe("Must be true or false");
 	});
 
+	it("validates boolean: rejects empty value", () => {
+		expect(validateFieldValue("", "boolean", null)).toBe("Must be true or false");
+	});
+
 	it("validates select: accepts value in options", () => {
 		expect(validateFieldValue("Senior", "select", ["Junior", "Senior", "Staff"])).toBeNull();
 	});
@@ -115,8 +132,17 @@ describe("validateFieldValue", () => {
 		expect(result).toBe("Must be one of: Junior, Senior");
 	});
 
-	it("validates text: always passes", () => {
+	it("validates select: rejects when options is null", () => {
+		expect(validateFieldValue("anything", "select", null)).toBe("Field has no options defined");
+	});
+
+	it("validates select: rejects empty value not in options", () => {
+		expect(validateFieldValue("", "select", ["A", "B"])).toBe("Must be one of: A, B");
+	});
+
+	it("validates text: always passes including empty", () => {
 		expect(validateFieldValue("anything", "text", null)).toBeNull();
+		expect(validateFieldValue("", "text", null)).toBeNull();
 	});
 });
 
@@ -276,7 +302,7 @@ describe("useFieldValues", () => {
 				createdAt: "2026-01-01",
 			};
 
-			expect(result.current.vm.validate(def, "abc")).toBe("Must be a valid number");
+			expect(result.current.vm.validate(def, "abc")).toBe("Must be a valid finite number");
 			expect(result.current.vm.validate(def, "42")).toBeNull();
 		});
 	});
