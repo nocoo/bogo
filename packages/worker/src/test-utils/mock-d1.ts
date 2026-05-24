@@ -30,3 +30,32 @@ export function createMockD1(): MockD1 {
 
 	return { db, mockPrepare, mockAll, mockFirst, mockRun, mockBind };
 }
+
+export function createSequenceD1(
+	responses: Array<{ type: "all" | "first" | "run"; value: unknown }>,
+) {
+	let callIndex = 0;
+
+	const createStatement = (): D1PreparedStatement => {
+		const stmt = {
+			bind: vi.fn().mockReturnThis(),
+			all: vi.fn().mockImplementation(async () => {
+				const resp = responses[callIndex++];
+				return resp?.value ?? { results: [], success: true };
+			}),
+			first: vi.fn().mockImplementation(async () => {
+				const resp = responses[callIndex++];
+				return resp?.value ?? null;
+			}),
+			run: vi.fn().mockImplementation(async () => {
+				const resp = responses[callIndex++];
+				return resp?.value ?? { success: true, meta: { changes: 1 } };
+			}),
+		} as unknown as D1PreparedStatement;
+		return stmt;
+	};
+
+	const prepare = vi.fn().mockImplementation(() => createStatement());
+	const db = { prepare } as unknown as D1Database;
+	return { db, prepare };
+}
