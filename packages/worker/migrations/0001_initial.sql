@@ -28,7 +28,9 @@ CREATE TABLE IF NOT EXISTS persons (
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
   PRIMARY KEY (id),
   UNIQUE (workspace_id, id),
-  CHECK ((is_root = 1 AND manager_id IS NULL) OR (is_root = 0 AND manager_id IS NOT NULL))
+  CHECK ((is_root = 1 AND manager_id IS NULL) OR (is_root = 0 AND manager_id IS NOT NULL)),
+  FOREIGN KEY (workspace_id, manager_id) REFERENCES persons(workspace_id, id) ON DELETE RESTRICT,
+  FOREIGN KEY (workspace_id, dotted_manager_id) REFERENCES persons(workspace_id, id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_persons_workspace ON persons(workspace_id);
