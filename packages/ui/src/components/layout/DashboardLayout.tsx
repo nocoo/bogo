@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { WorkspaceSelector } from "@/components/workspace/WorkspaceSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Github, Menu } from "lucide-react";
@@ -83,6 +84,7 @@ export function DashboardLayout() {
 						<h1 className="text-lg md:text-xl font-semibold text-foreground">{title}</h1>
 					</div>
 					<div className="flex items-center gap-1">
+						<WorkspaceSelector />
 						<a
 							href="https://github.com/nocoo/bogo"
 							target="_blank"
