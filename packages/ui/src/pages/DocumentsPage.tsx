@@ -212,36 +212,35 @@ function DocumentRow({
 	isRemoving: boolean;
 }) {
 	return (
-		<Link
-			to={`/documents/${doc.id}`}
-			className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 hover:border-primary/30 transition-colors"
-			aria-label={`Open ${doc.title}`}
-		>
-			<FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
-			<div className="flex-1 min-w-0">
-				<p className="text-sm font-medium text-foreground truncate">{doc.title}</p>
-				<div className="flex items-center gap-2 text-xs text-muted-foreground">
-					{typeName && (
-						<span className="inline-flex items-center gap-1">
-							{typeColor && (
-								<span
-									className="inline-block h-2 w-2 rounded-full"
-									style={{ backgroundColor: typeColor }}
-								/>
-							)}
-							{typeName}
-						</span>
-					)}
-					{doc.eventDate && <span>{doc.eventDate}</span>}
-					<span>v{doc.version}</span>
+		<div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 hover:border-primary/30 transition-colors">
+			<Link
+				to={`/documents/${doc.id}`}
+				className="flex flex-1 items-center gap-3 min-w-0"
+				aria-label={`Open ${doc.title}`}
+			>
+				<FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
+				<div className="flex-1 min-w-0">
+					<p className="text-sm font-medium text-foreground truncate">{doc.title}</p>
+					<div className="flex items-center gap-2 text-xs text-muted-foreground">
+						{typeName && (
+							<span className="inline-flex items-center gap-1">
+								{typeColor && (
+									<span
+										className="inline-block h-2 w-2 rounded-full"
+										style={{ backgroundColor: typeColor }}
+									/>
+								)}
+								{typeName}
+							</span>
+						)}
+						{doc.eventDate && <span>{doc.eventDate}</span>}
+						<span>v{doc.version}</span>
+					</div>
 				</div>
-			</div>
+			</Link>
 			<button
 				type="button"
-				onClick={(e) => {
-					e.preventDefault();
-					onRemove(doc.id);
-				}}
+				onClick={() => onRemove(doc.id)}
 				disabled={isRemoving}
 				className="shrink-0 text-muted-foreground hover:text-red-500 disabled:opacity-50 transition-colors"
 				aria-label={`Delete ${doc.title}`}
@@ -252,6 +251,6 @@ function DocumentRow({
 					<Trash2 className="h-4 w-4" strokeWidth={1.5} />
 				)}
 			</button>
-		</Link>
+		</div>
 	);
 }

@@ -309,4 +309,22 @@ describe("DocumentsPage", () => {
 			typeId: "dt-1",
 		});
 	});
+
+	it("document row links to detail page", () => {
+		mockUseWorkspaceContext.mockReturnValue({
+			workspaceId: "ws-1",
+			workspace: null,
+			switchWorkspace: vi.fn(),
+		});
+		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
+		mockUseDocuments.mockReturnValue(baseDocumentsVm());
+
+		render(
+			<MemoryRouter>
+				<DocumentsPage />
+			</MemoryRouter>,
+		);
+		const link = screen.getByLabelText("Open Q1 Report");
+		expect(link.getAttribute("href")).toBe("/documents/doc-1");
+	});
 });

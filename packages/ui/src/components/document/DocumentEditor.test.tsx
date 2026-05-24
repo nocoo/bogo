@@ -201,4 +201,39 @@ describe("DocumentEditor", () => {
 		const btn = screen.getByLabelText("Save document") as HTMLButtonElement;
 		expect(btn.disabled).toBe(true);
 	});
+
+	it("shows preview tab with rendered markdown", () => {
+		const vm = createVM({
+			document: {
+				id: "doc-1",
+				workspaceId: "ws-1",
+				typeId: null,
+				title: "Test",
+				content: "# Hello\n**bold text**",
+				eventDate: null,
+				version: 1,
+				createdAt: "2026-01-01",
+				updatedAt: "2026-01-01",
+			},
+		});
+		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+		fireEvent.click(screen.getByLabelText("Preview tab"));
+
+		const preview = screen.getByLabelText("Markdown preview");
+		expect(preview.innerHTML).toContain("<h1>Hello</h1>");
+		expect(preview.innerHTML).toContain("<strong>bold text</strong>");
+	});
+
+	it("preview updates when content changes then tab switches", () => {
+		const vm = createVM();
+		render(<DocumentEditor vm={vm} onBack={vi.fn()} />);
+
+		fireEvent.change(screen.getByLabelText("Document content"), {
+			target: { value: "## New heading" },
+		});
+		fireEvent.click(screen.getByLabelText("Preview tab"));
+
+		const preview = screen.getByLabelText("Markdown preview");
+		expect(preview.innerHTML).toContain("<h2>New heading</h2>");
+	});
 });

@@ -1,6 +1,7 @@
 import type { DocumentVersion, UpdateDocumentInput } from "@bogo/shared";
 import { AlertCircle, ArrowLeft, Loader2, Save, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { renderMarkdown } from "../../lib/markdown.js";
 import type { DocumentVM } from "../../viewmodels/document/use-document.js";
 
 export function DocumentEditor({
@@ -13,6 +14,7 @@ export function DocumentEditor({
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
 	const [dirty, setDirty] = useState(false);
+	const [tab, setTab] = useState<"edit" | "preview">("edit");
 
 	useEffect(() => {
 		if (vm.document) {
@@ -127,18 +129,62 @@ export function DocumentEditor({
 				{dirty && <span className="text-amber-400">Unsaved changes</span>}
 			</div>
 
-			<textarea
-				value={content}
-				onChange={(e) => handleContentChange(e.target.value)}
-				className="w-full min-h-[400px] rounded-lg border border-border bg-card p-4 text-sm text-foreground font-mono outline-none focus:border-primary resize-y transition-colors"
-				placeholder="Write document content..."
-				aria-label="Document content"
-			/>
+			<div className="flex items-center gap-1 border-b border-border">
+				<button
+					type="button"
+					onClick={() => setTab("edit")}
+					className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+						tab === "edit"
+							? "text-primary border-b-2 border-primary"
+							: "text-muted-foreground hover:text-foreground"
+					}`}
+					aria-label="Edit tab"
+				>
+					Edit
+				</button>
+				<button
+					type="button"
+					onClick={() => setTab("preview")}
+					className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+						tab === "preview"
+							? "text-primary border-b-2 border-primary"
+							: "text-muted-foreground hover:text-foreground"
+					}`}
+					aria-label="Preview tab"
+				>
+					Preview
+				</button>
+			</div>
+
+			{tab === "edit" ? (
+				<textarea
+					value={content}
+					onChange={(e) => handleContentChange(e.target.value)}
+					className="w-full min-h-[400px] rounded-lg border border-border bg-card p-4 text-sm text-foreground font-mono outline-none focus:border-primary resize-y transition-colors"
+					placeholder="Write document content..."
+					aria-label="Document content"
+				/>
+			) : (
+				<MarkdownPreview content={content} />
+			)}
 
 			{vm.versions.length > 0 && (
 				<VersionList versions={vm.versions} currentVersion={vm.document.version} />
 			)}
 		</div>
+	);
+}
+
+function MarkdownPreview({ content }: { content: string }) {
+	const html = useMemo(() => renderMarkdown(content), [content]);
+
+	return (
+		<div
+			className="w-full min-h-[400px] rounded-lg border border-border bg-card p-4 text-sm text-foreground prose prose-invert max-w-none"
+			aria-label="Markdown preview"
+			// biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown from user input only
+			dangerouslySetInnerHTML={{ __html: html }}
+		/>
 	);
 }
 

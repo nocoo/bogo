@@ -16,13 +16,25 @@ const PAGE_TITLES: Record<string, string> = {
 	"/settings": "Settings",
 };
 
+function resolveTitle(pathname: string): string {
+	if (PAGE_TITLES[pathname]) {
+		return PAGE_TITLES[pathname];
+	}
+	for (const [path, title] of Object.entries(PAGE_TITLES)) {
+		if (path !== "/" && pathname.startsWith(`${path}/`)) {
+			return title;
+		}
+	}
+	return "Dashboard";
+}
+
 export function DashboardLayout() {
 	const [collapsed, setCollapsed] = useState(false);
 	const isMobile = useIsMobile();
 	const [mobileOpen, setMobileOpen] = useState(false);
 	const location = useLocation();
 
-	const title = PAGE_TITLES[location.pathname] ?? "Dashboard";
+	const title = resolveTitle(location.pathname);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: close mobile nav on route change
 	useEffect(() => {
