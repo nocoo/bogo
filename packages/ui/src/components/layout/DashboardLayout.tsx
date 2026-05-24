@@ -5,7 +5,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { WorkspaceSelector } from "@/components/workspace/WorkspaceSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { Github, Menu } from "lucide-react";
+import { Github, LayoutTemplate, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 
@@ -102,6 +102,15 @@ export function DashboardLayout() {
 					</div>
 					<div className="flex items-center gap-1">
 						<WorkspaceSelector />
+						<a
+							href="https://basalt.nocoo.dev"
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label="Template gallery"
+							className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+						>
+							<LayoutTemplate className="h-[18px] w-[18px]" aria-hidden="true" strokeWidth={1.5} />
+						</a>
 						<a
 							href="https://github.com/nocoo/bogo"
 							target="_blank"
