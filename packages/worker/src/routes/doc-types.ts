@@ -97,6 +97,25 @@ docTypeRoutes.put("/:id", async (c) => {
 docTypeRoutes.delete("/:id", async (c) => {
 	const wid = c.req.param("wid") as string;
 	const { id } = c.req.param();
+
+	const usage = await c.env.DB.prepare(
+		"SELECT id FROM documents WHERE type_id = ? AND workspace_id = ?",
+	)
+		.bind(id, wid)
+		.first();
+
+	if (usage) {
+		return c.json(
+			{
+				error: {
+					code: "TYPE_IN_USE",
+					message: "Cannot delete document type that is in use by documents",
+				},
+			},
+			409,
+		);
+	}
+
 	const result = await c.env.DB.prepare(
 		"DELETE FROM document_types WHERE id = ? AND workspace_id = ?",
 	)

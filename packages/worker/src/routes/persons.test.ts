@@ -383,6 +383,7 @@ describe("person routes", () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { id: "p-1", is_root: 0 } }, // person exists, not root
 				{ type: "first", value: null }, // no children
+				{ type: "first", value: null }, // no dotted refs
 				{ type: "run", value: { success: true, meta: { changes: 1 } } }, // delete
 			]);
 
@@ -422,6 +423,22 @@ describe("person routes", () => {
 			expect(res.status).toBe(400);
 			const json = await res.json();
 			expect(json.error.code).toBe("HAS_REPORTS");
+		});
+
+		it("rejects delete with dotted manager references", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "p-1", is_root: 0 } }, // person exists, not root
+				{ type: "first", value: null }, // no direct children
+				{ type: "first", value: { id: "other-person" } }, // has dotted refs
+			]);
+
+			const res = await app.fetch(makeRequest("DELETE", `${BASE}/p-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("HAS_DOTTED_REPORTS");
 		});
 
 		it("returns 404 when person not found", async () => {

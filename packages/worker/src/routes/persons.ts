@@ -322,6 +322,24 @@ personRoutes.delete("/:id", async (c) => {
 		);
 	}
 
+	const dottedRef = await c.env.DB.prepare(
+		"SELECT id FROM persons WHERE dotted_manager_id = ? AND workspace_id = ?",
+	)
+		.bind(id, wid)
+		.first();
+
+	if (dottedRef) {
+		return c.json(
+			{
+				error: {
+					code: "HAS_DOTTED_REPORTS",
+					message: "Cannot delete person referenced as dotted manager. Clear references first.",
+				},
+			},
+			400,
+		);
+	}
+
 	await c.env.DB.prepare("DELETE FROM persons WHERE id = ? AND workspace_id = ?")
 		.bind(id, wid)
 		.run();

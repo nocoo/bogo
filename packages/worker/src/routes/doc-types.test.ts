@@ -163,8 +163,10 @@ describe("doc-type routes", () => {
 
 	describe("DELETE /api/w/:wid/doc-types/:id", () => {
 		it("deletes document type", async () => {
-			const { db, mockRun } = createMockD1();
-			mockRun.mockResolvedValue({ success: true, meta: { changes: 1 } });
+			const { db } = createSequenceD1([
+				{ type: "first", value: null }, // no documents using this type
+				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+			]);
 
 			const res = await app.fetch(makeRequest("DELETE", `${BASE}/dt-1`), {
 				DB: db,
@@ -175,9 +177,25 @@ describe("doc-type routes", () => {
 			expect(json.data.deleted).toBe(true);
 		});
 
+		it("rejects delete when type is in use", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "d-1" } }, // a document uses this type
+			]);
+
+			const res = await app.fetch(makeRequest("DELETE", `${BASE}/dt-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(409);
+			const json = await res.json();
+			expect(json.error.code).toBe("TYPE_IN_USE");
+		});
+
 		it("returns 404 for missing type", async () => {
-			const { db, mockRun } = createMockD1();
-			mockRun.mockResolvedValue({ success: true, meta: { changes: 0 } });
+			const { db } = createSequenceD1([
+				{ type: "first", value: null }, // no documents using this type
+				{ type: "run", value: { success: true, meta: { changes: 0 } } },
+			]);
 
 			const res = await app.fetch(makeRequest("DELETE", `${BASE}/missing`), {
 				DB: db,
