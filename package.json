@@ -5,7 +5,8 @@
 	"packageManager": "bun@1.3.11",
 	"workspaces": ["packages/*"],
 	"scripts": {
-		"dev": "turbo run dev --parallel",
+		"start": "turbo dev",
+		"dev": "turbo dev",
 		"build": "turbo build --filter=@bogo/ui",
 		"deploy": "turbo build --filter=@bogo/ui && cd packages/worker && npx wrangler deploy --env production",
 		"typecheck": "turbo typecheck",
