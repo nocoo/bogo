@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { BOGO_VERSION } from "@bogo/shared";
 import {
 	BarChart3,
+	Building2,
 	ChevronUp,
 	LayoutDashboard,
 	LogOut,
@@ -34,6 +35,7 @@ const NAV_GROUPS: NavGroup[] = [
 		defaultOpen: true,
 		items: [
 			{ title: "Dashboard", icon: LayoutDashboard, path: "/" },
+			{ title: "Workspaces", icon: Building2, path: "/workspaces" },
 			{ title: "Analytics", icon: BarChart3, path: "/analytics" },
 			{ title: "Users", icon: Users, path: "/users" },
 		],

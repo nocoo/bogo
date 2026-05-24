@@ -7,6 +7,7 @@ import { Outlet, useLocation } from "react-router";
 
 const PAGE_TITLES: Record<string, string> = {
 	"/": "Dashboard",
+	"/workspaces": "Workspaces",
 	"/analytics": "Analytics",
 	"/users": "Users",
 	"/logs": "Logs",
