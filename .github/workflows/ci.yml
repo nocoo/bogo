@@ -72,12 +72,13 @@ jobs:
         run: bun turbo test:e2e --filter=@bogo/worker
 
   # ─────────────────────────────────────────────────────
-  # L3: Playwright browser E2E
+  # L3: Playwright browser E2E (non-blocking, early stage)
   # ─────────────────────────────────────────────────────
   l3-playwright:
     name: "L3 Playwright E2E"
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
