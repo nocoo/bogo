@@ -1,0 +1,49 @@
+import type {
+	CreateFieldDefInput,
+	CustomFieldDefinition,
+	CustomFieldValue,
+	SetFieldValueInput,
+	UpdateFieldDefInput,
+} from "@bogo/shared";
+import type { Client } from "./client.js";
+
+export function fieldApi(client: Client) {
+	const base = (wid: string) => `/api/w/${wid}/fields`;
+
+	return {
+		listDefs(wid: string): Promise<CustomFieldDefinition[]> {
+			return client.request<CustomFieldDefinition[]>(base(wid));
+		},
+		createDef(wid: string, input: CreateFieldDefInput): Promise<CustomFieldDefinition> {
+			return client.request<CustomFieldDefinition>(base(wid), {
+				method: "POST",
+				body: input,
+			});
+		},
+		updateDef(wid: string, id: string, input: UpdateFieldDefInput): Promise<{ updated: boolean }> {
+			return client.request<{ updated: boolean }>(`${base(wid)}/${id}`, {
+				method: "PUT",
+				body: input,
+			});
+		},
+		deleteDef(wid: string, id: string): Promise<{ deleted: boolean }> {
+			return client.request<{ deleted: boolean }>(`${base(wid)}/${id}`, {
+				method: "DELETE",
+			});
+		},
+		getValues(wid: string, personId: string): Promise<CustomFieldValue[]> {
+			return client.request<CustomFieldValue[]>(`${base(wid)}/values/${personId}`);
+		},
+		setValue(
+			wid: string,
+			personId: string,
+			fieldDefId: string,
+			input: SetFieldValueInput,
+		): Promise<CustomFieldValue> {
+			return client.request<CustomFieldValue>(`${base(wid)}/values/${personId}/${fieldDefId}`, {
+				method: "PUT",
+				body: input,
+			});
+		},
+	};
+}
