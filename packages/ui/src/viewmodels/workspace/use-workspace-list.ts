@@ -58,14 +58,22 @@ export function useWorkspaceList(): WorkspaceListVM {
 		onMutate: async ({ id, input }) => {
 			await queryClient.cancelQueries({ queryKey: workspaceKeys.all });
 			const previous = queryClient.getQueryData<Workspace[]>(workspaceKeys.all);
+			const previousWorkspace =
+				workspaceId === id ? (previous?.find((w) => w.id === id) ?? null) : null;
 			queryClient.setQueryData(workspaceKeys.all, (old: Workspace[] | undefined) =>
 				(old ?? []).map((w) => (w.id === id ? { ...w, name: input.name } : w)),
 			);
+			if (workspaceId === id && previousWorkspace) {
+				switchWorkspace({ ...previousWorkspace, name: input.name });
+			}
 			setMutationError(null);
-			return { previous };
+			return { previous, previousWorkspace };
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(workspaceKeys.all, context?.previous);
+			if (context?.previousWorkspace) {
+				switchWorkspace(context.previousWorkspace);
+			}
 			setMutationError(err);
 		},
 		onSettled: () => {

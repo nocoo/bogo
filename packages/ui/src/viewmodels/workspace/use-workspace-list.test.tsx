@@ -174,6 +174,44 @@ describe("useWorkspaceList", () => {
 				expect(result.current.workspaces.find((w) => w.id === "ws-1")?.name).toBe("Corp"),
 			);
 		});
+
+		it("updates context workspace.name on rename of selected workspace", async () => {
+			mockFetch.mockResolvedValue(ok([WS1, WS2]));
+			const { result } = renderHook(
+				() => ({ vm: useWorkspaceList(), ctx: useWorkspaceContext() }),
+				{ wrapper: createWrapper() },
+			);
+			await waitFor(() => expect(result.current.vm.isLoading).toBe(false));
+
+			act(() => result.current.vm.select("ws-1"));
+			expect(result.current.ctx.workspace?.name).toBe("Corp");
+
+			const updated = { ...WS1, name: "Renamed" };
+			mockFetch.mockResolvedValue(ok(updated));
+			act(() => result.current.vm.rename("ws-1", "Renamed"));
+
+			await waitFor(() => expect(result.current.ctx.workspace?.name).toBe("Renamed"));
+		});
+
+		it("restores context workspace.name on rename failure of selected workspace", async () => {
+			mockFetch.mockResolvedValue(ok([WS1, WS2]));
+			const { result } = renderHook(
+				() => ({ vm: useWorkspaceList(), ctx: useWorkspaceContext() }),
+				{ wrapper: createWrapper() },
+			);
+			await waitFor(() => expect(result.current.vm.isLoading).toBe(false));
+
+			act(() => result.current.vm.select("ws-1"));
+			expect(result.current.ctx.workspace?.name).toBe("Corp");
+
+			mockFetch
+				.mockResolvedValueOnce(err(500, "INTERNAL", "DB error"))
+				.mockResolvedValueOnce(ok([WS1, WS2]));
+			act(() => result.current.vm.rename("ws-1", "Bad"));
+
+			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
+			await waitFor(() => expect(result.current.ctx.workspace?.name).toBe("Corp"));
+		});
 	});
 
 	describe("remove (optimistic update + rollback)", () => {
