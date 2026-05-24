@@ -8,24 +8,24 @@ This document records the final component/library selections for the Bogo UI, th
 
 | Concern | Library | Version | License | Justification |
 |---------|---------|---------|---------|---------------|
-| Org tree visualization | `@xyflow/react` | ^12 | MIT | Rich canvas-based graph with zoom/pan, dagre layout for tree, custom nodes, built-in drag interaction |
-| Tree layout algorithm | `@dagrejs/dagre` | ^1 | MIT | Computes hierarchical positions for xyflow nodes (TB direction) |
-| Diff rendering | `@pierre/diffs` | ^1.2 | Apache-2.0 | Designated by product owner. Shiki-based, split/stacked views, React binding via `@pierre/diffs/react` |
+| Org tree visualization | `@xyflow/react` | ^12 | MIT | Rich DOM/SVG graph viewport with zoom/pan, dagre layout for tree, custom nodes, built-in drag interaction |
+| Tree layout algorithm | `@dagrejs/dagre` | ^3 | MIT | Computes hierarchical positions for xyflow nodes (TB direction) |
+| Diff rendering | `@pierre/diffs` | ^1.2 | Apache-2.0 | Designated by product owner. Shiki-based, split/unified views, React binding via `@pierre/diffs/react` |
 | Data table | `@tanstack/react-table` | ^8 | MIT | Headless — full style control for basalt; sorting, filtering, pagination built-in |
 | Server state | `@tanstack/react-query` | ^5 | MIT | Caching, optimistic updates, background refetch, mutation lifecycle |
 | Virtual scrolling | `@tanstack/react-virtual` | ^3 | MIT | Hook-based virtualizer for long document lists and timelines |
 | Forms | `react-hook-form` | ^7 | MIT | Uncontrolled for performance; zod resolver for shared schema validation |
-| Validation | `zod` | ^3 | MIT | Shared with Worker (single source of truth for entity schemas) |
-| Markdown editor | `@uiw/react-md-editor` | ^4 | MIT | Split/preview mode, toolbar, TypeScript, lightweight for MVP |
-| Charts | `recharts` | ^2 | MIT | Declarative, responsive, composable chart components |
+| Validation | `zod` | ^4 | MIT | Shared with Worker (single source of truth for entity schemas) |
+| Markdown editor | `@uiw/react-md-editor` | ^4 | MIT | Split/preview mode, toolbar, TypeScript, lightweight for MVP (client-only, no SSR) |
+| Charts | `recharts` | ^3 | MIT | Declarative, responsive, composable chart components |
 | Toast notifications | `sonner` | ^2 | MIT | Promise-based toasts, stacking, swipe dismiss |
-| Date picker | `react-day-picker` | ^9 | MIT | Headless date selection, style-agnostic, accessible |
+| Date picker | `react-day-picker` | ^10 | MIT | Headless date selection, style-agnostic, accessible |
 
 ## Integration Details
 
 ### @xyflow/react — Org Tree
 
-**Why over @dnd-kit**: Product decision — xyflow provides a more visually polished canvas experience with zoom, pan, minimap, and smooth animated transitions out of the box.
+**Why over @dnd-kit**: Product decision — xyflow provides a more visually polished graph viewport experience with zoom, pan, minimap, and smooth animated transitions out of the box.
 
 **Architecture**:
 - `PersonTree.tsx` (View): Renders `<ReactFlow>` with custom node types
@@ -78,35 +78,39 @@ function computeTreeLayout(persons: Person[]): { nodes: Node[]; edges: Edge[] } 
 **Integration via `@pierre/diffs/react`**:
 
 ```typescript
-import { CodeView } from "@pierre/diffs/react";
+import { MultiFileDiff } from "@pierre/diffs/react";
 
 function DocumentDiff({ oldContent, newContent }: Props) {
   return (
-    <CodeView
-      files={[{
-        path: "document.md",
-        oldContent,
-        newContent,
-        language: "markdown",
-      }]}
-      theme="github-dark"
-      layout="split"
+    <MultiFileDiff
+      oldFile={{ name: "document.md", contents: oldContent, lang: "markdown" }}
+      newFile={{ name: "document.md", contents: newContent, lang: "markdown" }}
+      options={{
+        diffStyle: "split",
+        themes: { dark: "github-dark", light: "github-light" },
+      }}
     />
   );
 }
 ```
 
-**Theme integration**: Use Shiki themes compatible with basalt's dark oklch palette. Custom theme token mapping if needed via Shiki's `createTheme`.
+**API notes**:
+- `MultiFileDiff`: Two-file comparison component. Props: `oldFile`, `newFile`, `options`.
+- `CodeView`: Multi-file scroll container using `items`/`initialItems` + `options`. Use for version history browsing (multiple diffs in one view).
+- `diffStyle`: `"split"` (side-by-side) or `"unified"` (stacked).
+- `themes`: Object with `dark`/`light` keys pointing to Shiki theme names.
+
+**Theme integration**: Use Shiki themes compatible with basalt's dark oklch palette. Load only the `markdown` language grammar to minimize bundle. Custom theme token mapping if needed via Shiki's `createTheme`.
 
 **Vite considerations**:
 - ESM-native, no special Vite config needed
-- Shadow DOM encapsulates styles — basalt global styles don't leak in, diff styles don't leak out
-- Shiki WASM loaded on-demand (first render has a small delay for grammar loading)
+- Library-owned component styles are isolated from basalt global styles
+- Shiki grammars/themes loaded on-demand (first render has a small delay); preload `markdown` grammar at app startup for instant diff rendering
 
 **Testing strategy**:
 - Snapshot test: Verify component mounts with props without crashing
 - Integration: Playwright visual test for rendered diff output
-- No unit testing of Shadow DOM internals (third-party responsibility)
+- No unit testing of library internals (third-party responsibility)
 
 ### @uiw/react-md-editor — Markdown Editor
 
@@ -217,8 +221,8 @@ const virtualizer = useVirtualizer({
 {
   "dependencies": {
     "@bogo/shared": "workspace:*",
-    "@dagrejs/dagre": "^1",
-    "@hookform/resolvers": "^3",
+    "@dagrejs/dagre": "^3",
+    "@hookform/resolvers": "^5",
     "@pierre/diffs": "^1.2",
     "@tanstack/react-query": "^5",
     "@tanstack/react-table": "^8",
@@ -226,18 +230,25 @@ const virtualizer = useVirtualizer({
     "@uiw/react-md-editor": "^4",
     "@xyflow/react": "^12",
     "react": "^19",
-    "react-day-picker": "^9",
+    "react-day-picker": "^10",
     "react-dom": "^19",
     "react-hook-form": "^7",
     "react-router": "^7",
-    "recharts": "^2",
+    "recharts": "^3",
     "sonner": "^2",
-    "zod": "^3"
+    "zod": "^4"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16",
+    "@testing-library/user-event": "^14",
+    "msw": "^2",
+    "vitest": "^4"
   }
 }
 ```
 
 Total new production dependencies: 12 (excluding react/react-dom/react-router already present).
+Total new dev dependencies: 4 (for 95%+ coverage gate — MSW mocks API, user-event simulates interactions).
 
 ## Migration Path Notes
 

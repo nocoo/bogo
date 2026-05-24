@@ -21,7 +21,7 @@ Target: **95%+ unit test coverage** across the UI package. This document defines
 
 | Category | Why excluded | Where tested instead |
 |----------|-------------|---------------------|
-| Third-party component internals | @xyflow canvas, @pierre/diffs Shadow DOM, MDEditor | E2E (Playwright) |
+| Third-party component internals | @xyflow graph viewport, @pierre/diffs renderer, MDEditor | E2E (Playwright) |
 | CSS/Tailwind classes | Visual correctness ≠ logic correctness | Visual regression (future) |
 | React Router navigation | Integration behavior | E2E smoke tests |
 | Browser APIs (matchMedia, etc.) | Stubbed in unit tests, real in E2E | E2E + existing `use-mobile.test.ts` pattern |
@@ -30,19 +30,29 @@ Target: **95%+ unit test coverage** across the UI package. This document defines
 
 Coverage gates are checked per-directory to prevent low-coverage areas from hiding behind high-coverage utilities.
 
-```
-packages/ui/vitest.config.ts → coverageThreshold:
+**Implementation**: Modify `packages/ui/vitest.config.ts` to add Vitest's `coverage.thresholds` configuration (not yet present — to be added during implementation phase):
 
-  "src/viewmodels/**":   { lines: 98, branches: 95, functions: 98 }
-  "src/models/**":       { lines: 98, branches: 95, functions: 98 }
-  "src/api/**":          { lines: 95, branches: 90, functions: 95 }
-  "src/lib/**":          { lines: 100, branches: 95, functions: 100 }
-  "src/hooks/**":        { lines: 95, branches: 90, functions: 95 }
-  "src/components/**":   { lines: 90, branches: 85, functions: 90 }
-  "src/pages/**":        { lines: 85, branches: 80, functions: 85 }
-  
-  Global minimum:        { lines: 95, branches: 90, functions: 95 }
+```typescript
+// packages/ui/vitest.config.ts (future addition)
+export default defineConfig({
+  test: {
+    coverage: {
+      provider: "v8",
+      thresholds: {
+        "src/viewmodels/**": { lines: 98, branches: 95, functions: 98 },
+        "src/models/**":     { lines: 98, branches: 95, functions: 98 },
+        "src/api/**":        { lines: 95, branches: 90, functions: 95 },
+        "src/lib/**":        { lines: 100, branches: 95, functions: 100 },
+        "src/hooks/**":      { lines: 95, branches: 90, functions: 95 },
+        "src/components/**": { lines: 90, branches: 85, functions: 90 },
+        "src/pages/**":      { lines: 85, branches: 80, functions: 85 },
+      },
+    },
+  },
+});
 ```
+
+Global minimum (enforced by existing pre-commit `unit_cov` gate): `{ lines: 95, branches: 90, functions: 95 }`
 
 **Rationale for lower page thresholds**: Pages are thin wrappers that compose ViewModels + Components. Their logic is minimal; the ViewModel is where logic lives and is held to 98%.
 
@@ -218,8 +228,8 @@ describe("PersonDetailPanel", () => {
 |-----------|--------------|
 | API calls | MSW (`msw`) — intercepts fetch at network level |
 | React Query | Real QueryClient with `retry: false`, `gcTime: 0` |
-| @xyflow/react | Mock module (no canvas in jsdom) |
-| @pierre/diffs | Mock module (Shadow DOM not available in jsdom) |
+| @xyflow/react | Mock module (DOM/SVG viewport not fully renderable in jsdom) |
+| @pierre/diffs | Mock module (library-owned rendering not available in jsdom) |
 | @uiw/react-md-editor | Mock module (returns simple textarea) |
 | react-router | `MemoryRouter` wrapper |
 | matchMedia | `vi.stubGlobal` (existing pattern) |
@@ -228,16 +238,55 @@ describe("PersonDetailPanel", () => {
 ### MSW Setup
 
 ```typescript
-// tests/mocks/server.ts
+// src/tests/mocks/server.ts
 import { setupServer } from "msw/node";
 import { handlers } from "./handlers";
 
 export const server = setupServer(...handlers);
 
-// vitest.setup.ts
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
+// src/tests/mocks/handlers.ts
+// Default happy-path handlers for all API endpoints
+// Individual tests override with server.use(...)
+```
+
+**Test setup file** (`packages/ui/vitest.setup.ts` — referenced in vitest.config.ts `setupFiles`):
+
+```typescript
+import { cleanup } from "@testing-library/react";
+import { afterAll, afterEach, beforeAll } from "vitest";
+import { server } from "./src/tests/mocks/server";
+
+beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+afterEach(() => {
+  server.resetHandlers();
+  cleanup();
+});
 afterAll(() => server.close());
+```
+
+**Module mocks** (`packages/ui/src/tests/mocks/modules.ts` — auto-loaded via vitest.config `setupFiles`):
+
+```typescript
+// Mock @xyflow/react (SVG viewport not renderable in jsdom)
+vi.mock("@xyflow/react", () => ({
+  ReactFlow: ({ children }: any) => <div data-testid="react-flow">{children}</div>,
+  useNodesState: () => [[], vi.fn(), vi.fn()],
+  useEdgesState: () => [[], vi.fn(), vi.fn()],
+  // ... other exports as needed
+}));
+
+// Mock @pierre/diffs/react
+vi.mock("@pierre/diffs/react", () => ({
+  MultiFileDiff: () => <div data-testid="diff-view" />,
+  CodeView: () => <div data-testid="code-view" />,
+}));
+
+// Mock @uiw/react-md-editor
+vi.mock("@uiw/react-md-editor", () => ({
+  default: ({ value, onChange }: any) => (
+    <textarea data-testid="md-editor" value={value} onChange={(e) => onChange?.(e.target.value)} />
+  ),
+}));
 ```
 
 ## Test File Co-location
@@ -274,7 +323,7 @@ src/components/person/
 |---------|---------|---------------|
 | API responses | MSW (mocked) | Real Worker (local dev server) |
 | React Query | Real client (test config) | Real (browser) |
-| @xyflow canvas | Mocked (no canvas in jsdom) | Real (browser canvas) |
+| @xyflow graph viewport | Mocked (SVG viewport not in jsdom) | Real (browser DOM/SVG) |
 | @pierre/diffs | Mocked | Real (browser Shadow DOM) |
 | D1 database | Not involved | Real (local miniflare) |
 | Browser APIs | Stubbed | Real |
@@ -283,7 +332,7 @@ src/components/person/
 
 The MVVM architecture makes this feasible:
 
-1. **ViewModels** (60% of logic): Fully testable via `renderHook` — no DOM, no canvas, no third-party UI
+1. **ViewModels** (60% of logic): Fully testable via `renderHook` — no DOM, no graph viewport, no third-party UI
 2. **Models** (20% of logic): Pure functions returning query options — trivially testable
 3. **API client** (10% of logic): Fetch wrapper with MSW — straightforward
 4. **Components** (10% of logic): Thin shells delegating to ViewModels — render tests catch conditional logic

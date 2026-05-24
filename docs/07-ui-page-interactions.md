@@ -97,7 +97,7 @@ Every data-fetching view handles exactly these states:
 - **Loading**: Canvas with single centered skeleton node
 - **Empty** (only root exists): Root node + "Add your first team member" floating tooltip
 - **Data**: Full tree rendered with dagre layout
-- **Error**: Error banner above canvas, tree shows last cached state
+- **Error**: Error banner above graph viewport, tree shows last cached state
 
 **Node interactions**:
 - **Click node**: Select → open detail panel (slide-over from right)
@@ -107,7 +107,7 @@ Every data-fetching view handles exactly these states:
   - On drop: Confirmation toast "Move [name] under [new parent]?" with undo (3s)
   - API: `PUT /api/w/:wid/persons/:id/move`
 - **Right-click node**: Context menu [Add child, Edit, Move, Delete]
-- **Zoom/Pan**: Mouse wheel zoom, drag canvas to pan, minimap for navigation
+- **Zoom/Pan**: Mouse wheel zoom, drag viewport to pan, minimap for navigation
 
 **Drag-to-reparent flow (detailed)**:
 1. User starts dragging a node
@@ -401,7 +401,7 @@ Every data-fetching view handles exactly these states:
 
 | Component | Desktop (≥1280) | Tablet (768-1279) | Mobile (<768) |
 |-----------|----------------|-------------------|---------------|
-| Person tree | Full canvas + detail panel | Full canvas, detail as modal | List view default, tree via button |
+| Person tree | Full graph viewport + detail panel | Full viewport, detail as modal | List view default, tree via button |
 | Document editor | Side-by-side editor + metadata | Stacked (editor above metadata) | Single column, metadata in accordion |
 | Settings | Full table | Same | Cards instead of table rows |
 | Version diff | Split view | Stacked/unified view | Stacked view |
