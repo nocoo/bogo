@@ -7,13 +7,10 @@ import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 
 const PAGE_TITLES: Record<string, string> = {
-	"/": "Dashboard",
-	"/workspaces": "Workspaces",
+	"/": "Overview",
 	"/documents": "Documents",
-	"/analytics": "Analytics",
-	"/users": "People",
-	"/logs": "Logs",
-	"/system": "System",
+	"/people": "People",
+	"/workspaces": "Workspaces",
 	"/settings": "Settings",
 };
 

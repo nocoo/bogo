@@ -1,5 +1,5 @@
 import { PersonTree } from "@/components/person/PersonTree";
 
-export function UsersPage() {
+export function PeoplePage() {
 	return <PersonTree />;
 }

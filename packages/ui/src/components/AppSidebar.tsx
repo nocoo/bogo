@@ -1,19 +1,6 @@
 import { cn } from "@/lib/utils";
 import { BOGO_VERSION } from "@bogo/shared";
-import {
-	BarChart3,
-	Building2,
-	ChevronUp,
-	FileText,
-	LayoutDashboard,
-	LogOut,
-	Monitor,
-	Network,
-	PanelLeft,
-	ScrollText,
-	Search,
-	Settings,
-} from "lucide-react";
+import { FileText, LogOut, Network, PanelLeft, Search, Settings } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
@@ -23,93 +10,15 @@ interface NavItem {
 	path: string;
 }
 
-interface NavGroup {
-	label: string;
-	items: NavItem[];
-	defaultOpen?: boolean;
-}
-
-const NAV_GROUPS: NavGroup[] = [
-	{
-		label: "Overview",
-		defaultOpen: true,
-		items: [
-			{ title: "Dashboard", icon: LayoutDashboard, path: "/" },
-			{ title: "Workspaces", icon: Building2, path: "/workspaces" },
-			{ title: "Documents", icon: FileText, path: "/documents" },
-			{ title: "Analytics", icon: BarChart3, path: "/analytics" },
-			{ title: "People", icon: Network, path: "/users" },
-		],
-	},
-	{
-		label: "System",
-		defaultOpen: true,
-		items: [
-			{ title: "Logs", icon: ScrollText, path: "/logs" },
-			{ title: "System", icon: Monitor, path: "/system" },
-			{ title: "Settings", icon: Settings, path: "/settings" },
-		],
-	},
+const NAV_ITEMS: NavItem[] = [
+	{ title: "Documents", icon: FileText, path: "/documents" },
+	{ title: "People", icon: Network, path: "/people" },
+	{ title: "Settings", icon: Settings, path: "/settings" },
 ];
-
-const ALL_NAV_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
-
-function NavGroupSection({ group, currentPath }: { group: NavGroup; currentPath: string }) {
-	const [open, setOpen] = useState(group.defaultOpen ?? true);
-	const navigate = useNavigate();
-
-	return (
-		<div className="px-3 mt-2">
-			<button
-				type="button"
-				onClick={() => setOpen(!open)}
-				className="flex w-full items-center justify-between px-3 py-2.5"
-			>
-				<span className="text-sm font-normal text-muted-foreground">{group.label}</span>
-				<span className="flex h-7 w-7 shrink-0 items-center justify-center">
-					<ChevronUp
-						className={cn(
-							"h-4 w-4 text-muted-foreground transition-transform duration-200",
-							!open && "rotate-180",
-						)}
-						strokeWidth={1.5}
-					/>
-				</span>
-			</button>
-			<div
-				className="grid overflow-hidden"
-				style={{
-					gridTemplateRows: open ? "1fr" : "0fr",
-					transition: "grid-template-rows 200ms ease-out",
-				}}
-			>
-				<div className="min-h-0 overflow-hidden">
-					<div className="flex flex-col gap-0.5">
-						{group.items.map((item) => (
-							<button
-								type="button"
-								key={item.path}
-								onClick={() => navigate(item.path)}
-								className={cn(
-									"flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-normal transition-colors",
-									currentPath === item.path
-										? "bg-accent text-foreground"
-										: "text-muted-foreground hover:bg-accent hover:text-foreground",
-								)}
-							>
-								<item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
-								<span className="flex-1 text-left">{item.title}</span>
-							</button>
-						))}
-					</div>
-				</div>
-			</div>
-		</div>
-	);
-}
 
 function CollapsedNavItem({ item, currentPath }: { item: NavItem; currentPath: string }) {
 	const navigate = useNavigate();
+	const isActive = item.path === "/" ? currentPath === "/" : currentPath.startsWith(item.path);
 	return (
 		<button
 			type="button"
@@ -117,7 +26,7 @@ function CollapsedNavItem({ item, currentPath }: { item: NavItem; currentPath: s
 			title={item.title}
 			className={cn(
 				"relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
-				currentPath === item.path
+				isActive
 					? "bg-accent text-foreground"
 					: "text-muted-foreground hover:bg-accent hover:text-foreground",
 			)}
@@ -189,7 +98,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 						</button>
 
 						<nav className="flex-1 flex flex-col items-center gap-1 overflow-y-auto pt-1">
-							{ALL_NAV_ITEMS.map((item) => (
+							{NAV_ITEMS.map((item) => (
 								<CollapsedNavItem key={item.path} item={item} currentPath={pathname} />
 							))}
 						</nav>
@@ -238,10 +147,29 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 							</button>
 						</div>
 
-						<nav className="flex-1 overflow-y-auto pt-1">
-							{NAV_GROUPS.map((group) => (
-								<NavGroupSection key={group.label} group={group} currentPath={pathname} />
-							))}
+						<nav className="flex-1 overflow-y-auto pt-2">
+							<div className="flex flex-col gap-0.5 px-3">
+								{NAV_ITEMS.map((item) => {
+									const isActive =
+										item.path === "/" ? pathname === "/" : pathname.startsWith(item.path);
+									return (
+										<button
+											type="button"
+											key={item.path}
+											onClick={() => navigate(item.path)}
+											className={cn(
+												"flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-normal transition-colors",
+												isActive
+													? "bg-accent text-foreground"
+													: "text-muted-foreground hover:bg-accent hover:text-foreground",
+											)}
+										>
+											<item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+											<span className="flex-1 text-left">{item.title}</span>
+										</button>
+									);
+								})}
+							</div>
 						</nav>
 
 						<div className="px-4 py-3">
@@ -289,7 +217,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 							}}
 						/>
 						<div className="mt-1 border-t border-border pt-1">
-							{ALL_NAV_ITEMS.map((item) => (
+							{NAV_ITEMS.map((item) => (
 								<button
 									type="button"
 									key={item.path}
