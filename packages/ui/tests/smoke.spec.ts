@@ -13,3 +13,12 @@ test("/api/live returns health response", async ({ request }) => {
 	expect(body.status).toBe("ok");
 	expect(body.component).toBe("worker");
 });
+
+test("all SPA pages render without errors", async ({ page }) => {
+	const pages = ["/", "/analytics", "/users", "/logs", "/system", "/settings"];
+
+	for (const path of pages) {
+		await page.goto(path);
+		await expect(page.locator("main")).toBeVisible();
+	}
+});
