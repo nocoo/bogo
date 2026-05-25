@@ -25,7 +25,7 @@ export function CreatePersonDialog({
 	}, [name, managerId, onSubmit]);
 
 	return (
-		<div className="rounded-xl border border-border bg-card p-4 shadow-lg w-80">
+		<div className="rounded-xl border border-border bg-secondary p-4 shadow-lg w-80">
 			<div className="flex items-center justify-between mb-3">
 				<h3 className="text-sm font-semibold text-foreground">Add Person</h3>
 				<button

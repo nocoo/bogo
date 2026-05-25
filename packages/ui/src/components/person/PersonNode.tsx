@@ -12,7 +12,7 @@ export const PersonNode = memo(function PersonNode({
 			className={`group flex w-[240px] items-center gap-3 rounded-xl border px-4 py-3 shadow-sm transition-colors ${
 				selected
 					? "border-primary bg-primary/5 shadow-primary/10"
-					: "border-border bg-card hover:border-primary/40"
+					: "border-border bg-secondary hover:border-primary/40"
 			}`}
 		>
 			<Handle type="target" position={Position.Top} className="!bg-primary !w-2 !h-2" />
