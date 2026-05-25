@@ -1,13 +1,30 @@
 import type { CustomFieldDefinition, Person } from "@bogo/shared";
 import { Loader2, Save, Trash2, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
 import { PersonFieldValues } from "../field/PersonFieldValues.js";
+
+function getDescendantIds(persons: Person[], personId: string): Set<string> {
+	const ids = new Set<string>();
+	const queue = [personId];
+	let current = queue.pop();
+	while (current !== undefined) {
+		for (const p of persons) {
+			if (p.managerId === current && !ids.has(p.id)) {
+				ids.add(p.id);
+				queue.push(p.id);
+			}
+		}
+		current = queue.pop();
+	}
+	return ids;
+}
 
 export function EditPersonPanel({
 	person,
 	persons,
 	onUpdate,
+	onMove,
 	onRemove,
 	onClose,
 	isRemoving,
@@ -20,6 +37,7 @@ export function EditPersonPanel({
 		id: string,
 		fields: { name?: string; title?: string; dottedManagerId?: string | null },
 	) => void;
+	onMove: (id: string, newManagerId: string | null) => void;
 	onRemove: (id: string) => void;
 	onClose: () => void;
 	isRemoving: boolean;
@@ -28,13 +46,32 @@ export function EditPersonPanel({
 }) {
 	const [name, setName] = useState(person.name);
 	const [title, setTitle] = useState(person.title);
+	const [managerId, setManagerId] = useState<string | null>(person.managerId);
 	const [dottedManagerId, setDottedManagerId] = useState<string | null>(person.dottedManagerId);
 
 	useEffect(() => {
 		setName(person.name);
 		setTitle(person.title);
+		setManagerId(person.managerId);
 		setDottedManagerId(person.dottedManagerId);
 	}, [person]);
+
+	const descendantIds = useMemo(() => getDescendantIds(persons, person.id), [persons, person.id]);
+
+	const eligibleManagers = useMemo(
+		() => persons.filter((p) => p.id !== person.id && !descendantIds.has(p.id)),
+		[persons, person.id, descendantIds],
+	);
+
+	const handleManagerChange = useCallback(
+		(newManagerId: string) => {
+			if (newManagerId && newManagerId !== person.managerId) {
+				setManagerId(newManagerId);
+				onMove(person.id, newManagerId);
+			}
+		},
+		[person.id, person.managerId, onMove],
+	);
 
 	const handleSave = useCallback(() => {
 		const fields: { name?: string; title?: string; dottedManagerId?: string | null } = {};
@@ -52,9 +89,7 @@ export function EditPersonPanel({
 		}
 	}, [name, title, dottedManagerId, person, onUpdate]);
 
-	const eligibleDottedManagers = persons.filter(
-		(p) => p.id !== person.id && p.id !== person.managerId,
-	);
+	const eligibleDottedManagers = persons.filter((p) => p.id !== person.id && p.id !== managerId);
 
 	return (
 		<div className="w-72 rounded-xl border border-border bg-card p-4 shadow-lg">
@@ -97,6 +132,26 @@ export function EditPersonPanel({
 						className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
 					/>
 				</div>
+
+				{!person.isRoot && (
+					<div>
+						<label htmlFor="edit-manager" className="text-xs text-muted-foreground">
+							Manager
+						</label>
+						<select
+							id="edit-manager"
+							value={managerId ?? ""}
+							onChange={(e) => handleManagerChange(e.target.value)}
+							className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary"
+						>
+							{eligibleManagers.map((p) => (
+								<option key={p.id} value={p.id}>
+									{p.name}
+								</option>
+							))}
+						</select>
+					</div>
+				)}
 
 				<div>
 					<label htmlFor="edit-dotted" className="text-xs text-muted-foreground">

@@ -149,6 +149,7 @@ function PersonTreeInner() {
 						person={selectedPerson}
 						persons={vm.persons}
 						onUpdate={vm.update}
+						onMove={vm.move}
 						onRemove={vm.remove}
 						onClose={() => vm.selectPerson(null)}
 						isRemoving={vm.isRemoving}

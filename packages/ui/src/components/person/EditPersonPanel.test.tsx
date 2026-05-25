@@ -41,6 +41,19 @@ const BOB = {
 	updatedAt: "2026-01-03",
 };
 
+const CHARLIE = {
+	id: "p-charlie",
+	workspaceId: "ws-1",
+	name: "Charlie",
+	title: "Intern",
+	managerId: "p-alice",
+	dottedManagerId: null,
+	isRoot: false,
+	sortOrder: 3,
+	createdAt: "2026-01-04",
+	updatedAt: "2026-01-04",
+};
+
 describe("EditPersonPanel", () => {
 	it("shows name and title inputs pre-filled", () => {
 		render(
@@ -48,6 +61,7 @@ describe("EditPersonPanel", () => {
 				person={ALICE}
 				persons={[ROOT, ALICE, BOB]}
 				onUpdate={vi.fn()}
+				onMove={vi.fn()}
 				onRemove={vi.fn()}
 				onClose={vi.fn()}
 				isRemoving={false}
@@ -64,6 +78,7 @@ describe("EditPersonPanel", () => {
 				person={ALICE}
 				persons={[ROOT, ALICE, BOB]}
 				onUpdate={onUpdate}
+				onMove={vi.fn()}
 				onRemove={vi.fn()}
 				onClose={vi.fn()}
 				isRemoving={false}
@@ -81,6 +96,7 @@ describe("EditPersonPanel", () => {
 				person={ALICE}
 				persons={[ROOT, ALICE, BOB]}
 				onUpdate={onUpdate}
+				onMove={vi.fn()}
 				onRemove={vi.fn()}
 				onClose={vi.fn()}
 				isRemoving={false}
@@ -98,6 +114,7 @@ describe("EditPersonPanel", () => {
 				person={ALICE}
 				persons={[ROOT, ALICE, BOB]}
 				onUpdate={onUpdate}
+				onMove={vi.fn()}
 				onRemove={vi.fn()}
 				onClose={vi.fn()}
 				isRemoving={false}
@@ -117,6 +134,7 @@ describe("EditPersonPanel", () => {
 				person={ALICE}
 				persons={[ROOT, ALICE, BOB]}
 				onUpdate={onUpdate}
+				onMove={vi.fn()}
 				onRemove={vi.fn()}
 				onClose={vi.fn()}
 				isRemoving={false}
@@ -132,6 +150,7 @@ describe("EditPersonPanel", () => {
 				person={ALICE}
 				persons={[ROOT, ALICE]}
 				onUpdate={vi.fn()}
+				onMove={vi.fn()}
 				onRemove={vi.fn()}
 				onClose={vi.fn()}
 				isRemoving={false}
@@ -146,6 +165,7 @@ describe("EditPersonPanel", () => {
 				person={ROOT}
 				persons={[ROOT, ALICE]}
 				onUpdate={vi.fn()}
+				onMove={vi.fn()}
 				onRemove={vi.fn()}
 				onClose={vi.fn()}
 				isRemoving={false}
@@ -161,6 +181,7 @@ describe("EditPersonPanel", () => {
 				person={ALICE}
 				persons={[ROOT, ALICE]}
 				onUpdate={vi.fn()}
+				onMove={vi.fn()}
 				onRemove={onRemove}
 				onClose={vi.fn()}
 				isRemoving={false}
@@ -177,6 +198,7 @@ describe("EditPersonPanel", () => {
 				person={ALICE}
 				persons={[ROOT, ALICE]}
 				onUpdate={vi.fn()}
+				onMove={vi.fn()}
 				onRemove={vi.fn()}
 				onClose={onClose}
 				isRemoving={false}
@@ -192,6 +214,7 @@ describe("EditPersonPanel", () => {
 				person={ALICE}
 				persons={[ROOT, ALICE, BOB]}
 				onUpdate={vi.fn()}
+				onMove={vi.fn()}
 				onRemove={vi.fn()}
 				onClose={vi.fn()}
 				isRemoving={false}
@@ -211,6 +234,7 @@ describe("EditPersonPanel", () => {
 				person={ALICE}
 				persons={[ROOT, ALICE]}
 				onUpdate={vi.fn()}
+				onMove={vi.fn()}
 				onRemove={vi.fn()}
 				onClose={vi.fn()}
 				isRemoving={true}
@@ -228,6 +252,7 @@ describe("EditPersonPanel", () => {
 				person={aliceWithDotted}
 				persons={[ROOT, aliceWithDotted, BOB]}
 				onUpdate={onUpdate}
+				onMove={vi.fn()}
 				onRemove={vi.fn()}
 				onClose={vi.fn()}
 				isRemoving={false}
@@ -238,5 +263,89 @@ describe("EditPersonPanel", () => {
 		});
 		fireEvent.click(screen.getByText("Save"));
 		expect(onUpdate).toHaveBeenCalledWith("p-alice", { dottedManagerId: null });
+	});
+
+	it("shows manager dropdown for non-root person", () => {
+		render(
+			<EditPersonPanel
+				person={ALICE}
+				persons={[ROOT, ALICE, BOB]}
+				onUpdate={vi.fn()}
+				onMove={vi.fn()}
+				onRemove={vi.fn()}
+				onClose={vi.fn()}
+				isRemoving={false}
+			/>,
+		);
+		expect(screen.getByLabelText("Manager")).toBeTruthy();
+	});
+
+	it("hides manager dropdown for root person", () => {
+		render(
+			<EditPersonPanel
+				person={ROOT}
+				persons={[ROOT, ALICE]}
+				onUpdate={vi.fn()}
+				onMove={vi.fn()}
+				onRemove={vi.fn()}
+				onClose={vi.fn()}
+				isRemoving={false}
+			/>,
+		);
+		expect(screen.queryByLabelText("Manager")).toBeNull();
+	});
+
+	it("calls onMove when manager is changed", () => {
+		const onMove = vi.fn();
+		render(
+			<EditPersonPanel
+				person={ALICE}
+				persons={[ROOT, ALICE, BOB]}
+				onUpdate={vi.fn()}
+				onMove={onMove}
+				onRemove={vi.fn()}
+				onClose={vi.fn()}
+				isRemoving={false}
+			/>,
+		);
+		fireEvent.change(screen.getByLabelText("Manager"), { target: { value: "p-bob" } });
+		expect(onMove).toHaveBeenCalledWith("p-alice", "p-bob");
+	});
+
+	it("excludes self and descendants from manager options", () => {
+		render(
+			<EditPersonPanel
+				person={ALICE}
+				persons={[ROOT, ALICE, BOB, CHARLIE]}
+				onUpdate={vi.fn()}
+				onMove={vi.fn()}
+				onRemove={vi.fn()}
+				onClose={vi.fn()}
+				isRemoving={false}
+			/>,
+		);
+		const select = screen.getByLabelText("Manager") as HTMLSelectElement;
+		const options = Array.from(select.options).map((o) => o.value);
+		expect(options).toContain("p-root");
+		expect(options).toContain("p-bob");
+		expect(options).not.toContain("p-alice");
+		expect(options).not.toContain("p-charlie");
+	});
+
+	it("does not call onMove when selecting current manager", () => {
+		const onMove = vi.fn();
+		render(
+			<EditPersonPanel
+				person={ALICE}
+				persons={[ROOT, ALICE, BOB]}
+				onUpdate={vi.fn()}
+				onMove={onMove}
+				onRemove={vi.fn()}
+				onClose={vi.fn()}
+				isRemoving={false}
+			/>,
+		);
+		fireEvent.change(screen.getByLabelText("Manager"), { target: { value: "p-root" } });
+		expect(onMove).not.toHaveBeenCalled();
 	});
 });

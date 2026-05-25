@@ -28,6 +28,7 @@ export interface PersonTreeVM {
 		id: string,
 		fields: { name?: string; title?: string; dottedManagerId?: string | null },
 	) => void;
+	move: (id: string, newManagerId: string | null) => void;
 	remove: (id: string) => void;
 
 	isCreating: boolean;
@@ -91,6 +92,7 @@ export function usePersonTree(): PersonTreeVM {
 		clearDropError,
 		create: vm.create,
 		update: vm.update,
+		move: vm.move,
 		remove: vm.remove,
 		isCreating: vm.isCreating,
 		isMoving: vm.isMoving,
