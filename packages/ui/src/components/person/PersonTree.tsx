@@ -15,6 +15,7 @@ import { AlertCircle, Loader2, Plus } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { CreatePersonDialog, EmptyPersonState } from "./CreatePersonDialog.js";
 import { EditPersonPanel } from "./EditPersonPanel.js";
+import { PersonDocTimeline } from "./PersonDocTimeline.js";
 import { PersonNode } from "./PersonNode.js";
 
 const nodeTypes = { person: PersonNode };
@@ -144,19 +145,24 @@ function PersonTreeInner() {
 			)}
 
 			{selectedPerson && (
-				<div className="absolute top-3 right-3 z-10">
-					<EditPersonPanel
-						person={selectedPerson}
-						persons={vm.persons}
-						onUpdate={vm.update}
-						onMove={vm.move}
-						onRemove={vm.remove}
-						onClose={() => vm.selectPerson(null)}
-						isRemoving={vm.isRemoving}
-						fieldDefs={fieldDefsVm.defs}
-						fieldValuesVm={fieldValuesVm}
-					/>
-				</div>
+				<>
+					<div className="absolute top-3 right-[304px] z-10">
+						<PersonDocTimeline personId={selectedPerson.id} onClose={() => vm.selectPerson(null)} />
+					</div>
+					<div className="absolute top-3 right-3 z-10">
+						<EditPersonPanel
+							person={selectedPerson}
+							persons={vm.persons}
+							onUpdate={vm.update}
+							onMove={vm.move}
+							onRemove={vm.remove}
+							onClose={() => vm.selectPerson(null)}
+							isRemoving={vm.isRemoving}
+							fieldDefs={fieldDefsVm.defs}
+							fieldValuesVm={fieldValuesVm}
+						/>
+					</div>
+				</>
 			)}
 
 			{vm.dropError && (

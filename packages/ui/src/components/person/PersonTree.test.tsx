@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { MemoryRouter } from "react-router";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceProvider, useWorkspaceContext } from "../../contexts/workspace-context.js";
@@ -99,11 +100,13 @@ function renderWithProviders(ui: ReactNode) {
 		defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
 	});
 	return render(
-		<QueryClientProvider client={queryClient}>
-			<WorkspaceProvider>
-				<WorkspaceSwitcher>{ui}</WorkspaceSwitcher>
-			</WorkspaceProvider>
-		</QueryClientProvider>,
+		<MemoryRouter>
+			<QueryClientProvider client={queryClient}>
+				<WorkspaceProvider>
+					<WorkspaceSwitcher>{ui}</WorkspaceSwitcher>
+				</WorkspaceProvider>
+			</QueryClientProvider>
+		</MemoryRouter>,
 	);
 }
 
