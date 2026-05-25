@@ -5,8 +5,8 @@
 
 /*
  * Bogo — Deep Blue theme based on Basalt design language.
- * 3-Tier Luminance Hierarchy: L0 body → L1 content panel → L2 inner cards.
- * Primary accent: deep navy blue (217 91% 50%).
+ * 4-Tier Luminance Hierarchy: L0 sidebar → L1 body → L2 content panel → L3 inner cards.
+ * Primary accent: deep navy blue (250 hue in oklch).
  */
 
 @theme inline {
@@ -47,17 +47,17 @@
 :root {
 	--radius: 0.75rem;
 
-	/* Deep Blue Light Mode — L0/L1/L2 luminance tiers */
-	--background: oklch(0.95 0.01 230);
+	/* Deep Blue Light Mode — L0 sidebar / L1 body / L2 card / L3 secondary */
+	--background: oklch(0.94 0.012 230);
 	--foreground: oklch(0.15 0.02 230);
 	--card: oklch(0.97 0.005 230);
 	--card-foreground: oklch(0.15 0.02 230);
-	--popover: oklch(0.98 0.003 230);
+	--popover: oklch(0.995 0.002 230);
 	--popover-foreground: oklch(0.15 0.02 230);
 	--primary: oklch(0.45 0.2 250);
 	--primary-foreground: oklch(0.98 0.005 230);
-	--secondary: oklch(0.92 0.015 230);
-	--secondary-foreground: oklch(0.2 0.02 230);
+	--secondary: oklch(0.995 0.002 230);
+	--secondary-foreground: oklch(0.15 0.02 230);
 	--muted: oklch(0.92 0.01 230);
 	--muted-foreground: oklch(0.5 0.02 230);
 	--accent: oklch(0.92 0.015 230);
@@ -75,31 +75,31 @@
 }
 
 .dark {
-	/* Deep Blue Dark Mode — L0/L1/L2 luminance tiers */
-	--background: oklch(0.14 0.02 250);
+	/* Deep Blue Dark Mode — L0 sidebar / L1 body / L2 card / L3 secondary */
+	--background: oklch(0.15 0.02 250);
 	--foreground: oklch(0.9 0.01 230);
-	--card: oklch(0.17 0.025 250);
+	--card: oklch(0.19 0.02 250);
 	--card-foreground: oklch(0.9 0.01 230);
-	--popover: oklch(0.19 0.025 250);
+	--popover: oklch(0.23 0.02 250);
 	--popover-foreground: oklch(0.9 0.01 230);
 	--primary: oklch(0.55 0.2 250);
 	--primary-foreground: oklch(0.98 0.005 230);
-	--secondary: oklch(0.22 0.03 250);
+	--secondary: oklch(0.23 0.02 250);
 	--secondary-foreground: oklch(0.9 0.01 230);
-	--muted: oklch(0.22 0.025 250);
+	--muted: oklch(0.2 0.02 250);
 	--muted-foreground: oklch(0.6 0.02 230);
-	--accent: oklch(0.22 0.03 250);
+	--accent: oklch(0.2 0.02 250);
 	--accent-foreground: oklch(0.9 0.01 230);
 	--destructive: oklch(0.55 0.2 25);
 	--destructive-foreground: oklch(0.98 0.005 230);
-	--border: oklch(0.28 0.03 250);
-	--input: oklch(0.28 0.03 250);
+	--border: oklch(0.27 0.03 250);
+	--input: oklch(0.27 0.03 250);
 	--ring: oklch(0.55 0.2 250);
-	--sidebar: oklch(0.12 0.03 250);
+	--sidebar: oklch(0.11 0.03 250);
 	--sidebar-foreground: oklch(0.9 0.01 230);
-	--sidebar-accent: oklch(0.2 0.04 250);
+	--sidebar-accent: oklch(0.17 0.04 250);
 	--sidebar-accent-foreground: oklch(0.95 0.005 230);
-	--sidebar-border: oklch(0.25 0.03 250);
+	--sidebar-border: oklch(0.2 0.03 250);
 }
 
 @layer base {
