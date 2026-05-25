@@ -80,6 +80,10 @@ fieldRoutes.put("/:id", async (c) => {
 		sets.push("name = ?");
 		values.push(parsed.data.name);
 	}
+	if (parsed.data.fieldType !== undefined) {
+		sets.push("field_type = ?");
+		values.push(parsed.data.fieldType);
+	}
 	if (parsed.data.options !== undefined) {
 		sets.push("options = ?");
 		values.push(JSON.stringify(parsed.data.options));

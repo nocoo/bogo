@@ -14,6 +14,7 @@ export const createFieldDefSchema = z.object({
 
 export const updateFieldDefSchema = z.object({
 	name: z.string().min(1).max(200).optional(),
+	fieldType: z.enum(fieldTypes).optional(),
 	options: z.array(z.string()).optional(),
 	required: z.boolean().optional(),
 	defaultValue: z.string().nullable().optional(),
