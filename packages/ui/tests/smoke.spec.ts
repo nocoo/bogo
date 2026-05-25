@@ -15,7 +15,16 @@ test("/api/live returns health response", async ({ request }) => {
 });
 
 test("all SPA pages render without errors", async ({ page }) => {
-	const pages = ["/", "/documents", "/documents/test-id", "/people", "/workspaces", "/settings"];
+	const pages = [
+		"/",
+		"/documents",
+		"/documents/test-id",
+		"/people",
+		"/workspaces",
+		"/settings",
+		"/settings/doc-types",
+		"/settings/fields",
+	];
 
 	for (const path of pages) {
 		await page.goto(path);

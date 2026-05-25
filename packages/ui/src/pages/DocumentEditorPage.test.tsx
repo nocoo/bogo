@@ -84,6 +84,8 @@ describe("DocumentEditorPage", () => {
 			workspaceId: null,
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUseDocument.mockReturnValue(baseVM());
 		mockUsePersonList.mockReturnValue(basePersonListVM());
@@ -97,6 +99,8 @@ describe("DocumentEditorPage", () => {
 			workspaceId: "ws-1",
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUsePersonList.mockReturnValue(basePersonListVM());
 

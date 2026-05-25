@@ -1,6 +1,15 @@
 import { cn } from "@/lib/utils";
 import { BOGO_VERSION } from "@bogo/shared";
-import { FileText, LogOut, Network, PanelLeft, Search, Settings } from "lucide-react";
+import {
+	FileText,
+	FileType,
+	ListTree,
+	LogOut,
+	Network,
+	PanelLeft,
+	Search,
+	Settings,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
@@ -10,15 +19,32 @@ interface NavItem {
 	path: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
+const WORKSPACE_ITEMS: NavItem[] = [
 	{ title: "Documents", icon: FileText, path: "/documents" },
 	{ title: "People", icon: Network, path: "/people" },
-	{ title: "Settings", icon: Settings, path: "/settings" },
 ];
+
+const SETTINGS_ITEMS: NavItem[] = [
+	{ title: "General", icon: Settings, path: "/settings" },
+	{ title: "Doc Types", icon: FileType, path: "/settings/doc-types" },
+	{ title: "Fields", icon: ListTree, path: "/settings/fields" },
+];
+
+const ALL_NAV_ITEMS: NavItem[] = [...WORKSPACE_ITEMS, ...SETTINGS_ITEMS];
+
+function isNavActive(itemPath: string, currentPath: string): boolean {
+	if (itemPath === "/") {
+		return currentPath === "/";
+	}
+	if (itemPath === "/settings") {
+		return currentPath === "/settings";
+	}
+	return currentPath.startsWith(itemPath);
+}
 
 function CollapsedNavItem({ item, currentPath }: { item: NavItem; currentPath: string }) {
 	const navigate = useNavigate();
-	const isActive = item.path === "/" ? currentPath === "/" : currentPath.startsWith(item.path);
+	const isActive = isNavActive(item.path, currentPath);
 	return (
 		<button
 			type="button"
@@ -98,7 +124,11 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 						</button>
 
 						<nav className="flex-1 flex flex-col items-center gap-1 overflow-y-auto pt-1">
-							{NAV_ITEMS.map((item) => (
+							{WORKSPACE_ITEMS.map((item) => (
+								<CollapsedNavItem key={item.path} item={item} currentPath={pathname} />
+							))}
+							<div className="my-1.5 h-px w-6 bg-sidebar-border" />
+							{SETTINGS_ITEMS.map((item) => (
 								<CollapsedNavItem key={item.path} item={item} currentPath={pathname} />
 							))}
 						</nav>
@@ -154,9 +184,32 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 								<span className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/40">
 									Workspace
 								</span>
-								{NAV_ITEMS.map((item) => {
-									const isActive =
-										item.path === "/" ? pathname === "/" : pathname.startsWith(item.path);
+								{WORKSPACE_ITEMS.map((item) => {
+									const isActive = isNavActive(item.path, pathname);
+									return (
+										<button
+											type="button"
+											key={item.path}
+											onClick={() => navigate(item.path)}
+											className={cn(
+												"flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-normal transition-colors",
+												isActive
+													? "bg-sidebar-accent text-sidebar-accent-foreground"
+													: "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+											)}
+										>
+											<item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+											<span className="flex-1 text-left">{item.title}</span>
+										</button>
+									);
+								})}
+							</div>
+							<div className="flex flex-col gap-0.5 px-3 mt-4">
+								<span className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/40">
+									Settings
+								</span>
+								{SETTINGS_ITEMS.map((item) => {
+									const isActive = isNavActive(item.path, pathname);
 									return (
 										<button
 											type="button"
@@ -222,7 +275,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 							}}
 						/>
 						<div className="mt-1 border-t border-border pt-1">
-							{NAV_ITEMS.map((item) => (
+							{ALL_NAV_ITEMS.map((item) => (
 								<button
 									type="button"
 									key={item.path}

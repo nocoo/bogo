@@ -7,11 +7,17 @@ import { useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { useWorkspaceList } from "../../viewmodels/workspace/use-workspace-list.js";
 
 export function WorkspaceSelector() {
-	const { workspace, switchWorkspace } = useWorkspaceContext();
+	const { workspace, switchWorkspace, hydrate } = useWorkspaceContext();
 	const { workspaces, isLoading, error } = useWorkspaceList();
 	const navigate = useNavigate();
 	const [open, setOpen] = useState(false);
 	const ref = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		if (!isLoading && workspaces.length > 0) {
+			hydrate(workspaces);
+		}
+	}, [isLoading, workspaces, hydrate]);
 
 	useEffect(() => {
 		const handler = (e: MouseEvent) => {

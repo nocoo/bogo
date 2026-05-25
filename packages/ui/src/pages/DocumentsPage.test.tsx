@@ -99,6 +99,8 @@ describe("DocumentsPage", () => {
 			workspaceId: null,
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue(baseDocumentsVm());
@@ -116,6 +118,8 @@ describe("DocumentsPage", () => {
 			workspaceId: "ws-1",
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({ ...baseDocumentsVm(), documents: [], isLoading: true });
@@ -133,6 +137,8 @@ describe("DocumentsPage", () => {
 			workspaceId: "ws-1",
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({
@@ -154,6 +160,8 @@ describe("DocumentsPage", () => {
 			workspaceId: "ws-1",
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({ ...baseDocumentsVm(), documents: [] });
@@ -171,6 +179,8 @@ describe("DocumentsPage", () => {
 			workspaceId: "ws-1",
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue(baseDocumentsVm());
@@ -194,6 +204,8 @@ describe("DocumentsPage", () => {
 			workspaceId: "ws-1",
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({ ...baseDocumentsVm(), create });
@@ -223,6 +235,8 @@ describe("DocumentsPage", () => {
 			workspaceId: "ws-1",
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({ ...baseDocumentsVm(), create });
@@ -244,6 +258,8 @@ describe("DocumentsPage", () => {
 			workspaceId: "ws-1",
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({
@@ -269,6 +285,8 @@ describe("DocumentsPage", () => {
 			workspaceId: "ws-1",
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({ ...baseDocumentsVm(), remove });
@@ -288,6 +306,8 @@ describe("DocumentsPage", () => {
 			workspaceId: "ws-1",
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue({ ...baseDocumentsVm(), create });
@@ -315,6 +335,8 @@ describe("DocumentsPage", () => {
 			workspaceId: "ws-1",
 			workspace: null,
 			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
 		});
 		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
 		mockUseDocuments.mockReturnValue(baseDocumentsVm());

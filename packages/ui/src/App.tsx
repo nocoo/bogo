@@ -1,7 +1,9 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AppProviders } from "@/contexts/app-providers";
+import { DocTypesSettingsPage } from "@/pages/DocTypesSettingsPage";
 import { DocumentEditorPage } from "@/pages/DocumentEditorPage";
 import { DocumentsPage } from "@/pages/DocumentsPage";
+import { FieldsSettingsPage } from "@/pages/FieldsSettingsPage";
 import { OverviewPage } from "@/pages/OverviewPage";
 import { PeoplePage } from "@/pages/PeoplePage";
 import { SettingsPage } from "@/pages/SettingsPage";
@@ -20,6 +22,8 @@ export function App() {
 						<Route path="/people" element={<PeoplePage />} />
 						<Route path="/workspaces" element={<WorkspacesPage />} />
 						<Route path="/settings" element={<SettingsPage />} />
+						<Route path="/settings/doc-types" element={<DocTypesSettingsPage />} />
+						<Route path="/settings/fields" element={<FieldsSettingsPage />} />
 					</Route>
 				</Routes>
 			</BrowserRouter>

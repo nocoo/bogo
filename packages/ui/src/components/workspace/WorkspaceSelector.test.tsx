@@ -42,11 +42,25 @@ function createWrapper() {
 }
 
 describe("WorkspaceSelector", () => {
-	it("shows 'Select workspace' when loaded with none selected", async () => {
+	beforeEach(() => {
+		localStorage.clear();
+	});
+
+	afterEach(() => {
+		localStorage.clear();
+	});
+
+	it("auto-selects first workspace after load", async () => {
 		mockFetch.mockResolvedValueOnce(ok(WORKSPACES));
 		render(<WorkspaceSelector />, { wrapper: createWrapper() });
-		const { findByText } = screen;
-		expect(await findByText("Select workspace")).toBeTruthy();
+		expect(await screen.findByText("Alpha")).toBeTruthy();
+	});
+
+	it("restores cached workspace from localStorage", async () => {
+		localStorage.setItem("bogo:workspace-id", "ws-2");
+		mockFetch.mockResolvedValueOnce(ok(WORKSPACES));
+		render(<WorkspaceSelector />, { wrapper: createWrapper() });
+		expect(await screen.findByText("Beta")).toBeTruthy();
 	});
 
 	it("opens dropdown and shows workspaces on click", async () => {
@@ -56,7 +70,7 @@ describe("WorkspaceSelector", () => {
 		const btn = await screen.findByLabelText("Select workspace");
 		fireEvent.click(btn);
 
-		expect(await screen.findByText("Alpha")).toBeTruthy();
+		expect((await screen.findAllByText("Alpha")).length).toBeGreaterThanOrEqual(1);
 		expect(await screen.findByText("Beta")).toBeTruthy();
 	});
 
@@ -66,23 +80,25 @@ describe("WorkspaceSelector", () => {
 
 		const btn = await screen.findByLabelText("Select workspace");
 		fireEvent.click(btn);
-		const alpha = await screen.findByText("Alpha");
-		fireEvent.click(alpha);
+		const beta = await screen.findByText("Beta");
+		fireEvent.click(beta);
 
-		expect(screen.getByText("Alpha")).toBeTruthy();
+		expect(screen.getByText("Beta")).toBeTruthy();
 	});
 
 	it("closes dropdown on outside click", async () => {
 		mockFetch.mockResolvedValueOnce(ok(WORKSPACES));
 		render(<WorkspaceSelector />, { wrapper: createWrapper() });
 
-		const btn = await screen.findByLabelText("Select workspace");
-		fireEvent.click(btn);
 		await screen.findByText("Alpha");
+		const btn = screen.getByLabelText("Select workspace");
+		fireEvent.click(btn);
+		expect(screen.getAllByText("Alpha").length).toBeGreaterThan(0);
 
 		fireEvent.mouseDown(document.body);
 
-		expect(screen.queryByText("Alpha")).toBeNull();
+		const dropdown = screen.queryByText("Beta");
+		expect(dropdown).toBeNull();
 	});
 
 	it("shows loading state while fetching", () => {
