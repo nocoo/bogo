@@ -1,5 +1,6 @@
 import {
 	type CreatePersonInput,
+	type Document,
 	type Person,
 	createPersonSchema,
 	generateId,
@@ -283,6 +284,30 @@ personRoutes.put("/:id/move", async (c) => {
 	return c.json({ data: { moved: true } });
 });
 
+personRoutes.get("/:id/documents", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const { id } = c.req.param();
+
+	const person = await c.env.DB.prepare("SELECT id FROM persons WHERE id = ? AND workspace_id = ?")
+		.bind(id, wid)
+		.first();
+	if (!person) {
+		return c.json({ error: { code: "NOT_FOUND", message: "Person not found" } }, 404);
+	}
+
+	const rows = await c.env.DB.prepare(
+		`SELECT d.id, d.workspace_id, d.type_id, d.title, d.content, d.event_date, d.version, d.created_at, d.updated_at
+		FROM documents d
+		JOIN document_persons dp ON dp.document_id = d.id AND dp.workspace_id = d.workspace_id
+		WHERE dp.person_id = ? AND dp.workspace_id = ?
+		ORDER BY d.event_date IS NOT NULL ASC, d.event_date DESC, d.created_at DESC`,
+	)
+		.bind(id, wid)
+		.all();
+
+	return c.json({ data: rows.results.map(mapDocRow) });
+});
+
 personRoutes.delete("/:id", async (c) => {
 	const wid = c.req.param("wid") as string;
 	const { id } = c.req.param();
@@ -385,6 +410,20 @@ function mapRow(row: Record<string, unknown>): Person {
 		dottedManagerId: (row.dotted_manager_id as string) || null,
 		isRoot: row.is_root === 1,
 		sortOrder: row.sort_order as number,
+		createdAt: row.created_at as string,
+		updatedAt: row.updated_at as string,
+	};
+}
+
+function mapDocRow(row: Record<string, unknown>): Document {
+	return {
+		id: row.id as string,
+		workspaceId: row.workspace_id as string,
+		typeId: (row.type_id as string) || null,
+		title: row.title as string,
+		content: row.content as string,
+		eventDate: (row.event_date as string) || null,
+		version: row.version as number,
 		createdAt: row.created_at as string,
 		updatedAt: row.updated_at as string,
 	};

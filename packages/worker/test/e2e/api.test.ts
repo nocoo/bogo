@@ -103,6 +103,20 @@ describe("workspace CRUD (real D1)", () => {
 			expect(json.data.moved).toBe(true);
 		});
 
+		it("GET /api/w/:wid/persons/:id/documents returns person documents", async () => {
+			const docRes = await api(`/api/w/${wsId}/documents`, {
+				method: "POST",
+				body: JSON.stringify({ title: "Person Doc", personIds: [rootId] }),
+			});
+			expect(docRes.status).toBe(201);
+
+			const res = await api(`/api/w/${wsId}/persons/${rootId}/documents`);
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.length).toBeGreaterThan(0);
+			expect(json.data[0].title).toBe("Person Doc");
+		});
+
 		it("DELETE /api/w/:wid/persons/:id deletes leaf", async () => {
 			const res = await api(`/api/w/${wsId}/persons/${childId}`, {
 				method: "DELETE",

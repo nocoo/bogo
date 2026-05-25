@@ -453,4 +453,51 @@ describe("person routes", () => {
 			expect(res.status).toBe(404);
 		});
 	});
+
+	describe("GET /api/w/:wid/persons/:id/documents", () => {
+		it("returns documents for a person", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: UUID1 } },
+				{
+					type: "all",
+					value: {
+						results: [
+							{
+								id: "doc-1",
+								workspace_id: WID,
+								type_id: null,
+								title: "Review",
+								content: "content",
+								event_date: null,
+								version: 1,
+								created_at: "2026-01-01T00:00:00Z",
+								updated_at: "2026-01-01T00:00:00Z",
+							},
+						],
+						success: true,
+					},
+				},
+			]);
+
+			const res = await app.fetch(makeRequest("GET", `${BASE}/${UUID1}/documents`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data).toHaveLength(1);
+			expect(json.data[0].title).toBe("Review");
+			expect(json.data[0].eventDate).toBeNull();
+		});
+
+		it("returns 404 when person not found", async () => {
+			const { db } = createSequenceD1([{ type: "first", value: null }]);
+
+			const res = await app.fetch(makeRequest("GET", `${BASE}/missing/documents`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(404);
+		});
+	});
 });
