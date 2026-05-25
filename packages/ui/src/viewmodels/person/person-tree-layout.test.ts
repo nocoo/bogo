@@ -77,8 +77,7 @@ describe("computeTreeLayout", () => {
 			id: "d-p-root-p-bob",
 			source: "p-root",
 			target: "p-bob",
-			style: { strokeDasharray: "5 5" },
-			animated: true,
+			style: { strokeDasharray: "5 5", opacity: 0.6 },
 		});
 	});
 

@@ -58,8 +58,7 @@ export function computeTreeLayout(persons: Person[]): {
 				id: `d-${p.dottedManagerId}-${p.id}`,
 				source: p.dottedManagerId,
 				target: p.id,
-				style: { strokeDasharray: "5 5" },
-				animated: true,
+				style: { strokeDasharray: "5 5", opacity: 0.6 },
 			});
 		}
 	}
