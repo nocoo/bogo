@@ -97,7 +97,7 @@ export function DocumentEditor({
 					type="text"
 					value={title}
 					onChange={(e) => handleTitleChange(e.target.value)}
-					className="flex-1 bg-transparent text-lg font-semibold text-foreground outline-none border-b border-transparent focus:border-primary transition-colors"
+					className="flex-1 bg-transparent text-base font-semibold text-foreground outline-none border-b border-transparent focus:border-primary transition-colors"
 					aria-label="Document title"
 				/>
 				<button

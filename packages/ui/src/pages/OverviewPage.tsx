@@ -95,28 +95,28 @@ export function OverviewPage() {
 			<div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
 				<div className="rounded-xl bg-secondary p-4 md:p-5">
 					<p className="text-xs md:text-sm text-muted-foreground mb-1">Status</p>
-					<h3 className="text-xl md:text-2xl font-semibold text-foreground font-display tracking-tight">
+					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
 						Online
 					</h3>
 					<span className="text-xs font-medium text-green-600">Healthy</span>
 				</div>
 				<div className="rounded-xl bg-secondary p-4 md:p-5">
 					<p className="text-xs md:text-sm text-muted-foreground mb-1">Version</p>
-					<h3 className="text-xl md:text-2xl font-semibold text-foreground font-display tracking-tight">
+					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
 						{BOGO_VERSION}
 					</h3>
 					<span className="text-xs font-medium text-muted-foreground">Latest</span>
 				</div>
 				<div className="rounded-xl bg-secondary p-4 md:p-5">
 					<p className="text-xs md:text-sm text-muted-foreground mb-1">Runtime</p>
-					<h3 className="text-xl md:text-2xl font-semibold text-foreground font-display tracking-tight">
+					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
 						Edge
 					</h3>
 					<span className="text-xs font-medium text-muted-foreground">CF Workers</span>
 				</div>
 				<div className="rounded-xl bg-secondary p-4 md:p-5">
 					<p className="text-xs md:text-sm text-muted-foreground mb-1">Auth</p>
-					<h3 className="text-xl md:text-2xl font-semibold text-foreground font-display tracking-tight">
+					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
 						Active
 					</h3>
 					<span className="text-xs font-medium text-green-600">CF Access</span>
@@ -133,7 +133,7 @@ export function OverviewPage() {
 				].map((stat) => (
 					<div key={stat.label} className="rounded-xl bg-secondary p-4 md:p-5">
 						<p className="text-xs md:text-sm text-muted-foreground mb-1">{stat.label}</p>
-						<h3 className="text-xl md:text-2xl font-semibold text-foreground font-display tracking-tight">
+						<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
 							{stat.value}
 						</h3>
 						<span
@@ -210,7 +210,7 @@ export function OverviewPage() {
 							</div>
 							<div>
 								<p className="text-xs text-muted-foreground">{m.label}</p>
-								<p className="text-lg font-semibold text-foreground">{m.value}</p>
+								<p className="text-base font-semibold text-foreground">{m.value}</p>
 							</div>
 						</div>
 						<div className="h-2 rounded-full bg-muted">

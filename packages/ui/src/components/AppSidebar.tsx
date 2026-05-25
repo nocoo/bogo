@@ -145,10 +145,8 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 							<div className="flex w-full items-center justify-between px-3">
 								<div className="flex items-center gap-3">
 									<img src="/logo-24.png" alt="bogo" className="h-5 w-5 shrink-0 rounded-sm" />
-									<span className="text-lg md:text-xl font-semibold text-sidebar-foreground">
-										bogo.
-									</span>
-									<span className="rounded-md bg-sidebar-accent px-1.5 py-0.5 text-[10px] font-medium text-sidebar-foreground/50 leading-none">
+									<span className="text-base font-semibold text-sidebar-foreground">bogo.</span>
+									<span className="rounded-md bg-sidebar-accent px-1.5 py-0.5 text-xs font-medium text-sidebar-foreground/50 leading-none">
 										v{BOGO_VERSION}
 									</span>
 								</div>
@@ -172,7 +170,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 								<Search className="h-4 w-4 text-sidebar-foreground/60" strokeWidth={1.5} />
 								<span className="flex-1 text-left text-sm text-sidebar-foreground/60">Search</span>
 								<span className="flex h-7 w-7 shrink-0 items-center justify-center">
-									<kbd className="pointer-events-none hidden rounded-sm border border-sidebar-border bg-sidebar px-1.5 py-0.5 text-[10px] font-medium text-sidebar-foreground/50 sm:inline-block">
+									<kbd className="pointer-events-none hidden rounded-sm border border-sidebar-border bg-sidebar px-1.5 py-0.5 text-xs font-medium text-sidebar-foreground/50 sm:inline-block">
 										⌘K
 									</kbd>
 								</span>
@@ -181,7 +179,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
 						<nav className="flex-1 overflow-y-auto pt-2">
 							<div className="flex flex-col gap-0.5 px-3">
-								<span className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/40">
+								<span className="px-3 pb-1 text-xs font-medium uppercase tracking-wider text-sidebar-foreground/40">
 									Workspace
 								</span>
 								{WORKSPACE_ITEMS.map((item) => {
@@ -205,7 +203,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 								})}
 							</div>
 							<div className="flex flex-col gap-0.5 px-3 mt-4">
-								<span className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/40">
+								<span className="px-3 pb-1 text-xs font-medium uppercase tracking-wider text-sidebar-foreground/40">
 									Settings
 								</span>
 								{SETTINGS_ITEMS.map((item) => {

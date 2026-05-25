@@ -41,7 +41,7 @@ export function WorkspaceSelector() {
 				onClick={() => setOpen(!open)}
 				className={cn(
 					"inline-flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors",
-					"border border-input bg-input hover:bg-accent text-foreground",
+					"border border-border bg-secondary hover:bg-accent text-foreground",
 				)}
 				aria-label="Select workspace"
 			>
@@ -69,7 +69,7 @@ export function WorkspaceSelector() {
 			</button>
 
 			{open && (
-				<div className="absolute top-full right-0 mt-1 z-50 w-56 rounded-lg border border-input bg-input shadow-lg py-1">
+				<div className="absolute top-full right-0 mt-1 z-50 w-56 rounded-lg border border-border bg-secondary shadow-lg py-1">
 					{error && <p className="px-3 py-2 text-xs text-red-500">Failed to load workspaces</p>}
 					{!error && workspaces.length === 0 && !isLoading && (
 						<p className="px-3 py-2 text-xs text-muted-foreground">No workspaces</p>
