@@ -1,8 +1,12 @@
 import type { PersonNodeData } from "@/viewmodels/person/person-tree-layout.js";
 import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { GripVertical, User } from "lucide-react";
+import { memo } from "react";
 
-export function PersonNode({ data, selected }: NodeProps & { data: PersonNodeData }) {
+export const PersonNode = memo(function PersonNode({
+	data,
+	selected,
+}: NodeProps & { data: PersonNodeData }) {
 	return (
 		<div
 			className={`group flex w-[240px] items-center gap-3 rounded-xl border px-4 py-3 shadow-sm transition-colors ${
@@ -31,4 +35,4 @@ export function PersonNode({ data, selected }: NodeProps & { data: PersonNodeDat
 			<Handle type="source" position={Position.Bottom} className="!bg-primary !w-2 !h-2" />
 		</div>
 	);
-}
+});
