@@ -5,6 +5,7 @@ import { api } from "../lib/api/index.js";
 export const personKeys = {
 	all: (wid: string) => ["persons", wid] as const,
 	detail: (wid: string, id: string) => ["persons", wid, id] as const,
+	documents: (wid: string, id: string) => ["persons", wid, id, "documents"] as const,
 };
 
 export const personModel = {
@@ -19,6 +20,13 @@ export const personModel = {
 		queryOptions({
 			queryKey: personKeys.detail(wid, id),
 			queryFn: () => api.persons.get(wid, id),
+			enabled: !!wid && !!id,
+		}),
+
+	documentsQueryOptions: (wid: string, id: string) =>
+		queryOptions({
+			queryKey: personKeys.documents(wid, id),
+			queryFn: () => api.persons.listDocuments(wid, id),
 			enabled: !!wid && !!id,
 		}),
 

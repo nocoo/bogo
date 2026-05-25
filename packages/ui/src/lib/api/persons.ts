@@ -1,4 +1,10 @@
-import type { CreatePersonInput, MovePersonInput, Person, UpdatePersonInput } from "@bogo/shared";
+import type {
+	CreatePersonInput,
+	Document,
+	MovePersonInput,
+	Person,
+	UpdatePersonInput,
+} from "@bogo/shared";
 import type { Client } from "./client.js";
 
 export function personApi(client: Client) {
@@ -33,6 +39,9 @@ export function personApi(client: Client) {
 			return client.request<{ deleted: boolean }>(`${base(wid)}/${id}`, {
 				method: "DELETE",
 			});
+		},
+		listDocuments(wid: string, id: string): Promise<Document[]> {
+			return client.request<Document[]>(`${base(wid)}/${id}/documents`);
 		},
 	};
 }
