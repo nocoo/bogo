@@ -53,8 +53,8 @@ function CollapsedNavItem({ item, currentPath }: { item: NavItem; currentPath: s
 			className={cn(
 				"relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
 				isActive
-					? "bg-sidebar-accent text-sidebar-accent-foreground"
-					: "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+					? "bg-accent text-foreground"
+					: "text-muted-foreground hover:bg-accent hover:text-foreground",
 			)}
 		>
 			<item.icon className="h-4 w-4" strokeWidth={1.5} />
@@ -95,7 +95,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 		<>
 			<aside
 				className={cn(
-					"sticky top-0 flex h-screen shrink-0 flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out overflow-hidden",
+					"sticky top-0 flex h-screen shrink-0 flex-col bg-background transition-all duration-300 ease-in-out overflow-hidden",
 					collapsed ? "w-[68px]" : "w-[260px]",
 				)}
 			>
@@ -109,7 +109,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 							type="button"
 							onClick={onToggle}
 							aria-label="Expand sidebar"
-							className="flex h-10 w-10 items-center justify-center rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors mb-1"
+							className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors mb-1"
 						>
 							<PanelLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
 						</button>
@@ -118,7 +118,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 							type="button"
 							onClick={() => setSearchOpen(true)}
 							aria-label="Search (⌘K)"
-							className="flex h-10 w-10 items-center justify-center rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors mb-2"
+							className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors mb-2"
 						>
 							<Search className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
 						</button>
@@ -127,7 +127,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 							{WORKSPACE_ITEMS.map((item) => (
 								<CollapsedNavItem key={item.path} item={item} currentPath={pathname} />
 							))}
-							<div className="my-1.5 h-px w-6 bg-sidebar-border" />
+							<div className="my-1.5 h-px w-6 bg-border" />
 							{SETTINGS_ITEMS.map((item) => (
 								<CollapsedNavItem key={item.path} item={item} currentPath={pathname} />
 							))}
@@ -145,8 +145,8 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 							<div className="flex w-full items-center justify-between px-3">
 								<div className="flex items-center gap-3">
 									<img src="/logo-24.png" alt="bogo" className="h-5 w-5 shrink-0 rounded-sm" />
-									<span className="text-base font-semibold text-sidebar-foreground">bogo.</span>
-									<span className="rounded-md bg-sidebar-accent px-1.5 py-0.5 text-xs font-medium text-sidebar-foreground/50 leading-none">
+									<span className="text-base font-semibold text-foreground">bogo.</span>
+									<span className="rounded-md bg-secondary px-1.5 py-0.5 text-xs font-medium text-muted-foreground leading-none">
 										v{BOGO_VERSION}
 									</span>
 								</div>
@@ -154,7 +154,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 									type="button"
 									onClick={onToggle}
 									aria-label="Collapse sidebar"
-									className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
+									className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
 								>
 									<PanelLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
 								</button>
@@ -165,12 +165,12 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 							<button
 								type="button"
 								onClick={() => setSearchOpen(true)}
-								className="flex w-full items-center gap-3 rounded-lg bg-sidebar-accent px-3 py-1.5 transition-colors hover:bg-sidebar-accent/80 cursor-pointer"
+								className="flex w-full items-center gap-3 rounded-lg bg-secondary px-3 py-1.5 transition-colors hover:bg-accent cursor-pointer"
 							>
-								<Search className="h-4 w-4 text-sidebar-foreground/60" strokeWidth={1.5} />
-								<span className="flex-1 text-left text-sm text-sidebar-foreground/60">Search</span>
+								<Search className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+								<span className="flex-1 text-left text-sm text-muted-foreground">Search</span>
 								<span className="flex h-7 w-7 shrink-0 items-center justify-center">
-									<kbd className="pointer-events-none hidden rounded-sm border border-sidebar-border bg-sidebar px-1.5 py-0.5 text-xs font-medium text-sidebar-foreground/50 sm:inline-block">
+									<kbd className="pointer-events-none hidden rounded-sm border border-border bg-card px-1.5 py-0.5 text-xs font-medium text-muted-foreground sm:inline-block">
 										⌘K
 									</kbd>
 								</span>
@@ -179,7 +179,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
 						<nav className="flex-1 overflow-y-auto pt-2">
 							<div className="flex flex-col gap-0.5 px-3">
-								<span className="px-3 pb-1 text-xs font-medium uppercase tracking-wider text-sidebar-foreground/40">
+								<span className="px-3 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
 									Workspace
 								</span>
 								{WORKSPACE_ITEMS.map((item) => {
@@ -192,8 +192,8 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 											className={cn(
 												"flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-normal transition-colors",
 												isActive
-													? "bg-sidebar-accent text-sidebar-accent-foreground"
-													: "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+													? "bg-accent text-foreground"
+													: "text-muted-foreground hover:bg-accent hover:text-foreground",
 											)}
 										>
 											<item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
@@ -203,7 +203,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 								})}
 							</div>
 							<div className="flex flex-col gap-0.5 px-3 mt-4">
-								<span className="px-3 pb-1 text-xs font-medium uppercase tracking-wider text-sidebar-foreground/40">
+								<span className="px-3 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
 									Settings
 								</span>
 								{SETTINGS_ITEMS.map((item) => {
@@ -216,8 +216,8 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 											className={cn(
 												"flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-normal transition-colors",
 												isActive
-													? "bg-sidebar-accent text-sidebar-accent-foreground"
-													: "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+													? "bg-accent text-foreground"
+													: "text-muted-foreground hover:bg-accent hover:text-foreground",
 											)}
 										>
 											<item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
@@ -234,13 +234,13 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 									B
 								</div>
 								<div className="flex-1 min-w-0">
-									<p className="text-sm font-medium text-sidebar-foreground truncate">Bogo Admin</p>
-									<p className="text-xs text-sidebar-foreground/50 truncate">CF Access</p>
+									<p className="text-sm font-medium text-foreground truncate">Bogo Admin</p>
+									<p className="text-xs text-muted-foreground truncate">CF Access</p>
 								</div>
 								<button
 									type="button"
 									aria-label="Log out"
-									className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors shrink-0"
+									className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0"
 								>
 									<LogOut className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
 								</button>
