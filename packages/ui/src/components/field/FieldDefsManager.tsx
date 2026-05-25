@@ -1,4 +1,4 @@
-import type { CustomFieldDefinition, FieldType } from "@bogo/shared";
+import type { CustomFieldDefinition, FieldType, UpdateFieldDefInput } from "@bogo/shared";
 import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { FieldDefsVM } from "../../viewmodels/field/use-field-defs.js";
@@ -254,16 +254,21 @@ function FieldDefRow({
 	isLast: boolean;
 	onMoveUp: () => void;
 	onMoveDown: () => void;
-	onUpdate: (id: string, input: { name?: string; required?: boolean }) => void;
+	onUpdate: (id: string, input: UpdateFieldDefInput) => void;
 	onRemove: (id: string) => void;
 	isRemoving: boolean;
 }) {
 	const [editing, setEditing] = useState(false);
 	const [editName, setEditName] = useState(def.name);
+	const [editOptions, setEditOptions] = useState(def.options?.join(", ") ?? "");
 
 	useEffect(() => {
 		setEditName(def.name);
 	}, [def.name]);
+
+	useEffect(() => {
+		setEditOptions(def.options?.join(", ") ?? "");
+	}, [def.options]);
 
 	const handleSave = useCallback(() => {
 		const trimmed = editName.trim();
@@ -273,81 +278,140 @@ function FieldDefRow({
 		setEditing(false);
 	}, [editName, def, onUpdate]);
 
+	const handleTypeChange = useCallback(
+		(newType: FieldType) => {
+			onUpdate(def.id, { fieldType: newType });
+		},
+		[def.id, onUpdate],
+	);
+
+	const handleRequiredToggle = useCallback(() => {
+		onUpdate(def.id, { required: !def.required });
+	}, [def.id, def.required, onUpdate]);
+
+	const handleOptionsBlur = useCallback(() => {
+		const parsed = editOptions
+			.split(",")
+			.map((o) => o.trim())
+			.filter(Boolean);
+		const current = def.options ?? [];
+		if (JSON.stringify(parsed) !== JSON.stringify(current)) {
+			onUpdate(def.id, { options: parsed });
+		}
+	}, [editOptions, def.id, def.options, onUpdate]);
+
 	return (
-		<div className="group flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
-			<div className="flex flex-col">
+		<div className="group rounded-lg border border-border bg-card px-3 py-2 space-y-1.5">
+			<div className="flex items-center gap-2">
+				<div className="flex flex-col">
+					<button
+						type="button"
+						onClick={onMoveUp}
+						disabled={isFirst}
+						className="text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+						aria-label={`Move ${def.name} up`}
+					>
+						<ChevronUp className="h-3 w-3" />
+					</button>
+					<button
+						type="button"
+						onClick={onMoveDown}
+						disabled={isLast}
+						className="text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+						aria-label={`Move ${def.name} down`}
+					>
+						<ChevronDown className="h-3 w-3" />
+					</button>
+				</div>
+				<div className="flex-1 min-w-0">
+					{editing ? (
+						<input
+							type="text"
+							value={editName}
+							onChange={(e) => setEditName(e.target.value)}
+							onBlur={handleSave}
+							onKeyDown={(e) => {
+								if (e.key === "Enter") {
+									handleSave();
+								}
+								if (e.key === "Escape") {
+									setEditName(def.name);
+									setEditing(false);
+								}
+							}}
+							className="w-full rounded border border-primary bg-background px-2 py-0.5 text-sm text-foreground outline-none"
+							// biome-ignore lint/a11y/noAutofocus: intentional focus on inline edit
+							autoFocus={true}
+							aria-label={`Edit name for ${def.name}`}
+						/>
+					) : (
+						<span className="text-sm text-foreground truncate">{def.name}</span>
+					)}
+				</div>
+				{!editing && (
+					<button
+						type="button"
+						onClick={() => setEditing(true)}
+						className="shrink-0 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+						aria-label={`Edit ${def.name}`}
+					>
+						<Pencil className="h-3.5 w-3.5" strokeWidth={1.5} />
+					</button>
+				)}
 				<button
 					type="button"
-					onClick={onMoveUp}
-					disabled={isFirst}
-					className="text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-					aria-label={`Move ${def.name} up`}
+					onClick={() => onRemove(def.id)}
+					disabled={isRemoving}
+					className="shrink-0 text-muted-foreground hover:text-red-500 disabled:opacity-50 transition-colors"
+					aria-label={`Delete ${def.name}`}
 				>
-					<ChevronUp className="h-3 w-3" />
-				</button>
-				<button
-					type="button"
-					onClick={onMoveDown}
-					disabled={isLast}
-					className="text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-					aria-label={`Move ${def.name} down`}
-				>
-					<ChevronDown className="h-3 w-3" />
+					{isRemoving ? (
+						<Loader2 className="h-4 w-4 animate-spin" />
+					) : (
+						<Trash2 className="h-4 w-4" strokeWidth={1.5} />
+					)}
 				</button>
 			</div>
-			<div className="flex-1 min-w-0">
-				{editing ? (
+			<div className="flex items-center gap-3 pl-6">
+				<select
+					value={def.fieldType}
+					onChange={(e) => handleTypeChange(e.target.value as FieldType)}
+					className="rounded border border-border bg-background px-2 py-0.5 text-xs text-foreground outline-none focus:border-primary"
+					aria-label={`Type for ${def.name}`}
+				>
+					{Object.entries(FIELD_TYPE_LABELS).map(([k, v]) => (
+						<option key={k} value={k}>
+							{v}
+						</option>
+					))}
+				</select>
+				<label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+					<input
+						type="checkbox"
+						checked={def.required}
+						onChange={handleRequiredToggle}
+						className="rounded border-border"
+						aria-label={`Required for ${def.name}`}
+					/>
+					Required
+				</label>
+				{def.options && (
+					<span className="text-xs text-muted-foreground">{def.options.length} options</span>
+				)}
+			</div>
+			{def.fieldType === "select" && (
+				<div className="pl-6">
 					<input
 						type="text"
-						value={editName}
-						onChange={(e) => setEditName(e.target.value)}
-						onBlur={handleSave}
-						onKeyDown={(e) => {
-							if (e.key === "Enter") {
-								handleSave();
-							}
-							if (e.key === "Escape") {
-								setEditName(def.name);
-								setEditing(false);
-							}
-						}}
-						className="w-full rounded border border-primary bg-background px-2 py-0.5 text-sm text-foreground outline-none"
-						// biome-ignore lint/a11y/noAutofocus: intentional focus on inline edit
-						autoFocus={true}
-						aria-label={`Edit name for ${def.name}`}
+						value={editOptions}
+						onChange={(e) => setEditOptions(e.target.value)}
+						onBlur={handleOptionsBlur}
+						placeholder="Option 1, Option 2, ..."
+						className="w-full rounded border border-border bg-background px-2 py-0.5 text-xs text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
+						aria-label={`Options for ${def.name}`}
 					/>
-				) : (
-					<span className="text-sm text-foreground truncate">{def.name}</span>
-				)}
-				<div className="flex items-center gap-2 text-xs text-muted-foreground">
-					<span>{FIELD_TYPE_LABELS[def.fieldType]}</span>
-					{def.required && <span className="text-amber-500">Required</span>}
-					{def.options && <span>{def.options.length} options</span>}
 				</div>
-			</div>
-			{!editing && (
-				<button
-					type="button"
-					onClick={() => setEditing(true)}
-					className="shrink-0 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-					aria-label={`Edit ${def.name}`}
-				>
-					<Pencil className="h-3.5 w-3.5" strokeWidth={1.5} />
-				</button>
 			)}
-			<button
-				type="button"
-				onClick={() => onRemove(def.id)}
-				disabled={isRemoving}
-				className="shrink-0 text-muted-foreground hover:text-red-500 disabled:opacity-50 transition-colors"
-				aria-label={`Delete ${def.name}`}
-			>
-				{isRemoving ? (
-					<Loader2 className="h-4 w-4 animate-spin" />
-				) : (
-					<Trash2 className="h-4 w-4" strokeWidth={1.5} />
-				)}
-			</button>
 		</div>
 	);
 }

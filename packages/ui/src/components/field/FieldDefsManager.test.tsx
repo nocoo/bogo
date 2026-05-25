@@ -79,10 +79,10 @@ describe("FieldDefsManager", () => {
 		const vm = createVM({ defs: [DEF_TEXT, DEF_SELECT] });
 		render(<FieldDefsManager vm={vm} />);
 		expect(screen.getByText("Department")).toBeTruthy();
-		expect(screen.getByText("Text")).toBeTruthy();
+		expect((screen.getByLabelText("Type for Department") as HTMLSelectElement).value).toBe("text");
 		expect(screen.getByText("Level")).toBeTruthy();
-		expect(screen.getByText("Select")).toBeTruthy();
-		expect(screen.getByText("Required")).toBeTruthy();
+		expect((screen.getByLabelText("Type for Level") as HTMLSelectElement).value).toBe("select");
+		expect((screen.getByLabelText("Required for Level") as HTMLInputElement).checked).toBe(true);
 		expect(screen.getByText("3 options")).toBeTruthy();
 	});
 
