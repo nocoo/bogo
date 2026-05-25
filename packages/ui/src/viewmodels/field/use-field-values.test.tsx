@@ -1,9 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceProvider, useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { useFieldValues, validateFieldValue } from "./use-field-values.js";
+
+vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -260,8 +263,7 @@ describe("useFieldValues", () => {
 
 			act(() => result.current.vm.setValue("fd-1", "bad"));
 
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
-			expect(result.current.vm.mutationError?.message).toContain("Invalid value");
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Invalid value"));
 			expect(result.current.vm.values[0].value).toBe("Engineering");
 		});
 
@@ -304,26 +306,6 @@ describe("useFieldValues", () => {
 
 			expect(result.current.vm.validate(def, "abc")).toBe("Must be a valid finite number");
 			expect(result.current.vm.validate(def, "42")).toBeNull();
-		});
-	});
-
-	describe("clearMutationError", () => {
-		it("clears the error", async () => {
-			mockFetch.mockResolvedValue(ok([VALUE_1]));
-			const wrapper = createWrapper();
-			const { result } = renderHook(() => useWithWorkspace("p-1"), { wrapper });
-
-			act(() => result.current.ctx.switchWorkspace(WS));
-			await waitFor(() => expect(result.current.vm.values).toHaveLength(1));
-
-			mockFetch
-				.mockResolvedValueOnce(err(400, "VALIDATION", "Bad"))
-				.mockResolvedValueOnce(ok([VALUE_1]));
-			act(() => result.current.vm.setValue("fd-1", "x"));
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
-
-			act(() => result.current.vm.clearMutationError());
-			expect(result.current.vm.mutationError).toBeNull();
 		});
 	});
 

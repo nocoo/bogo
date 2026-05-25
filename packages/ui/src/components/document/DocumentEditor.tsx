@@ -1,5 +1,5 @@
 import type { DocumentVersion, Person, UpdateDocumentInput } from "@bogo/shared";
-import { AlertCircle, ArrowLeft, GitCompareArrows, Loader2, Save, X } from "lucide-react";
+import { ArrowLeft, GitCompareArrows, Loader2, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { renderMarkdown } from "../../lib/markdown.js";
 import type { DocumentVM } from "../../viewmodels/document/use-document.js";
@@ -116,21 +116,6 @@ export function DocumentEditor({
 				</button>
 			</div>
 
-			{vm.mutationError && (
-				<div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-400">
-					<AlertCircle className="h-4 w-4 shrink-0" />
-					<span className="flex-1">{vm.mutationError.message}</span>
-					<button
-						type="button"
-						onClick={vm.clearMutationError}
-						className="shrink-0 text-red-400 hover:text-red-300"
-						aria-label="Dismiss error"
-					>
-						<X className="h-4 w-4" />
-					</button>
-				</div>
-			)}
-
 			<div className="flex items-center gap-2 text-xs text-muted-foreground">
 				<span>v{vm.document.version}</span>
 				{dirty && <span className="text-amber-400">Unsaved changes</span>}
@@ -186,8 +171,6 @@ export function DocumentEditor({
 				isAdding={vm.isAddingPerson}
 				onRemove={vm.removePerson}
 				isRemoving={vm.isRemovingPerson}
-				error={vm.personError}
-				onDismissError={vm.clearPersonError}
 			/>
 
 			{vm.versions.length > 0 && (

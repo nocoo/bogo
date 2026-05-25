@@ -1,5 +1,5 @@
 import type { CustomFieldDefinition, FieldType } from "@bogo/shared";
-import { AlertCircle, ChevronDown, ChevronUp, Loader2, Plus, Trash2, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { FieldDefsVM } from "../../viewmodels/field/use-field-defs.js";
 
@@ -45,21 +45,6 @@ export function FieldDefsManager({ vm }: { vm: FieldDefsVM }) {
 					Add Field
 				</button>
 			</div>
-
-			{vm.mutationError && (
-				<div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-400">
-					<AlertCircle className="h-4 w-4 shrink-0" />
-					<span className="flex-1">{vm.mutationError.message}</span>
-					<button
-						type="button"
-						onClick={vm.clearMutationError}
-						className="shrink-0 text-red-400 hover:text-red-300"
-						aria-label="Dismiss error"
-					>
-						<X className="h-4 w-4" />
-					</button>
-				</div>
-			)}
 
 			{showCreate && (
 				<CreateFieldForm

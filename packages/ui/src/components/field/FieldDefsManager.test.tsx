@@ -15,8 +15,6 @@ function createVM(overrides: Partial<FieldDefsVM> = {}): FieldDefsVM {
 		isCreating: false,
 		isUpdating: false,
 		isRemoving: false,
-		mutationError: null,
-		clearMutationError: vi.fn(),
 		...overrides,
 	};
 }
@@ -175,20 +173,6 @@ describe("FieldDefsManager", () => {
 
 		fireEvent.click(screen.getByLabelText("Delete Department"));
 		expect(remove).toHaveBeenCalledWith("fd-1");
-	});
-
-	it("shows mutation error and dismisses it", () => {
-		const clearMutationError = vi.fn();
-		const vm = createVM({
-			defs: [DEF_TEXT],
-			mutationError: new Error("Field has values"),
-			clearMutationError,
-		});
-		render(<FieldDefsManager vm={vm} />);
-
-		expect(screen.getByText("Field has values")).toBeTruthy();
-		fireEvent.click(screen.getByLabelText("Dismiss error"));
-		expect(clearMutationError).toHaveBeenCalled();
 	});
 
 	describe("reorder", () => {

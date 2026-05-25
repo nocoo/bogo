@@ -72,8 +72,6 @@ function baseDocTypesVm() {
 		isCreating: false,
 		isUpdating: false,
 		isRemoving: false,
-		mutationError: null,
-		clearMutationError: vi.fn(),
 	};
 }
 
@@ -88,8 +86,6 @@ function baseDocumentsVm() {
 		isCreating: false,
 		isUpdating: false,
 		isRemoving: false,
-		mutationError: null,
-		clearMutationError: vi.fn(),
 	};
 }
 
@@ -250,33 +246,6 @@ describe("DocumentsPage", () => {
 		fireEvent.click(screen.getByText("Create"));
 
 		expect(create).not.toHaveBeenCalled();
-	});
-
-	it("shows mutation error with dismiss", () => {
-		const clearMutationError = vi.fn();
-		mockUseWorkspaceContext.mockReturnValue({
-			workspaceId: "ws-1",
-			workspace: null,
-			switchWorkspace: vi.fn(),
-			pendingId: null,
-			hydrate: vi.fn(),
-		});
-		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
-		mockUseDocuments.mockReturnValue({
-			...baseDocumentsVm(),
-			mutationError: new Error("Conflict"),
-			clearMutationError,
-		});
-
-		render(
-			<MemoryRouter>
-				<DocumentsPage />
-			</MemoryRouter>,
-		);
-		expect(screen.getByText(/Conflict/)).toBeTruthy();
-
-		fireEvent.click(screen.getByLabelText("Dismiss error"));
-		expect(clearMutationError).toHaveBeenCalled();
 	});
 
 	it("calls remove on delete button click", () => {

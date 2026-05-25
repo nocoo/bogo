@@ -159,15 +159,14 @@ function PersonTreeInner() {
 				</div>
 			)}
 
-			{(vm.dropError || vm.mutationError) && (
+			{vm.dropError && (
 				<div className="absolute bottom-3 left-3 right-3 z-10">
 					<div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-2 flex items-center justify-between">
-						<p className="text-xs text-red-500">{vm.dropError ?? vm.mutationError?.message}</p>
+						<p className="text-xs text-red-500">{vm.dropError}</p>
 						<button
 							type="button"
 							onClick={() => {
 								vm.clearDropError();
-								vm.clearMutationError();
 							}}
 							className="text-red-500 hover:text-red-400 ml-2"
 							aria-label="Dismiss error"

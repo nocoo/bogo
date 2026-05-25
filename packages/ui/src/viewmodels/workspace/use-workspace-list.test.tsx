@@ -1,9 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceProvider, useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { useWorkspaceList } from "./use-workspace-list.js";
+
+vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -129,10 +132,9 @@ describe("useWorkspaceList", () => {
 			await waitFor(() => expect(result.current.workspaces).toHaveLength(2));
 			expect(result.current.workspaces[1]).toEqual(created);
 			expect(result.current.isCreating).toBe(false);
-			expect(result.current.mutationError).toBeNull();
 		});
 
-		it("sets mutationError on create failure", async () => {
+		it("toasts error on create failure", async () => {
 			mockFetch.mockResolvedValue(ok([WS1]));
 			const { result } = renderHook(() => useWorkspaceList(), { wrapper: createWrapper() });
 			await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -140,7 +142,7 @@ describe("useWorkspaceList", () => {
 			mockFetch.mockResolvedValue(err(400, "VALIDATION", "Name required"));
 			act(() => result.current.create(""));
 
-			await waitFor(() => expect(result.current.mutationError).not.toBeNull());
+			await waitFor(() => expect(toast.error).toHaveBeenCalled());
 		});
 	});
 
@@ -169,7 +171,7 @@ describe("useWorkspaceList", () => {
 				.mockResolvedValueOnce(ok([WS1]));
 			act(() => result.current.rename("ws-1", "Bad"));
 
-			await waitFor(() => expect(result.current.mutationError).not.toBeNull());
+			await waitFor(() => expect(toast.error).toHaveBeenCalled());
 			await waitFor(() =>
 				expect(result.current.workspaces.find((w) => w.id === "ws-1")?.name).toBe("Corp"),
 			);
@@ -210,7 +212,7 @@ describe("useWorkspaceList", () => {
 				.mockResolvedValueOnce(ok([WS1, WS2]));
 			act(() => result.current.vm.rename("ws-1", "Bad"));
 
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
+			await waitFor(() => expect(toast.error).toHaveBeenCalled());
 			await waitFor(() => expect(result.current.ctx.workspace?.name).toBe("Corp"));
 		});
 	});
@@ -252,7 +254,7 @@ describe("useWorkspaceList", () => {
 				.mockResolvedValueOnce(ok([WS1, WS2]));
 			act(() => result.current.remove("ws-1"));
 
-			await waitFor(() => expect(result.current.mutationError).not.toBeNull());
+			await waitFor(() => expect(toast.error).toHaveBeenCalled());
 			await waitFor(() => expect(result.current.workspaces).toHaveLength(2));
 		});
 
@@ -269,7 +271,7 @@ describe("useWorkspaceList", () => {
 				.mockResolvedValueOnce(ok([WS1, WS2]));
 			act(() => result.current.remove("ws-1"));
 
-			await waitFor(() => expect(result.current.mutationError).not.toBeNull());
+			await waitFor(() => expect(toast.error).toHaveBeenCalled());
 			await waitFor(() => expect(result.current.selectedId).toBe("ws-1"));
 		});
 	});

@@ -1,6 +1,7 @@
 import type { CreateDocumentInput, Document, UpdateDocumentInput } from "@bogo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import { toast } from "sonner";
 import { useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { documentKeys, documentModel } from "../../models/document.model.js";
 
@@ -16,15 +17,12 @@ export interface DocumentsVM {
 	isCreating: boolean;
 	isUpdating: boolean;
 	isRemoving: boolean;
-	mutationError: Error | null;
-	clearMutationError: () => void;
 }
 
 export function useDocuments(): DocumentsVM {
 	const queryClient = useQueryClient();
 	const { workspaceId } = useWorkspaceContext();
 	const wid = workspaceId ?? "";
-	const [mutationError, setMutationError] = useState<Error | null>(null);
 
 	const { data, isLoading, error } = useQuery(documentModel.listQueryOptions(wid));
 
@@ -35,9 +33,9 @@ export function useDocuments(): DocumentsVM {
 				...(old ?? []),
 				created,
 			]);
-			setMutationError(null);
+			toast.success("Document created");
 		},
-		onError: (err: Error) => setMutationError(err),
+		onError: (err: Error) => toast.error(err.message),
 	});
 
 	const updateMutation = useMutation({
@@ -48,7 +46,6 @@ export function useDocuments(): DocumentsVM {
 			queryClient.setQueryData(documentKeys.all(wid), (old: Document[] | undefined) =>
 				(old ?? []).map((d) => (d.id === id ? { ...d, ...input } : d)),
 			);
-			setMutationError(null);
 			return { previous };
 		},
 		onSuccess: (result, { id }) => {
@@ -58,7 +55,7 @@ export function useDocuments(): DocumentsVM {
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(documentKeys.all(wid), context?.previous);
-			setMutationError(err);
+			toast.error(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: documentKeys.all(wid) });
@@ -73,12 +70,14 @@ export function useDocuments(): DocumentsVM {
 			queryClient.setQueryData(documentKeys.all(wid), (old: Document[] | undefined) =>
 				(old ?? []).filter((d) => d.id !== id),
 			);
-			setMutationError(null);
 			return { previous };
+		},
+		onSuccess: () => {
+			toast.success("Document deleted");
 		},
 		onError: (err: Error, _id, context) => {
 			queryClient.setQueryData(documentKeys.all(wid), context?.previous);
-			setMutationError(err);
+			toast.error(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: documentKeys.all(wid) });
@@ -94,7 +93,6 @@ export function useDocuments(): DocumentsVM {
 		[updateMutation],
 	);
 	const remove = useCallback((id: string) => deleteMutation.mutate(id), [deleteMutation]);
-	const clearMutationError = useCallback(() => setMutationError(null), []);
 
 	return {
 		documents: data ?? [],
@@ -106,7 +104,5 @@ export function useDocuments(): DocumentsVM {
 		isCreating: createMutation.isPending,
 		isUpdating: updateMutation.isPending,
 		isRemoving: deleteMutation.isPending,
-		mutationError,
-		clearMutationError,
 	};
 }

@@ -1,9 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceProvider, useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { useDocTypes } from "./use-doc-types.js";
+
+vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -144,7 +147,7 @@ describe("useDocTypes", () => {
 			await waitFor(() => expect(result.current.vm.isCreating).toBe(true));
 		});
 
-		it("sets mutationError on create failure", async () => {
+		it("toasts error on create failure", async () => {
 			mockFetch.mockResolvedValue(ok([]));
 			const wrapper = createWrapper();
 			const { result } = renderHook(() => useWithWorkspace(), { wrapper });
@@ -156,8 +159,7 @@ describe("useDocTypes", () => {
 
 			act(() => result.current.vm.create({ name: "" }));
 
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
-			expect(result.current.vm.mutationError?.message).toContain("Name required");
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Name required"));
 		});
 	});
 
@@ -193,7 +195,7 @@ describe("useDocTypes", () => {
 
 			act(() => result.current.vm.update("dt-1", { name: "" }));
 
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
+			await waitFor(() => expect(toast.error).toHaveBeenCalled());
 			expect(result.current.vm.types[0].name).toBe("Meeting Notes");
 		});
 	});
@@ -229,8 +231,7 @@ describe("useDocTypes", () => {
 
 			act(() => result.current.vm.remove("dt-1"));
 
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
-			expect(result.current.vm.mutationError?.message).toContain("Type has documents");
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Type has documents"));
 			expect(result.current.vm.types).toHaveLength(1);
 		});
 
@@ -248,8 +249,7 @@ describe("useDocTypes", () => {
 
 			act(() => result.current.vm.remove("dt-1"));
 
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
-			expect(result.current.vm.mutationError?.message).toContain("Type not found");
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Type not found"));
 			expect(result.current.vm.types).toHaveLength(1);
 		});
 	});
@@ -271,24 +271,6 @@ describe("useDocTypes", () => {
 
 			await waitFor(() => expect(result.current.vm.types[0].sortOrder).toBe(1));
 		});
-	});
-
-	it("clears mutation error", async () => {
-		mockFetch.mockResolvedValue(ok([]));
-		const wrapper = createWrapper();
-		const { result } = renderHook(() => useWithWorkspace(), { wrapper });
-
-		act(() => result.current.ctx.switchWorkspace(WS));
-		await waitFor(() => expect(result.current.vm.isLoading).toBe(false));
-
-		mockFetch.mockResolvedValueOnce(err(400, "VALIDATION", "Bad"));
-
-		act(() => result.current.vm.create({ name: "" }));
-
-		await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
-
-		act(() => result.current.vm.clearMutationError());
-		expect(result.current.vm.mutationError).toBeNull();
 	});
 
 	it("handles create when cache is empty (undefined fallback)", async () => {

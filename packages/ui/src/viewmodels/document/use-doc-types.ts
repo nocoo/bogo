@@ -1,6 +1,7 @@
 import type { CreateDocTypeInput, DocumentType, UpdateDocTypeInput } from "@bogo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import { toast } from "sonner";
 import { useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { docTypeKeys, docTypeModel } from "../../models/doc-type.model.js";
 
@@ -17,15 +18,12 @@ export interface DocTypesVM {
 	isCreating: boolean;
 	isUpdating: boolean;
 	isRemoving: boolean;
-	mutationError: Error | null;
-	clearMutationError: () => void;
 }
 
 export function useDocTypes(): DocTypesVM {
 	const queryClient = useQueryClient();
 	const { workspaceId } = useWorkspaceContext();
 	const wid = workspaceId ?? "";
-	const [mutationError, setMutationError] = useState<Error | null>(null);
 
 	const { data, isLoading, error } = useQuery(docTypeModel.queryOptions(wid));
 
@@ -36,9 +34,9 @@ export function useDocTypes(): DocTypesVM {
 				...(old ?? []),
 				created,
 			]);
-			setMutationError(null);
+			toast.success("Document type created");
 		},
-		onError: (err: Error) => setMutationError(err),
+		onError: (err: Error) => toast.error(err.message),
 	});
 
 	const updateMutation = useMutation({
@@ -49,12 +47,11 @@ export function useDocTypes(): DocTypesVM {
 			queryClient.setQueryData(docTypeKeys.all(wid), (old: DocumentType[] | undefined) =>
 				(old ?? []).map((d) => (d.id === id ? { ...d, ...input } : d)),
 			);
-			setMutationError(null);
 			return { previous };
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(docTypeKeys.all(wid), context?.previous);
-			setMutationError(err);
+			toast.error(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: docTypeKeys.all(wid) });
@@ -69,12 +66,14 @@ export function useDocTypes(): DocTypesVM {
 			queryClient.setQueryData(docTypeKeys.all(wid), (old: DocumentType[] | undefined) =>
 				(old ?? []).filter((d) => d.id !== id),
 			);
-			setMutationError(null);
 			return { previous };
+		},
+		onSuccess: () => {
+			toast.success("Document type deleted");
 		},
 		onError: (err: Error, _id, context) => {
 			queryClient.setQueryData(docTypeKeys.all(wid), context?.previous);
-			setMutationError(err);
+			toast.error(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: docTypeKeys.all(wid) });
@@ -95,7 +94,6 @@ export function useDocTypes(): DocTypesVM {
 			updateMutation.mutate({ id, input: { sortOrder: newSortOrder } }),
 		[updateMutation],
 	);
-	const clearMutationError = useCallback(() => setMutationError(null), []);
 
 	return {
 		types: data ?? [],
@@ -108,7 +106,5 @@ export function useDocTypes(): DocTypesVM {
 		isCreating: createMutation.isPending,
 		isUpdating: updateMutation.isPending,
 		isRemoving: deleteMutation.isPending,
-		mutationError,
-		clearMutationError,
 	};
 }

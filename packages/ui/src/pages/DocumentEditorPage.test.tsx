@@ -39,14 +39,10 @@ function baseVM(overrides = {}) {
 		error: null,
 		update: vi.fn(),
 		isUpdating: false,
-		mutationError: null,
-		clearMutationError: vi.fn(),
 		addPerson: vi.fn(),
 		isAddingPerson: false,
 		removePerson: vi.fn(),
 		isRemovingPerson: false,
-		personError: null,
-		clearPersonError: vi.fn(),
 		...overrides,
 	};
 }

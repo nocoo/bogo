@@ -29,14 +29,10 @@ function createVM(overrides: Partial<DocumentVM> = {}): DocumentVM {
 		error: null,
 		update: vi.fn(),
 		isUpdating: false,
-		mutationError: null,
-		clearMutationError: vi.fn(),
 		addPerson: vi.fn(),
 		isAddingPerson: false,
 		removePerson: vi.fn(),
 		isRemovingPerson: false,
-		personError: null,
-		clearPersonError: vi.fn(),
 		...overrides,
 	};
 }
@@ -147,19 +143,6 @@ describe("DocumentEditor", () => {
 		fireEvent.click(screen.getByLabelText("Save document"));
 
 		expect(update).not.toHaveBeenCalled();
-	});
-
-	it("shows mutation error with dismiss", () => {
-		const clearMutationError = vi.fn();
-		const vm = createVM({
-			mutationError: new Error("Conflict"),
-			clearMutationError,
-		});
-		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
-		expect(screen.getByText(/Conflict/)).toBeTruthy();
-
-		fireEvent.click(screen.getByLabelText("Dismiss error"));
-		expect(clearMutationError).toHaveBeenCalled();
 	});
 
 	it("renders version list when versions exist", () => {
@@ -282,7 +265,7 @@ describe("DocumentEditor", () => {
 
 	it("retains draft and dirty state when save fails", () => {
 		const update = vi.fn();
-		const vm = createVM({ update, mutationError: new Error("Conflict") });
+		const vm = createVM({ update });
 		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 
 		fireEvent.change(screen.getByLabelText("Document title"), {
@@ -358,7 +341,6 @@ describe("DocumentEditor", () => {
 		const rolledBackVm = createVM({
 			update,
 			document: originalDoc,
-			mutationError: new Error("Conflict"),
 		});
 		rerender(<DocumentEditor vm={rolledBackVm} allPersons={[]} onBack={vi.fn()} />);
 

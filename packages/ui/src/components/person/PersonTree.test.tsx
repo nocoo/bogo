@@ -1,9 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceProvider, useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { PersonTree, getNodeCenter } from "./PersonTree.js";
+
+vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const mockScreenToFlowPosition = vi.fn((pos: { x: number; y: number }) => pos);
 
@@ -241,9 +244,7 @@ describe("PersonTree", () => {
 		mockFetch.mockResolvedValueOnce(err(400, "VALIDATION", "Name invalid"));
 		fireEvent.click(screen.getByText("Create"));
 
-		await waitFor(() => expect(screen.getByText("Name invalid")).toBeTruthy());
-		fireEvent.click(screen.getByLabelText("Dismiss error"));
-		await waitFor(() => expect(screen.queryByText("Name invalid")).toBeNull());
+		await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Name invalid"));
 	});
 
 	describe("edit panel", () => {

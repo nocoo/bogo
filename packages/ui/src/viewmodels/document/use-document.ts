@@ -1,6 +1,7 @@
 import type { Document, DocumentPerson, DocumentVersion, UpdateDocumentInput } from "@bogo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import { toast } from "sonner";
 import { useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { documentKeys, documentModel } from "../../models/document.model.js";
 
@@ -21,23 +22,17 @@ export interface DocumentVM {
 
 	update: (input: UpdateDocumentInput, opts?: { onSuccess?: () => void }) => void;
 	isUpdating: boolean;
-	mutationError: Error | null;
-	clearMutationError: () => void;
 
 	addPerson: (input: AddPersonInput, opts?: { onSuccess?: () => void }) => void;
 	isAddingPerson: boolean;
 	removePerson: (personId: string, opts?: { onSuccess?: () => void }) => void;
 	isRemovingPerson: boolean;
-	personError: Error | null;
-	clearPersonError: () => void;
 }
 
 export function useDocument(id: string): DocumentVM {
 	const queryClient = useQueryClient();
 	const { workspaceId } = useWorkspaceContext();
 	const wid = workspaceId ?? "";
-	const [mutationError, setMutationError] = useState<Error | null>(null);
-	const [personError, setPersonError] = useState<Error | null>(null);
 
 	const { data: document, isLoading, error } = useQuery(documentModel.detailQueryOptions(wid, id));
 
@@ -59,7 +54,6 @@ export function useDocument(id: string): DocumentVM {
 			if (previous) {
 				queryClient.setQueryData(documentKeys.detail(wid, id), { ...previous, ...input });
 			}
-			setMutationError(null);
 			return { previous };
 		},
 		onSuccess: (result) => {
@@ -68,12 +62,13 @@ export function useDocument(id: string): DocumentVM {
 			);
 			queryClient.invalidateQueries({ queryKey: documentKeys.all(wid) });
 			queryClient.invalidateQueries({ queryKey: documentKeys.versions(wid, id) });
+			toast.success("Document saved");
 		},
 		onError: (err: Error, _vars, context) => {
 			if (context?.previous) {
 				queryClient.setQueryData(documentKeys.detail(wid, id), context.previous);
 			}
-			setMutationError(err);
+			toast.error(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: documentKeys.detail(wid, id) });
@@ -92,12 +87,14 @@ export function useDocument(id: string): DocumentVM {
 				role: input.role ?? "subject",
 			};
 			queryClient.setQueryData(documentKeys.persons(wid, id), [...(previous ?? []), optimistic]);
-			setPersonError(null);
 			return { previous };
+		},
+		onSuccess: () => {
+			toast.success("Person added");
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(documentKeys.persons(wid, id), context?.previous ?? []);
-			setPersonError(err);
+			toast.error(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: documentKeys.persons(wid, id) });
@@ -113,12 +110,14 @@ export function useDocument(id: string): DocumentVM {
 				documentKeys.persons(wid, id),
 				(previous ?? []).filter((p) => p.personId !== personId),
 			);
-			setPersonError(null);
 			return { previous };
+		},
+		onSuccess: () => {
+			toast.success("Person removed");
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(documentKeys.persons(wid, id), context?.previous ?? []);
-			setPersonError(err);
+			toast.error(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: documentKeys.persons(wid, id) });
@@ -146,9 +145,6 @@ export function useDocument(id: string): DocumentVM {
 		[removePersonMutation, id],
 	);
 
-	const clearMutationError = useCallback(() => setMutationError(null), []);
-	const clearPersonError = useCallback(() => setPersonError(null), []);
-
 	return {
 		document: document ?? null,
 		versions: versions ?? [],
@@ -160,13 +156,9 @@ export function useDocument(id: string): DocumentVM {
 		error: error as Error | null,
 		update,
 		isUpdating: updateMutation.isPending,
-		mutationError,
-		clearMutationError,
 		addPerson,
 		isAddingPerson: addPersonMutation.isPending,
 		removePerson,
 		isRemovingPerson: removePersonMutation.isPending,
-		personError,
-		clearPersonError,
 	};
 }

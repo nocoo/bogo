@@ -1,5 +1,5 @@
 import type { CustomFieldDefinition } from "@bogo/shared";
-import { AlertCircle, Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
 
@@ -35,21 +35,6 @@ export function PersonFieldValues({
 			<h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
 				Custom Fields
 			</h4>
-
-			{vm.mutationError && (
-				<div className="flex items-center gap-2 rounded-md border border-red-500/20 bg-red-500/5 p-2 text-xs text-red-400">
-					<AlertCircle className="h-3 w-3 shrink-0" />
-					<span className="flex-1">{vm.mutationError.message}</span>
-					<button
-						type="button"
-						onClick={vm.clearMutationError}
-						className="shrink-0 text-red-400 hover:text-red-300"
-						aria-label="Dismiss error"
-					>
-						<X className="h-3 w-3" />
-					</button>
-				</div>
-			)}
 
 			{defs.map((def) => (
 				<FieldValueRow key={def.id} def={def} vm={vm} />

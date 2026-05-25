@@ -1,6 +1,7 @@
 import type { Workspace } from "@bogo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import { toast } from "sonner";
 import { useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { workspaceKeys, workspaceModel } from "../../models/workspace.model.js";
 
@@ -19,13 +20,11 @@ export interface WorkspaceListVM {
 	isCreating: boolean;
 	isRenaming: boolean;
 	isRemoving: boolean;
-	mutationError: Error | null;
 }
 
 export function useWorkspaceList(): WorkspaceListVM {
 	const queryClient = useQueryClient();
 	const { workspaceId, switchWorkspace } = useWorkspaceContext();
-	const [mutationError, setMutationError] = useState<Error | null>(null);
 
 	const { data, isLoading, error } = useQuery(workspaceModel.listQueryOptions());
 
@@ -48,9 +47,9 @@ export function useWorkspaceList(): WorkspaceListVM {
 				...(old ?? []),
 				created,
 			]);
-			setMutationError(null);
+			toast.success("Workspace created");
 		},
-		onError: (err: Error) => setMutationError(err),
+		onError: (err: Error) => toast.error(err.message),
 	});
 
 	const updateMutation = useMutation({
@@ -66,20 +65,20 @@ export function useWorkspaceList(): WorkspaceListVM {
 			if (workspaceId === id && previousWorkspace) {
 				switchWorkspace({ ...previousWorkspace, name: input.name });
 			}
-			setMutationError(null);
 			return { previous, previousWorkspace };
 		},
 		onSuccess: (updated, { id }) => {
 			if (workspaceId === id) {
 				switchWorkspace(updated);
 			}
+			toast.success("Workspace renamed");
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(workspaceKeys.all, context?.previous);
 			if (context?.previousWorkspace) {
 				switchWorkspace(context.previousWorkspace);
 			}
-			setMutationError(err);
+			toast.error(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: workspaceKeys.all });
@@ -98,8 +97,10 @@ export function useWorkspaceList(): WorkspaceListVM {
 			if (workspaceId === id) {
 				switchWorkspace(null);
 			}
-			setMutationError(null);
 			return { previous, previousSelectedId };
+		},
+		onSuccess: () => {
+			toast.success("Workspace deleted");
 		},
 		onError: (err: Error, _id, context) => {
 			queryClient.setQueryData(workspaceKeys.all, context?.previous);
@@ -107,7 +108,7 @@ export function useWorkspaceList(): WorkspaceListVM {
 				const ws = context.previous.find((w) => w.id === context.previousSelectedId) ?? null;
 				switchWorkspace(ws);
 			}
-			setMutationError(err);
+			toast.error(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: workspaceKeys.all });
@@ -133,6 +134,5 @@ export function useWorkspaceList(): WorkspaceListVM {
 		isCreating: createMutation.isPending,
 		isRenaming: updateMutation.isPending,
 		isRemoving: deleteMutation.isPending,
-		mutationError,
 	};
 }

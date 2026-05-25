@@ -1,6 +1,7 @@
 import type { CustomFieldDefinition, CustomFieldValue, FieldType } from "@bogo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import { toast } from "sonner";
 import { useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { fieldKeys, fieldModel } from "../../models/field.model.js";
 
@@ -60,15 +61,12 @@ export interface FieldValuesVM {
 	validate: (fieldDef: CustomFieldDefinition, value: string) => string | null;
 
 	isSaving: boolean;
-	mutationError: Error | null;
-	clearMutationError: () => void;
 }
 
 export function useFieldValues(personId: string): FieldValuesVM {
 	const queryClient = useQueryClient();
 	const { workspaceId } = useWorkspaceContext();
 	const wid = workspaceId ?? "";
-	const [mutationError, setMutationError] = useState<Error | null>(null);
 
 	const { data, isLoading, error } = useQuery(fieldModel.valuesQueryOptions(wid, personId));
 
@@ -98,12 +96,11 @@ export function useFieldValues(personId: string): FieldValuesVM {
 					];
 				},
 			);
-			setMutationError(null);
 			return { previous };
 		},
 		onError: (err: Error, vars, context) => {
 			queryClient.setQueryData(fieldKeys.values(wid, vars.personId), context?.previous);
-			setMutationError(err);
+			toast.error(err.message);
 		},
 		onSettled: (_data, _err, vars) => {
 			queryClient.invalidateQueries({ queryKey: fieldKeys.values(wid, vars.personId) });
@@ -127,8 +124,6 @@ export function useFieldValues(personId: string): FieldValuesVM {
 		[],
 	);
 
-	const clearMutationError = useCallback(() => setMutationError(null), []);
-
 	return {
 		values: data ?? [],
 		isLoading,
@@ -137,7 +132,5 @@ export function useFieldValues(personId: string): FieldValuesVM {
 		getValueFor,
 		validate,
 		isSaving: setValueMutation.isPending,
-		mutationError,
-		clearMutationError,
 	};
 }

@@ -14,8 +14,6 @@ export function DocumentPersons({
 	isAdding,
 	onRemove,
 	isRemoving,
-	error,
-	onDismissError,
 }: {
 	persons: DocumentPerson[];
 	allPersons: Person[];
@@ -27,8 +25,6 @@ export function DocumentPersons({
 	isAdding: boolean;
 	onRemove: (personId: string, opts?: { onSuccess?: () => void }) => void;
 	isRemoving: boolean;
-	error: Error | null;
-	onDismissError: () => void;
 }) {
 	const [selectedPersonId, setSelectedPersonId] = useState("");
 
@@ -58,20 +54,6 @@ export function DocumentPersons({
 			{personsError && (
 				<div className="rounded-md border border-red-500/20 bg-red-500/5 p-2 text-xs text-red-400">
 					Failed to load associations: {personsError.message}
-				</div>
-			)}
-
-			{error && (
-				<div className="flex items-center gap-2 rounded-md border border-red-500/20 bg-red-500/5 p-2 text-xs text-red-400">
-					<span className="flex-1">{error.message}</span>
-					<button
-						type="button"
-						onClick={onDismissError}
-						className="shrink-0 text-red-400 hover:text-red-300"
-						aria-label="Dismiss association error"
-					>
-						✕
-					</button>
 				</div>
 			)}
 

@@ -58,8 +58,6 @@ function renderComponent(overrides: Partial<Parameters<typeof DocumentPersons>[0
 		isAdding: false,
 		onRemove: vi.fn(),
 		isRemoving: false,
-		error: null,
-		onDismissError: vi.fn(),
 	};
 	return { ...render(<DocumentPersons {...defaults} {...overrides} />), ...defaults, ...overrides };
 }
@@ -132,14 +130,6 @@ describe("DocumentPersons", () => {
 		renderComponent({ isRemoving: true });
 		const btn = screen.getByLabelText("Remove Alice") as HTMLButtonElement;
 		expect(btn.disabled).toBe(true);
-	});
-
-	it("shows error message with dismiss button", () => {
-		const onDismissError = vi.fn();
-		renderComponent({ error: new Error("Duplicate"), onDismissError });
-		expect(screen.getByText("Duplicate")).toBeTruthy();
-		fireEvent.click(screen.getByLabelText("Dismiss association error"));
-		expect(onDismissError).toHaveBeenCalled();
 	});
 
 	it("hides dropdown when all persons are already linked", () => {

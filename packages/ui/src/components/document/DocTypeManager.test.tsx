@@ -15,8 +15,6 @@ function createVM(overrides: Partial<DocTypesVM> = {}): DocTypesVM {
 		isCreating: false,
 		isUpdating: false,
 		isRemoving: false,
-		mutationError: null,
-		clearMutationError: vi.fn(),
 		...overrides,
 	};
 }
@@ -79,18 +77,6 @@ describe("DocTypeManager", () => {
 		const vm = createVM({ types: [TYPE_NO_COLOR] });
 		render(<DocTypeManager vm={vm} />);
 		expect(screen.getByLabelText(`Change color for ${TYPE_NO_COLOR.name}`)).toBeTruthy();
-	});
-
-	it("shows mutation error with dismiss", () => {
-		const clearMutationError = vi.fn();
-		const vm = createVM({
-			mutationError: new Error("Name required"),
-			clearMutationError,
-		});
-		render(<DocTypeManager vm={vm} />);
-		expect(screen.getByText(/Name required/)).toBeTruthy();
-		fireEvent.click(screen.getByLabelText("Dismiss error"));
-		expect(clearMutationError).toHaveBeenCalled();
 	});
 
 	describe("create", () => {

@@ -190,12 +190,6 @@ export function WorkspaceList() {
 				</div>
 			)}
 
-			{vm.mutationError && (
-				<div className="rounded-lg bg-red-500/10 px-4 py-2">
-					<p className="text-xs text-red-500">{vm.mutationError.message}</p>
-				</div>
-			)}
-
 			{vm.workspaces.length === 0 ? (
 				<div className="rounded-xl bg-secondary p-12 text-center">
 					<Building2 className="mx-auto h-10 w-10 text-muted-foreground" strokeWidth={1} />

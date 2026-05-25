@@ -1,9 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceProvider, useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { useDocument } from "./use-document.js";
+
+vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -154,8 +157,7 @@ describe("useDocument", () => {
 				result.current.vm.update({ title: "" });
 			});
 
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
-			expect(result.current.vm.mutationError?.message).toContain("Title too long");
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Title too long"));
 			expect(result.current.vm.document?.title).toBe("Q1 Report");
 		});
 
@@ -173,29 +175,6 @@ describe("useDocument", () => {
 
 			await waitFor(() => expect(result.current.vm.isUpdating).toBe(true));
 		});
-	});
-
-	it("clears mutation error", async () => {
-		mockFetch.mockResolvedValueOnce(ok(DOC)).mockResolvedValueOnce(ok([VERSION_1]));
-		const wrapper = createWrapper();
-		const { result } = renderHook(() => useWithWorkspace("doc-1"), { wrapper });
-
-		act(() => result.current.ctx.switchWorkspace(WS));
-		await waitFor(() => expect(result.current.vm.document).not.toBeNull());
-
-		mockFetch
-			.mockResolvedValueOnce(err(400, "VALIDATION", "Bad"))
-			.mockResolvedValueOnce(ok(DOC))
-			.mockResolvedValueOnce(ok([VERSION_1]));
-
-		act(() => {
-			result.current.vm.update({ title: "" });
-		});
-
-		await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
-
-		act(() => result.current.vm.clearMutationError());
-		expect(result.current.vm.mutationError).toBeNull();
 	});
 
 	it("handles update when detail cache is undefined", async () => {
@@ -256,8 +235,7 @@ describe("useDocument", () => {
 
 			act(() => result.current.vm.addPerson({ personId: "p-1" }));
 
-			await waitFor(() => expect(result.current.vm.personError).not.toBeNull());
-			expect(result.current.vm.personError?.message).toContain("Already linked");
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Already linked"));
 			expect(result.current.vm.persons).toHaveLength(0);
 		});
 	});
@@ -300,8 +278,7 @@ describe("useDocument", () => {
 
 			act(() => result.current.vm.removePerson("p-1"));
 
-			await waitFor(() => expect(result.current.vm.personError).not.toBeNull());
-			expect(result.current.vm.personError?.message).toContain("Association not found");
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Association not found"));
 			expect(result.current.vm.persons).toHaveLength(1);
 		});
 	});
@@ -325,8 +302,7 @@ describe("useDocument", () => {
 
 			act(() => result.current.vm.addPerson({ personId: "p-bad" }));
 
-			await waitFor(() => expect(result.current.vm.personError).not.toBeNull());
-			expect(result.current.vm.personError?.message).toContain("Person not found");
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Person not found"));
 			await waitFor(() => expect(result.current.vm.persons).toHaveLength(0));
 		});
 	});

@@ -1,9 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { WorkspaceList } from "./WorkspaceList.js";
+
+vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -243,6 +246,6 @@ describe("WorkspaceList", () => {
 		const deleteBtn = screen.getByLabelText("Delete Corp");
 		fireEvent.click(deleteBtn);
 
-		await waitFor(() => expect(screen.getByText("Not allowed")).toBeTruthy());
+		await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Not allowed"));
 	});
 });

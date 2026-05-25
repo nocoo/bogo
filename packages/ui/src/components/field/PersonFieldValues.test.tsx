@@ -12,8 +12,6 @@ function createVM(overrides: Partial<FieldValuesVM> = {}): FieldValuesVM {
 		getValueFor: vi.fn().mockReturnValue(""),
 		validate: vi.fn().mockReturnValue(null),
 		isSaving: false,
-		mutationError: null,
-		clearMutationError: vi.fn(),
 		...overrides,
 	};
 }
@@ -305,18 +303,5 @@ describe("PersonFieldValues", () => {
 		render(<PersonFieldValues defs={[DEF_TEXT]} vm={vm} />);
 		expect(screen.getByText(/Failed to load field values/)).toBeTruthy();
 		expect(screen.getByText(/Network failure/)).toBeTruthy();
-	});
-
-	it("shows mutation error with dismiss", () => {
-		const clearMutationError = vi.fn();
-		const vm = createVM({
-			mutationError: new Error("Save failed"),
-			clearMutationError,
-		});
-		render(<PersonFieldValues defs={[DEF_TEXT]} vm={vm} />);
-
-		expect(screen.getByText("Save failed")).toBeTruthy();
-		fireEvent.click(screen.getByLabelText("Dismiss error"));
-		expect(clearMutationError).toHaveBeenCalled();
 	});
 });

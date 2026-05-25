@@ -1,9 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceProvider, useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { useFieldDefs } from "./use-field-defs.js";
+
+vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -157,7 +160,7 @@ describe("useFieldDefs", () => {
 			await waitFor(() => expect(result.current.vm.isCreating).toBe(true));
 		});
 
-		it("sets mutationError on create failure", async () => {
+		it("toasts error on create failure", async () => {
 			mockFetch.mockResolvedValue(ok([]));
 			const wrapper = createWrapper();
 			const { result } = renderHook(() => useWithWorkspace(), { wrapper });
@@ -169,8 +172,7 @@ describe("useFieldDefs", () => {
 
 			act(() => result.current.vm.create({ name: "", fieldType: "text", required: false }));
 
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
-			expect(result.current.vm.mutationError?.message).toContain("Name required");
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Name required"));
 		});
 	});
 
@@ -206,7 +208,7 @@ describe("useFieldDefs", () => {
 
 			act(() => result.current.vm.update("fd-1", { name: "" }));
 
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
+			await waitFor(() => expect(toast.error).toHaveBeenCalled());
 			expect(result.current.vm.defs[0].name).toBe("Department");
 		});
 
@@ -259,8 +261,7 @@ describe("useFieldDefs", () => {
 
 			act(() => result.current.vm.remove("fd-1"));
 
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
-			expect(result.current.vm.mutationError?.message).toContain("Field has values");
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Field has values"));
 			expect(result.current.vm.defs).toHaveLength(1);
 		});
 
@@ -278,8 +279,7 @@ describe("useFieldDefs", () => {
 
 			act(() => result.current.vm.remove("fd-1"));
 
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
-			expect(result.current.vm.mutationError?.message).toContain("Field not found");
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Field not found"));
 			expect(result.current.vm.defs).toHaveLength(1);
 		});
 
@@ -315,24 +315,6 @@ describe("useFieldDefs", () => {
 			act(() => result.current.vm.reorder("fd-1", 5));
 
 			await waitFor(() => expect(result.current.vm.defs[0].sortOrder).toBe(5));
-		});
-	});
-
-	describe("clearMutationError", () => {
-		it("clears the mutation error", async () => {
-			mockFetch.mockResolvedValue(ok([]));
-			const wrapper = createWrapper();
-			const { result } = renderHook(() => useWithWorkspace(), { wrapper });
-
-			act(() => result.current.ctx.switchWorkspace(WS));
-			await waitFor(() => expect(result.current.vm.isLoading).toBe(false));
-
-			mockFetch.mockResolvedValueOnce(err(400, "VALIDATION", "Bad"));
-			act(() => result.current.vm.create({ name: "", fieldType: "text", required: false }));
-			await waitFor(() => expect(result.current.vm.mutationError).not.toBeNull());
-
-			act(() => result.current.vm.clearMutationError());
-			expect(result.current.vm.mutationError).toBeNull();
 		});
 	});
 

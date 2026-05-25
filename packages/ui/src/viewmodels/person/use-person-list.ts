@@ -1,6 +1,7 @@
 import type { Person } from "@bogo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { personKeys, personModel } from "../../models/person.model.js";
 
@@ -39,9 +40,12 @@ export function usePersonList(): PersonListVM {
 				...(old ?? []),
 				created,
 			]);
-			setMutationError(null);
+			toast.success("Person created");
 		},
-		onError: (err: Error) => setMutationError(err),
+		onError: (err: Error) => {
+			setMutationError(err);
+			toast.error(err.message);
+		},
 	});
 
 	const updateMutation = useMutation({
@@ -58,6 +62,7 @@ export function usePersonList(): PersonListVM {
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(personKeys.all(wid), context?.previous);
 			setMutationError(err);
+			toast.error(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: personKeys.all(wid) });
@@ -78,6 +83,7 @@ export function usePersonList(): PersonListVM {
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(personKeys.all(wid), context?.previous);
 			setMutationError(err);
+			toast.error(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: personKeys.all(wid) });
@@ -95,9 +101,13 @@ export function usePersonList(): PersonListVM {
 			setMutationError(null);
 			return { previous };
 		},
+		onSuccess: () => {
+			toast.success("Person deleted");
+		},
 		onError: (err: Error, _id, context) => {
 			queryClient.setQueryData(personKeys.all(wid), context?.previous);
 			setMutationError(err);
+			toast.error(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: personKeys.all(wid) });
