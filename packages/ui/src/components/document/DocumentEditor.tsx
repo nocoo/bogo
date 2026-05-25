@@ -148,7 +148,7 @@ export function DocumentEditor({
 				</button>
 			</div>
 
-			{tab === "edit" ? (
+			<div className={tab !== "edit" ? "hidden" : ""}>
 				<textarea
 					value={content}
 					onChange={(e) => handleContentChange(e.target.value)}
@@ -156,9 +156,10 @@ export function DocumentEditor({
 					placeholder="Write document content..."
 					aria-label="Document content"
 				/>
-			) : (
+			</div>
+			<div className={tab !== "preview" ? "hidden" : ""}>
 				<MarkdownPreview content={content} />
-			)}
+			</div>
 
 			<DocumentPersons
 				persons={vm.persons}
