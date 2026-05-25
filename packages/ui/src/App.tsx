@@ -1,4 +1,5 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Toaster } from "@/components/ui/toaster";
 import { AppProviders } from "@/contexts/app-providers";
 import { DocTypesSettingsPage } from "@/pages/DocTypesSettingsPage";
 import { DocumentEditorPage } from "@/pages/DocumentEditorPage";
@@ -27,6 +28,7 @@ export function App() {
 					</Route>
 				</Routes>
 			</BrowserRouter>
+			<Toaster />
 		</AppProviders>
 	);
 }
