@@ -21,6 +21,7 @@ export function DocumentEditor({
 }) {
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
+	const [eventDate, setEventDate] = useState("");
 	const [dirty, setDirty] = useState(false);
 	const [tab, setTab] = useState<"edit" | "preview">("edit");
 
@@ -29,6 +30,7 @@ export function DocumentEditor({
 		if (vm.document && !dirty) {
 			setTitle(vm.document.title);
 			setContent(vm.document.content);
+			setEventDate(vm.document.eventDate ?? "");
 		}
 	}, [vm.document]);
 
@@ -41,6 +43,14 @@ export function DocumentEditor({
 		setContent(value);
 		setDirty(true);
 	}, []);
+
+	const handleEventDateChange = useCallback(
+		(value: string) => {
+			setEventDate(value);
+			vm.update({ eventDate: value || null });
+		},
+		[vm],
+	);
 
 	const handleSave = useCallback(() => {
 		if (!dirty) {
@@ -118,6 +128,13 @@ export function DocumentEditor({
 
 			<div className="flex items-center gap-2 text-xs text-muted-foreground">
 				<span>v{vm.document.version}</span>
+				<input
+					type="date"
+					value={eventDate}
+					onChange={(e) => handleEventDateChange(e.target.value)}
+					className="bg-transparent border border-border rounded px-2 py-0.5 text-xs text-muted-foreground focus:border-primary outline-none transition-colors"
+					aria-label="Event date"
+				/>
 				{dirty && <span className="text-amber-400">Unsaved changes</span>}
 			</div>
 
