@@ -1,5 +1,5 @@
 import type { DocumentType } from "@bogo/shared";
-import { ChevronDown, ChevronUp, Loader2, Plus, Trash2, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { DocTypesVM } from "../../viewmodels/document/use-doc-types.js";
 
@@ -231,7 +231,7 @@ function DocTypeRow({
 	}, [editName, docType, onUpdate]);
 
 	return (
-		<div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+		<div className="group flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
 			<div className="flex flex-col">
 				<button
 					type="button"
@@ -302,16 +302,19 @@ function DocTypeRow({
 						aria-label={`Edit name for ${docType.name}`}
 					/>
 				) : (
-					<button
-						type="button"
-						onClick={() => setEditing(true)}
-						className="text-sm text-foreground hover:text-primary truncate text-left"
-						aria-label={`Edit ${docType.name}`}
-					>
-						{docType.name}
-					</button>
+					<span className="text-sm text-foreground truncate">{docType.name}</span>
 				)}
 			</div>
+			{!editing && (
+				<button
+					type="button"
+					onClick={() => setEditing(true)}
+					className="shrink-0 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+					aria-label={`Edit ${docType.name}`}
+				>
+					<Pencil className="h-3.5 w-3.5" strokeWidth={1.5} />
+				</button>
+			)}
 			<button
 				type="button"
 				onClick={() => onRemove(docType.id)}

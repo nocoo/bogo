@@ -1,5 +1,5 @@
 import type { CustomFieldDefinition, FieldType } from "@bogo/shared";
-import { ChevronDown, ChevronUp, Loader2, Plus, Trash2, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { FieldDefsVM } from "../../viewmodels/field/use-field-defs.js";
 
@@ -274,7 +274,7 @@ function FieldDefRow({
 	}, [editName, def, onUpdate]);
 
 	return (
-		<div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+		<div className="group flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
 			<div className="flex flex-col">
 				<button
 					type="button"
@@ -317,14 +317,7 @@ function FieldDefRow({
 						aria-label={`Edit name for ${def.name}`}
 					/>
 				) : (
-					<button
-						type="button"
-						onClick={() => setEditing(true)}
-						className="text-sm text-foreground hover:text-primary truncate text-left"
-						aria-label={`Edit ${def.name}`}
-					>
-						{def.name}
-					</button>
+					<span className="text-sm text-foreground truncate">{def.name}</span>
 				)}
 				<div className="flex items-center gap-2 text-xs text-muted-foreground">
 					<span>{FIELD_TYPE_LABELS[def.fieldType]}</span>
@@ -332,6 +325,16 @@ function FieldDefRow({
 					{def.options && <span>{def.options.length} options</span>}
 				</div>
 			</div>
+			{!editing && (
+				<button
+					type="button"
+					onClick={() => setEditing(true)}
+					className="shrink-0 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+					aria-label={`Edit ${def.name}`}
+				>
+					<Pencil className="h-3.5 w-3.5" strokeWidth={1.5} />
+				</button>
+			)}
 			<button
 				type="button"
 				onClick={() => onRemove(def.id)}
