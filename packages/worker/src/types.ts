@@ -7,6 +7,7 @@ export type Bindings = {
 
 export type Variables = {
 	accessAuthenticated?: boolean;
+	userEmail?: string | null;
 };
 
 export type AppEnv = { Bindings: Bindings; Variables: Variables };

@@ -4,6 +4,7 @@ import { docTypeRoutes } from "./routes/doc-types.js";
 import { documentRoutes } from "./routes/documents.js";
 import { fieldRoutes } from "./routes/fields.js";
 import { liveRoute } from "./routes/live.js";
+import { meRoute } from "./routes/me.js";
 import { personRoutes } from "./routes/persons.js";
 import { tagRoutes } from "./routes/tags.js";
 import { workspaceRoutes } from "./routes/workspaces.js";
@@ -14,6 +15,7 @@ const app = new Hono<AppEnv>();
 app.use("/api/*", accessAuth);
 
 app.get("/api/live", liveRoute);
+app.get("/api/me", meRoute);
 app.route("/api/workspaces", workspaceRoutes);
 app.route("/api/w/:wid/persons", personRoutes);
 app.route("/api/w/:wid/fields", fieldRoutes);

@@ -1,3 +1,4 @@
+import { useUserInfo } from "@/hooks/use-user-info";
 import { cn } from "@/lib/utils";
 import { BOGO_VERSION } from "@bogo/shared";
 import {
@@ -71,6 +72,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
 	const [searchOpen, setSearchOpen] = useState(false);
+	const userInfo = useUserInfo();
 
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -135,7 +137,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
 						<div className="py-3 flex justify-center w-full">
 							<div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-xs font-medium text-primary-foreground">
-								B
+								{userInfo.initials}
 							</div>
 						</div>
 					</div>
@@ -231,11 +233,15 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 						<div className="px-4 py-3">
 							<div className="flex items-center gap-3">
 								<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-medium text-primary-foreground">
-									B
+									{userInfo.initials}
 								</div>
 								<div className="flex-1 min-w-0">
-									<p className="text-sm font-medium text-foreground truncate">Bogo Admin</p>
-									<p className="text-xs text-muted-foreground truncate">CF Access</p>
+									<p className="text-sm font-medium text-foreground truncate">
+										{userInfo.displayName}
+									</p>
+									<p className="text-xs text-muted-foreground truncate">
+										{userInfo.email ?? "CF Access"}
+									</p>
 								</div>
 								<button
 									type="button"

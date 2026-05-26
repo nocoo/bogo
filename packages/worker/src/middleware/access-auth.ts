@@ -24,6 +24,7 @@ export async function accessAuth(c: Context<AppEnv>, next: Next) {
 	const host = c.req.header("host") || "";
 
 	if (isLocalhost(host)) {
+		c.set("userEmail", "dev@localhost");
 		return next();
 	}
 
@@ -50,10 +51,11 @@ export async function accessAuth(c: Context<AppEnv>, next: Next) {
 
 	try {
 		const jwks = getJWKS(teamDomain);
-		await jwtVerify(jwt, jwks, {
+		const { payload } = await jwtVerify(jwt, jwks, {
 			issuer: `https://${teamDomain}`,
 			audience: aud,
 		});
+		c.set("userEmail", (payload.email as string) || null);
 	} catch {
 		return c.json({ error: "Invalid Access JWT" }, 403);
 	}
