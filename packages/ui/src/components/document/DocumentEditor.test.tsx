@@ -167,9 +167,9 @@ describe("DocumentEditor", () => {
 			],
 		});
 		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
-		expect(screen.getByText("Version History")).toBeTruthy();
-		expect(screen.getByText("v2")).toBeTruthy();
-		expect(screen.getByText("Q1 Final")).toBeTruthy();
+		expect(screen.getAllByText("Version History").length).toBeGreaterThan(0);
+		expect(screen.getAllByText("v2").length).toBeGreaterThan(0);
+		expect(screen.getAllByText("Q1 Final").length).toBeGreaterThan(0);
 	});
 
 	it("highlights current version in version list", () => {
@@ -213,10 +213,10 @@ describe("DocumentEditor", () => {
 			],
 		});
 		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
-		const compareBtn = screen.getByLabelText("Compare v1 to v2");
-		expect(compareBtn).toBeTruthy();
+		const compareBtns = screen.getAllByLabelText("Compare v1 to v2");
+		expect(compareBtns.length).toBeGreaterThan(0);
 
-		fireEvent.click(compareBtn);
+		fireEvent.click(compareBtns[0]);
 		expect(await screen.findByText(/Comparing v1 → v2/)).toBeTruthy();
 		await screen.findByTestId("multi-file-diff");
 	});

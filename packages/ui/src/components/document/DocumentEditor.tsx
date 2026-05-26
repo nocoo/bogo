@@ -190,9 +190,16 @@ export function DocumentEditor({
 						<MarkdownPreview content={content} />
 					</div>
 				</div>
+
+				{/* Version history — inline below editor on < xl */}
+				{vm.versions.length > 0 && (
+					<div className="xl:hidden">
+						<VersionList versions={vm.versions} currentVersion={vm.document.version} />
+					</div>
+				)}
 			</div>
 
-			{/* Right sidebar — version history */}
+			{/* Right sidebar — version history on xl+ */}
 			{vm.versions.length > 0 && (
 				<div className="hidden xl:block w-64 shrink-0">
 					<VersionList versions={vm.versions} currentVersion={vm.document.version} />
