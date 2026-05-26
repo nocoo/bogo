@@ -1,5 +1,5 @@
 import type { DocumentPerson, Person } from "@bogo/shared";
-import { Loader2, UserMinus, UserPlus } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
 import { useCallback, useState } from "react";
 import type { AddPersonInput } from "../../viewmodels/document/use-document.js";
 
@@ -67,28 +67,25 @@ export function DocumentPersons({
 				<p className="text-xs text-muted-foreground">No people associated yet.</p>
 			)}
 
-			<div className="space-y-1">
+			<div className="flex flex-wrap gap-2">
 				{persons.map((dp) => {
 					const person = allPersons.find((p) => p.id === dp.personId);
 					return (
-						<div
+						<span
 							key={dp.personId}
-							className="flex items-center gap-2 rounded-md px-3 py-2 text-xs bg-card border border-border"
+							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2.5 py-1.5 text-xs font-medium text-foreground"
 						>
-							<span className="flex-1 truncate font-medium text-foreground">
-								{person?.name ?? dp.personId}
-							</span>
-							<span className="text-muted-foreground">{dp.role}</span>
+							{person?.name ?? dp.personId}
 							<button
 								type="button"
 								onClick={() => onRemove(dp.personId)}
 								disabled={isRemoving}
-								className="shrink-0 text-muted-foreground hover:text-red-400 disabled:opacity-50 transition-colors"
+								className="shrink-0 rounded-sm text-muted-foreground hover:text-red-400 disabled:opacity-50 transition-colors"
 								aria-label={`Remove ${person?.name ?? "person"}`}
 							>
-								<UserMinus className="h-3.5 w-3.5" />
+								<X className="h-3 w-3" />
 							</button>
-						</div>
+						</span>
 					);
 				})}
 			</div>
@@ -125,7 +122,7 @@ export function DocumentPersons({
 								{isAdding ? (
 									<Loader2 className="h-3.5 w-3.5 animate-spin" />
 								) : (
-									<UserPlus className="h-3.5 w-3.5" />
+									<Plus className="h-3.5 w-3.5" />
 								)}
 								Add
 							</button>

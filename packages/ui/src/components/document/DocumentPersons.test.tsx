@@ -73,10 +73,9 @@ describe("DocumentPersons", () => {
 		expect(screen.getByText("No people associated yet.")).toBeTruthy();
 	});
 
-	it("renders linked persons with name and role", () => {
+	it("renders linked persons with name", () => {
 		renderComponent();
 		expect(screen.getByText("Alice")).toBeTruthy();
-		expect(screen.getByText("subject")).toBeTruthy();
 	});
 
 	it("shows person id as fallback when person not in allPersons", () => {
