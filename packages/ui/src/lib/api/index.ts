@@ -3,6 +3,7 @@ import { docTypeApi } from "./doc-types.js";
 import { documentApi } from "./documents.js";
 import { fieldApi } from "./fields.js";
 import { personApi } from "./persons.js";
+import { tagApi } from "./tags.js";
 import { workspaceApi } from "./workspaces.js";
 
 export { ApiError, createClient } from "./client.js";
@@ -16,6 +17,7 @@ export function createApi(baseUrl = "") {
 		fields: fieldApi(client),
 		docTypes: docTypeApi(client),
 		documents: documentApi(client),
+		tags: tagApi(client),
 	};
 }
 
