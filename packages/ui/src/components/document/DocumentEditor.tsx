@@ -21,7 +21,7 @@ export function DocumentEditor({
 }) {
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
-	const [eventDate, setEventDate] = useState("");
+	const [eventDate, setEventDate] = useState(() => new Date().toISOString().slice(0, 10));
 	const [dirty, setDirty] = useState(false);
 	const [tab, setTab] = useState<"edit" | "preview">("edit");
 
@@ -211,6 +211,28 @@ function MarkdownPreview({ content }: { content: string }) {
 	);
 }
 
+function formatVersionDate(iso: string): string {
+	const d = new Date(iso);
+	const now = new Date();
+	const diffMs = now.getTime() - d.getTime();
+	const diffMin = Math.floor(diffMs / 60000);
+	if (diffMin < 1) {
+		return "just now";
+	}
+	if (diffMin < 60) {
+		return `${diffMin}m ago`;
+	}
+	const diffHr = Math.floor(diffMin / 60);
+	if (diffHr < 24) {
+		return `${diffHr}h ago`;
+	}
+	const diffDay = Math.floor(diffHr / 24);
+	if (diffDay < 7) {
+		return `${diffDay}d ago`;
+	}
+	return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
 function VersionList({
 	versions,
 	currentVersion,
@@ -235,7 +257,7 @@ function VersionList({
 					>
 						<span className="font-medium">v{v.version}</span>
 						<span className="flex-1 truncate">{v.title}</span>
-						<span>{v.createdAt}</span>
+						<span>{formatVersionDate(v.createdAt)}</span>
 						{i < sorted.length - 1 && (
 							<button
 								type="button"

@@ -62,7 +62,7 @@ export function PersonDocTimeline({
 
 				{!isLoading && documents && documents.length > 0 && (
 					<div className="relative pl-4">
-						<div className="absolute left-1 top-1 bottom-1 w-px bg-border" />
+						<div className="absolute left-[3.5px] top-1 bottom-1 w-px bg-border" />
 
 						{undated.map((doc) => (
 							<TimelineItem
