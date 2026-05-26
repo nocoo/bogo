@@ -8,6 +8,7 @@ import { FieldsSettingsPage } from "@/pages/FieldsSettingsPage";
 import { OverviewPage } from "@/pages/OverviewPage";
 import { PeoplePage } from "@/pages/PeoplePage";
 import { SettingsPage } from "@/pages/SettingsPage";
+import { TagsSettingsPage } from "@/pages/TagsSettingsPage";
 import { WorkspacesPage } from "@/pages/WorkspacesPage";
 import { BrowserRouter, Route, Routes } from "react-router";
 
@@ -25,6 +26,7 @@ export function App() {
 						<Route path="/settings" element={<SettingsPage />} />
 						<Route path="/settings/doc-types" element={<DocTypesSettingsPage />} />
 						<Route path="/settings/fields" element={<FieldsSettingsPage />} />
+						<Route path="/settings/tags" element={<TagsSettingsPage />} />
 					</Route>
 				</Routes>
 			</BrowserRouter>

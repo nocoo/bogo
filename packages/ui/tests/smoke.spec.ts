@@ -24,6 +24,7 @@ test("all SPA pages render without errors", async ({ page }) => {
 		"/settings",
 		"/settings/doc-types",
 		"/settings/fields",
+		"/settings/tags",
 	];
 
 	for (const path of pages) {

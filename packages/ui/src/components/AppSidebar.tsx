@@ -10,6 +10,7 @@ import {
 	PanelLeft,
 	Search,
 	Settings,
+	Tags,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
@@ -29,6 +30,7 @@ const SETTINGS_ITEMS: NavItem[] = [
 	{ title: "General", icon: Settings, path: "/settings" },
 	{ title: "Doc Types", icon: FileType, path: "/settings/doc-types" },
 	{ title: "Fields", icon: ListTree, path: "/settings/fields" },
+	{ title: "Tags", icon: Tags, path: "/settings/tags" },
 ];
 
 const ALL_NAV_ITEMS: NavItem[] = [...WORKSPACE_ITEMS, ...SETTINGS_ITEMS];
