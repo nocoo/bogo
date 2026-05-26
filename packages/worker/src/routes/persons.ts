@@ -147,6 +147,7 @@ personRoutes.post("/", async (c) => {
 		sortOrder: 0,
 		createdAt: now,
 		updatedAt: now,
+		tags: [],
 	};
 
 	return c.json({ data: person }, 201);
@@ -456,6 +457,7 @@ function mapRow(row: Record<string, unknown>): Person {
 		sortOrder: row.sort_order as number,
 		createdAt: row.created_at as string,
 		updatedAt: row.updated_at as string,
+		tags: [],
 	};
 }
 
@@ -470,5 +472,6 @@ function mapDocRow(row: Record<string, unknown>): Document {
 		version: row.version as number,
 		createdAt: row.created_at as string,
 		updatedAt: row.updated_at as string,
+		tags: [],
 	};
 }

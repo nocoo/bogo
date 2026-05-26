@@ -18,6 +18,12 @@ export const updateDocumentSchema = z.object({
 export type CreateDocumentInput = z.infer<typeof createDocumentSchema>;
 export type UpdateDocumentInput = z.infer<typeof updateDocumentSchema>;
 
+export interface EmbeddedTag {
+	id: string;
+	name: string;
+	color: string | null;
+}
+
 export interface Document {
 	id: string;
 	workspaceId: string;
@@ -28,6 +34,7 @@ export interface Document {
 	version: number;
 	createdAt: string;
 	updatedAt: string;
+	tags: EmbeddedTag[];
 }
 
 export interface DocumentVersion {

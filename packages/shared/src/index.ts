@@ -39,6 +39,7 @@ export {
 	type UpdateDocumentInput,
 	type Document,
 	type DocumentVersion,
+	type EmbeddedTag,
 	createDocTypeSchema,
 	updateDocTypeSchema,
 	type CreateDocTypeInput,

@@ -13,6 +13,7 @@ const ROOT = {
 	sortOrder: 0,
 	createdAt: "2026-01-01",
 	updatedAt: "2026-01-01",
+	tags: [],
 };
 
 const ALICE = {
@@ -26,6 +27,7 @@ const ALICE = {
 	sortOrder: 1,
 	createdAt: "2026-01-02",
 	updatedAt: "2026-01-02",
+	tags: [],
 };
 
 describe("CreatePersonDialog", () => {

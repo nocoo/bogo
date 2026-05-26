@@ -36,6 +36,7 @@ export {
 	type UpdateDocumentInput,
 	type Document,
 	type DocumentVersion,
+	type EmbeddedTag,
 } from "./document.js";
 
 export {

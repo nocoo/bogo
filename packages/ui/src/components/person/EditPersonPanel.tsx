@@ -2,6 +2,7 @@ import type { CustomFieldDefinition, Person } from "@bogo/shared";
 import { Loader2, Save, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
+import { TagPicker } from "../TagPicker.js";
 import { PersonFieldValues } from "../field/PersonFieldValues.js";
 
 function getDescendantIds(persons: Person[], personId: string): Set<string> {
@@ -175,6 +176,13 @@ export function EditPersonPanel({
 				{fieldDefs && fieldValuesVm && fieldDefs.length > 0 && (
 					<PersonFieldValues defs={fieldDefs} vm={fieldValuesVm} />
 				)}
+
+				<div>
+					<span className="text-xs text-muted-foreground">Tags</span>
+					<div className="mt-1">
+						<TagPicker scope="person" entityId={person.id} assignedTags={person.tags} />
+					</div>
+				</div>
 
 				<div className="flex items-center justify-between pt-2 border-t border-border">
 					<button

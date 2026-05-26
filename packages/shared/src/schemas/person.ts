@@ -21,6 +21,8 @@ export type CreatePersonInput = z.infer<typeof createPersonSchema>;
 export type UpdatePersonInput = z.infer<typeof updatePersonSchema>;
 export type MovePersonInput = z.infer<typeof movePersonSchema>;
 
+import type { EmbeddedTag } from "./document.js";
+
 export interface Person {
 	id: string;
 	workspaceId: string;
@@ -32,4 +34,5 @@ export interface Person {
 	sortOrder: number;
 	createdAt: string;
 	updatedAt: string;
+	tags: EmbeddedTag[];
 }

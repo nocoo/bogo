@@ -150,6 +150,7 @@ documentRoutes.post("/", async (c) => {
 		version: 1,
 		createdAt: now,
 		updatedAt: now,
+		tags: [],
 	};
 
 	return c.json({ data: doc }, 201);
@@ -385,5 +386,6 @@ function mapDocRow(row: Record<string, unknown>): Document {
 		version: row.version as number,
 		createdAt: row.created_at as string,
 		updatedAt: row.updated_at as string,
+		tags: [],
 	};
 }

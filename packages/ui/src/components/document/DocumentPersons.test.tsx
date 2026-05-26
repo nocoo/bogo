@@ -15,6 +15,7 @@ const PERSONS: Person[] = [
 		sortOrder: 0,
 		createdAt: "2026-01-01",
 		updatedAt: "2026-01-01",
+		tags: [],
 	},
 	{
 		id: "p-2",
@@ -27,6 +28,7 @@ const PERSONS: Person[] = [
 		sortOrder: 1,
 		createdAt: "2026-01-01",
 		updatedAt: "2026-01-01",
+		tags: [],
 	},
 	{
 		id: "p-3",
@@ -39,6 +41,7 @@ const PERSONS: Person[] = [
 		sortOrder: 2,
 		createdAt: "2026-01-01",
 		updatedAt: "2026-01-01",
+		tags: [],
 	},
 ];
 

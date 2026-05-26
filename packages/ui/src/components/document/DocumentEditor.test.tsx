@@ -7,6 +7,10 @@ vi.mock("@pierre/diffs/react", () => ({
 	MultiFileDiff: vi.fn(() => <div data-testid="multi-file-diff" />),
 }));
 
+vi.mock("../TagPicker.js", () => ({
+	TagPicker: () => <div data-testid="tag-picker" />,
+}));
+
 function createVM(overrides: Partial<DocumentVM> = {}): DocumentVM {
 	return {
 		document: {
@@ -19,6 +23,7 @@ function createVM(overrides: Partial<DocumentVM> = {}): DocumentVM {
 			version: 1,
 			createdAt: "2026-01-01",
 			updatedAt: "2026-01-01",
+			tags: [],
 		},
 		versions: [],
 		persons: [],
@@ -240,6 +245,7 @@ describe("DocumentEditor", () => {
 				version: 1,
 				createdAt: "2026-01-01",
 				updatedAt: "2026-01-01",
+				tags: [],
 			},
 		});
 		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
@@ -327,6 +333,7 @@ describe("DocumentEditor", () => {
 			version: 1,
 			createdAt: "2026-01-01",
 			updatedAt: "2026-01-01",
+			tags: [],
 		};
 		const vm = createVM({ update, document: originalDoc });
 		const { rerender } = render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
@@ -360,6 +367,7 @@ describe("DocumentEditor", () => {
 				version: 1,
 				createdAt: "2026-01-01",
 				updatedAt: "2026-01-01",
+				tags: [],
 			},
 		});
 		const vm2 = createVM({
@@ -373,6 +381,7 @@ describe("DocumentEditor", () => {
 				version: 1,
 				createdAt: "2026-01-02",
 				updatedAt: "2026-01-02",
+				tags: [],
 			},
 		});
 

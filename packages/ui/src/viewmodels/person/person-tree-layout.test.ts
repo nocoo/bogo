@@ -13,6 +13,7 @@ const ROOT: Person = {
 	sortOrder: 0,
 	createdAt: "2026-01-01",
 	updatedAt: "2026-01-01",
+	tags: [],
 };
 
 const ALICE: Person = {
@@ -26,6 +27,7 @@ const ALICE: Person = {
 	sortOrder: 1,
 	createdAt: "2026-01-02",
 	updatedAt: "2026-01-02",
+	tags: [],
 };
 
 const BOB: Person = {
@@ -39,6 +41,7 @@ const BOB: Person = {
 	sortOrder: 2,
 	createdAt: "2026-01-03",
 	updatedAt: "2026-01-03",
+	tags: [],
 };
 
 describe("computeTreeLayout", () => {

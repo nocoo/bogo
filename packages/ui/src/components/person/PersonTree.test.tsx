@@ -9,6 +9,10 @@ import { PersonTree, getNodeCenter } from "./PersonTree.js";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
+vi.mock("../TagPicker.js", () => ({
+	TagPicker: () => <div data-testid="tag-picker" />,
+}));
+
 const mockScreenToFlowPosition = vi.fn((pos: { x: number; y: number }) => pos);
 
 vi.mock("@xyflow/react", async () => {
@@ -121,6 +125,7 @@ const ROOT = {
 	sortOrder: 0,
 	createdAt: "2026-01-01",
 	updatedAt: "2026-01-01",
+	tags: [],
 };
 
 const ALICE = {
@@ -134,6 +139,7 @@ const ALICE = {
 	sortOrder: 1,
 	createdAt: "2026-01-02",
 	updatedAt: "2026-01-02",
+	tags: [],
 };
 
 const BOB = {
@@ -147,6 +153,7 @@ const BOB = {
 	sortOrder: 2,
 	createdAt: "2026-01-03",
 	updatedAt: "2026-01-03",
+	tags: [],
 };
 
 describe("PersonTree", () => {

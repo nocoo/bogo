@@ -2,6 +2,10 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { EditPersonPanel } from "./EditPersonPanel.js";
 
+vi.mock("../TagPicker.js", () => ({
+	TagPicker: () => <div data-testid="tag-picker" />,
+}));
+
 const ROOT = {
 	id: "p-root",
 	workspaceId: "ws-1",
@@ -13,6 +17,7 @@ const ROOT = {
 	sortOrder: 0,
 	createdAt: "2026-01-01",
 	updatedAt: "2026-01-01",
+	tags: [],
 };
 
 const ALICE = {
@@ -26,6 +31,7 @@ const ALICE = {
 	sortOrder: 1,
 	createdAt: "2026-01-02",
 	updatedAt: "2026-01-02",
+	tags: [],
 };
 
 const BOB = {
@@ -39,6 +45,7 @@ const BOB = {
 	sortOrder: 2,
 	createdAt: "2026-01-03",
 	updatedAt: "2026-01-03",
+	tags: [],
 };
 
 const CHARLIE = {
@@ -52,6 +59,7 @@ const CHARLIE = {
 	sortOrder: 3,
 	createdAt: "2026-01-04",
 	updatedAt: "2026-01-04",
+	tags: [],
 };
 
 describe("EditPersonPanel", () => {

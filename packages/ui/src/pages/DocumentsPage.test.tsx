@@ -37,6 +37,7 @@ const DOC_A = {
 	version: 1,
 	createdAt: "2026-01-01",
 	updatedAt: "2026-01-01",
+	tags: [],
 };
 
 const DOC_B = {
@@ -49,6 +50,7 @@ const DOC_B = {
 	version: 3,
 	createdAt: "2026-01-02",
 	updatedAt: "2026-01-02",
+	tags: [],
 };
 
 function baseDocTypesVm() {

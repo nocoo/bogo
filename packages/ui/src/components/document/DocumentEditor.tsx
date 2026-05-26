@@ -3,6 +3,7 @@ import { ArrowLeft, GitCompareArrows, Loader2, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { renderMarkdown } from "../../lib/markdown.js";
 import type { DocumentVM } from "../../viewmodels/document/use-document.js";
+import { TagPicker } from "../TagPicker.js";
 import { DocumentPersons } from "./DocumentPersons.js";
 import { VersionDiff } from "./VersionDiff.js";
 
@@ -147,6 +148,7 @@ export function DocumentEditor({
 							aria-label="Event date"
 						/>
 					</div>
+					<TagPicker scope="document" entityId={vm.document.id} assignedTags={vm.document.tags} />
 					{dirty && <span className="text-xs text-amber-500 font-medium">Unsaved changes</span>}
 				</div>
 

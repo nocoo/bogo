@@ -10,6 +10,10 @@ vi.mock("../viewmodels/person/use-person-list.js", () => ({
 	usePersonList: vi.fn(),
 }));
 
+vi.mock("../components/TagPicker.js", () => ({
+	TagPicker: () => <div data-testid="tag-picker" />,
+}));
+
 vi.mock("../contexts/workspace-context.js", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("../contexts/workspace-context.js")>();
 	return {
