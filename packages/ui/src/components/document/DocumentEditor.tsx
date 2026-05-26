@@ -23,7 +23,6 @@ export function DocumentEditor({
 	const [content, setContent] = useState("");
 	const [eventDate, setEventDate] = useState(() => new Date().toISOString().slice(0, 10));
 	const [dirty, setDirty] = useState(false);
-	const [tab, setTab] = useState<"edit" | "preview">("edit");
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: only sync from server when not dirty (prevents rollback from overwriting user draft)
 	useEffect(() => {
@@ -93,106 +92,111 @@ export function DocumentEditor({
 	}
 
 	return (
-		<div className="space-y-4">
-			<div className="flex items-center gap-3">
-				<button
-					type="button"
-					onClick={onBack}
-					className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-					aria-label="Back to documents"
-				>
-					<ArrowLeft className="h-5 w-5" />
-				</button>
-				<input
-					type="text"
-					value={title}
-					onChange={(e) => handleTitleChange(e.target.value)}
-					className="flex-1 bg-transparent text-base font-semibold text-foreground outline-none border-b border-transparent focus:border-primary transition-colors"
-					aria-label="Document title"
-				/>
-				<button
-					type="button"
-					onClick={handleSave}
-					disabled={!dirty || vm.isUpdating}
-					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-					aria-label="Save document"
-				>
-					{vm.isUpdating ? (
-						<Loader2 className="h-4 w-4 animate-spin" />
-					) : (
-						<Save className="h-4 w-4" />
-					)}
-					Save
-				</button>
+		<div className="flex gap-4 h-full">
+			{/* Main content — left */}
+			<div className="flex-1 min-w-0 flex flex-col gap-4">
+				{/* Header */}
+				<div className="flex items-center gap-3">
+					<button
+						type="button"
+						onClick={onBack}
+						className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+						aria-label="Back to documents"
+					>
+						<ArrowLeft className="h-5 w-5" />
+					</button>
+					<input
+						type="text"
+						value={title}
+						onChange={(e) => handleTitleChange(e.target.value)}
+						className="flex-1 bg-transparent text-base font-semibold text-foreground outline-none border-b border-transparent focus:border-primary transition-colors"
+						aria-label="Document title"
+					/>
+					<button
+						type="button"
+						onClick={handleSave}
+						disabled={!dirty || vm.isUpdating}
+						className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+						aria-label="Save document"
+					>
+						{vm.isUpdating ? (
+							<Loader2 className="h-4 w-4 animate-spin" />
+						) : (
+							<Save className="h-4 w-4" />
+						)}
+						Save
+					</button>
+				</div>
+
+				{/* Metadata bar */}
+				<div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-secondary/50 px-4 py-3">
+					<div className="flex items-center gap-2">
+						<span className="text-xs font-medium text-muted-foreground">Version</span>
+						<span className="text-xs text-foreground">v{vm.document.version}</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<label htmlFor="event-date" className="text-xs font-medium text-muted-foreground">
+							Date
+						</label>
+						<input
+							id="event-date"
+							type="date"
+							value={eventDate}
+							onChange={(e) => handleEventDateChange(e.target.value)}
+							className="rounded border border-border bg-secondary px-2 py-1 text-xs text-foreground focus:border-primary outline-none transition-colors"
+							aria-label="Event date"
+						/>
+					</div>
+					{dirty && <span className="text-xs text-amber-500 font-medium">Unsaved changes</span>}
+				</div>
+
+				{/* Associated People */}
+				<div className="rounded-lg border border-border bg-secondary/50 px-4 py-3">
+					<DocumentPersons
+						persons={vm.persons}
+						allPersons={allPersons}
+						isLoading={vm.isLoadingPersons}
+						personsError={vm.personsError}
+						allPersonsLoading={allPersonsLoading ?? false}
+						allPersonsError={allPersonsError ?? null}
+						onAdd={vm.addPerson}
+						isAdding={vm.isAddingPerson}
+						onRemove={vm.removePerson}
+						isRemoving={vm.isRemovingPerson}
+					/>
+				</div>
+
+				{/* Editor + Preview side by side */}
+				<div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[400px]">
+					<div className="flex flex-col">
+						<span className="mb-1 text-xs font-medium text-muted-foreground" aria-label="Edit tab">
+							Edit
+						</span>
+						<textarea
+							value={content}
+							onChange={(e) => handleContentChange(e.target.value)}
+							className="flex-1 w-full rounded-lg border border-border bg-secondary p-4 text-sm text-foreground font-mono outline-none focus:border-primary resize-y transition-colors"
+							placeholder="Write document content..."
+							aria-label="Document content"
+						/>
+					</div>
+					<div className="flex flex-col">
+						<span
+							className="mb-1 text-xs font-medium text-muted-foreground"
+							aria-label="Preview tab"
+						>
+							Preview
+						</span>
+						<MarkdownPreview content={content} />
+					</div>
+				</div>
 			</div>
 
-			<div className="flex items-center gap-2 text-xs text-muted-foreground">
-				<span>v{vm.document.version}</span>
-				<input
-					type="date"
-					value={eventDate}
-					onChange={(e) => handleEventDateChange(e.target.value)}
-					className="bg-transparent border border-border rounded px-2 py-1 text-xs text-muted-foreground focus:border-primary outline-none transition-colors"
-					aria-label="Event date"
-				/>
-				{dirty && <span className="text-amber-400">Unsaved changes</span>}
-			</div>
-
-			<div className="flex items-center gap-1 border-b border-border">
-				<button
-					type="button"
-					onClick={() => setTab("edit")}
-					className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-						tab === "edit"
-							? "text-primary border-b-2 border-primary"
-							: "text-muted-foreground hover:text-foreground"
-					}`}
-					aria-label="Edit tab"
-				>
-					Edit
-				</button>
-				<button
-					type="button"
-					onClick={() => setTab("preview")}
-					className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-						tab === "preview"
-							? "text-primary border-b-2 border-primary"
-							: "text-muted-foreground hover:text-foreground"
-					}`}
-					aria-label="Preview tab"
-				>
-					Preview
-				</button>
-			</div>
-
-			<div className={tab !== "edit" ? "hidden" : ""}>
-				<textarea
-					value={content}
-					onChange={(e) => handleContentChange(e.target.value)}
-					className="w-full min-h-[400px] rounded-lg border border-border bg-card p-4 text-sm text-foreground font-mono outline-none focus:border-primary resize-y transition-colors"
-					placeholder="Write document content..."
-					aria-label="Document content"
-				/>
-			</div>
-			<div className={tab !== "preview" ? "hidden" : ""}>
-				<MarkdownPreview content={content} />
-			</div>
-
-			<DocumentPersons
-				persons={vm.persons}
-				allPersons={allPersons}
-				isLoading={vm.isLoadingPersons}
-				personsError={vm.personsError}
-				allPersonsLoading={allPersonsLoading ?? false}
-				allPersonsError={allPersonsError ?? null}
-				onAdd={vm.addPerson}
-				isAdding={vm.isAddingPerson}
-				onRemove={vm.removePerson}
-				isRemoving={vm.isRemovingPerson}
-			/>
-
+			{/* Right sidebar — version history */}
 			{vm.versions.length > 0 && (
-				<VersionList versions={vm.versions} currentVersion={vm.document.version} />
+				<div className="hidden xl:block w-64 shrink-0">
+					<VersionList versions={vm.versions} currentVersion={vm.document.version} />
+				</div>
 			)}
 		</div>
 	);
@@ -203,7 +207,7 @@ function MarkdownPreview({ content }: { content: string }) {
 
 	return (
 		<div
-			className="w-full min-h-[400px] rounded-lg border border-border bg-card p-4 text-sm text-foreground prose prose-invert max-w-none"
+			className="flex-1 w-full rounded-lg border border-border bg-secondary p-6 text-sm text-foreground prose prose-sm prose-invert max-w-none overflow-y-auto prose-headings:font-semibold prose-headings:text-foreground prose-h1:text-xl prose-h1:border-b prose-h1:border-border prose-h1:pb-2 prose-h2:text-lg prose-h3:text-base prose-p:leading-relaxed"
 			aria-label="Markdown preview"
 			// biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown from user input only
 			dangerouslySetInnerHTML={{ __html: html }}

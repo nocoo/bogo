@@ -228,7 +228,7 @@ describe("DocumentEditor", () => {
 		expect(btn.disabled).toBe(true);
 	});
 
-	it("shows preview tab with rendered markdown", () => {
+	it("shows preview with rendered markdown", () => {
 		const vm = createVM({
 			document: {
 				id: "doc-1",
@@ -243,21 +243,19 @@ describe("DocumentEditor", () => {
 			},
 		});
 		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
-		fireEvent.click(screen.getByLabelText("Preview tab"));
 
 		const preview = screen.getByLabelText("Markdown preview");
 		expect(preview.innerHTML).toContain("<h1>Hello</h1>");
 		expect(preview.innerHTML).toContain("<strong>bold text</strong>");
 	});
 
-	it("preview updates when content changes then tab switches", () => {
+	it("preview updates when content changes", () => {
 		const vm = createVM();
 		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 
 		fireEvent.change(screen.getByLabelText("Document content"), {
 			target: { value: "## New heading" },
 		});
-		fireEvent.click(screen.getByLabelText("Preview tab"));
 
 		const preview = screen.getByLabelText("Markdown preview");
 		expect(preview.innerHTML).toContain("<h2>New heading</h2>");
