@@ -43,6 +43,89 @@ describe("document routes", () => {
 			expect(json.data[0].title).toBe("Meeting Notes");
 			expect(json.data[0].typeId).toBe("t-1");
 			expect(json.data[0].version).toBe(2);
+			expect(json.data[0].tags).toEqual([]);
+		});
+
+		it("filters by tagIds", async () => {
+			const { db } = createSequenceD1([
+				{
+					type: "all",
+					value: {
+						results: [
+							{
+								id: "d-1",
+								workspace_id: WID,
+								type_id: null,
+								title: "Tagged",
+								content: "",
+								event_date: null,
+								version: 1,
+								created_at: "2026-01-01T00:00:00Z",
+								updated_at: "2026-01-01T00:00:00Z",
+							},
+						],
+						success: true,
+					},
+				},
+				{ type: "all", value: { results: [], success: true } },
+			]);
+
+			const res = await app.fetch(makeRequest("GET", `${BASE}?tagIds=tag-1,tag-2`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data[0].title).toBe("Tagged");
+		});
+
+		it("returns all documents with empty tagIds", async () => {
+			const { db, mockAll } = createMockD1();
+			mockAll.mockResolvedValue({ results: [], success: true });
+
+			const res = await app.fetch(makeRequest("GET", `${BASE}?tagIds=`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data).toEqual([]);
+		});
+
+		it("embeds tags on documents", async () => {
+			const { db } = createSequenceD1([
+				{
+					type: "all",
+					value: {
+						results: [
+							{
+								id: "d-1",
+								workspace_id: WID,
+								type_id: null,
+								title: "Doc",
+								content: "",
+								event_date: null,
+								version: 1,
+								created_at: "2026-01-01T00:00:00Z",
+								updated_at: "2026-01-01T00:00:00Z",
+							},
+						],
+						success: true,
+					},
+				},
+				{
+					type: "all",
+					value: {
+						results: [{ document_id: "d-1", id: "tag-1", name: "Eng", color: "#3b82f6" }],
+						success: true,
+					},
+				},
+			]);
+
+			const res = await app.fetch(makeRequest("GET", BASE), { DB: db, ENVIRONMENT: "test" });
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data[0].tags).toEqual([{ id: "tag-1", name: "Eng", color: "#3b82f6" }]);
 		});
 	});
 

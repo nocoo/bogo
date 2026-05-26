@@ -94,6 +94,33 @@ describe("tag routes", () => {
 			const json = await res.json();
 			expect(json.data).toEqual([]);
 		});
+
+		it("returns all tags when no scope specified", async () => {
+			const { db, mockAll } = createMockD1();
+			mockAll.mockResolvedValue({
+				results: [
+					{
+						id: "tag-1",
+						workspace_id: WID,
+						name: "A",
+						scope: "document",
+						color: null,
+						sort_order: 0,
+						created_at: "2026-01-01T00:00:00Z",
+						updated_at: "2026-01-01T00:00:00Z",
+					},
+				],
+				success: true,
+			});
+
+			const res = await app.fetch(makeRequest("GET", BASE), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.length).toBe(1);
+		});
 	});
 
 	describe("POST /api/w/:wid/tags", () => {

@@ -14,13 +14,57 @@ export const personRoutes = new Hono<AppEnv>();
 
 personRoutes.get("/", async (c) => {
 	const wid = c.req.param("wid") as string;
-	const rows = await c.env.DB.prepare(
-		"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, is_root, sort_order, created_at, updated_at FROM persons WHERE workspace_id = ? ORDER BY sort_order ASC",
+	const tagIds = c.req.query("tagIds");
+
+	let sql: string;
+	const params: unknown[] = [wid];
+
+	if (tagIds) {
+		const ids = tagIds.split(",").filter(Boolean);
+		if (ids.length > 0) {
+			const placeholders = ids.map(() => "?").join(",");
+			sql = `SELECT DISTINCT p.id, p.workspace_id, p.name, p.title, p.manager_id, p.dotted_manager_id, p.is_root, p.sort_order, p.created_at, p.updated_at FROM persons p INNER JOIN tag_persons tp ON tp.workspace_id = p.workspace_id AND tp.person_id = p.id WHERE p.workspace_id = ? AND tp.tag_id IN (${placeholders}) ORDER BY p.sort_order ASC`;
+			params.push(...ids);
+		} else {
+			sql =
+				"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, is_root, sort_order, created_at, updated_at FROM persons WHERE workspace_id = ? ORDER BY sort_order ASC";
+		}
+	} else {
+		sql =
+			"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, is_root, sort_order, created_at, updated_at FROM persons WHERE workspace_id = ? ORDER BY sort_order ASC";
+	}
+
+	const rows = await c.env.DB.prepare(sql)
+		.bind(...params)
+		.all();
+
+	const persons = rows.results.map(mapRow);
+
+	const tagRows = await c.env.DB.prepare(
+		"SELECT tp.person_id, t.id, t.name, t.color FROM tag_persons tp INNER JOIN tags t ON t.id = tp.tag_id AND t.workspace_id = tp.workspace_id WHERE tp.workspace_id = ?",
 	)
 		.bind(wid)
 		.all();
 
-	return c.json({ data: rows.results.map(mapRow) });
+	const tagMap = new Map<string, Array<{ id: string; name: string; color: string | null }>>();
+	for (const row of tagRows.results) {
+		const personId = row.person_id as string;
+		if (!tagMap.has(personId)) {
+			tagMap.set(personId, []);
+		}
+		tagMap.get(personId)?.push({
+			id: row.id as string,
+			name: row.name as string,
+			color: (row.color as string) || null,
+		});
+	}
+
+	const data = persons.map((person) => ({
+		...person,
+		tags: tagMap.get(person.id) ?? [],
+	}));
+
+	return c.json({ data });
 });
 
 personRoutes.post("/", async (c) => {

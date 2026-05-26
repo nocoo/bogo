@@ -13,13 +13,57 @@ export const documentRoutes = new Hono<AppEnv>();
 
 documentRoutes.get("/", async (c) => {
 	const wid = c.req.param("wid") as string;
-	const rows = await c.env.DB.prepare(
-		"SELECT id, workspace_id, type_id, title, content, event_date, version, created_at, updated_at FROM documents WHERE workspace_id = ? ORDER BY event_date DESC NULLS LAST, created_at DESC",
+	const tagIds = c.req.query("tagIds");
+
+	let sql: string;
+	const params: unknown[] = [wid];
+
+	if (tagIds) {
+		const ids = tagIds.split(",").filter(Boolean);
+		if (ids.length > 0) {
+			const placeholders = ids.map(() => "?").join(",");
+			sql = `SELECT DISTINCT d.id, d.workspace_id, d.type_id, d.title, d.content, d.event_date, d.version, d.created_at, d.updated_at FROM documents d INNER JOIN tag_documents td ON td.workspace_id = d.workspace_id AND td.document_id = d.id WHERE d.workspace_id = ? AND td.tag_id IN (${placeholders}) ORDER BY d.event_date DESC, d.created_at DESC`;
+			params.push(...ids);
+		} else {
+			sql =
+				"SELECT id, workspace_id, type_id, title, content, event_date, version, created_at, updated_at FROM documents WHERE workspace_id = ? ORDER BY event_date DESC NULLS LAST, created_at DESC";
+		}
+	} else {
+		sql =
+			"SELECT id, workspace_id, type_id, title, content, event_date, version, created_at, updated_at FROM documents WHERE workspace_id = ? ORDER BY event_date DESC NULLS LAST, created_at DESC";
+	}
+
+	const rows = await c.env.DB.prepare(sql)
+		.bind(...params)
+		.all();
+
+	const docs = rows.results.map(mapDocRow);
+
+	const tagRows = await c.env.DB.prepare(
+		"SELECT td.document_id, t.id, t.name, t.color FROM tag_documents td INNER JOIN tags t ON t.id = td.tag_id AND t.workspace_id = td.workspace_id WHERE td.workspace_id = ?",
 	)
 		.bind(wid)
 		.all();
 
-	return c.json({ data: rows.results.map(mapDocRow) });
+	const tagMap = new Map<string, Array<{ id: string; name: string; color: string | null }>>();
+	for (const row of tagRows.results) {
+		const docId = row.document_id as string;
+		if (!tagMap.has(docId)) {
+			tagMap.set(docId, []);
+		}
+		tagMap.get(docId)?.push({
+			id: row.id as string,
+			name: row.name as string,
+			color: (row.color as string) || null,
+		});
+	}
+
+	const data = docs.map((doc) => ({
+		...doc,
+		tags: tagMap.get(doc.id) ?? [],
+	}));
+
+	return c.json({ data });
 });
 
 documentRoutes.post("/", async (c) => {

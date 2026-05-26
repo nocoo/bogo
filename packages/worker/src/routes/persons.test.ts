@@ -34,24 +34,29 @@ describe("person routes", () => {
 		});
 
 		it("maps DB rows to Person shape", async () => {
-			const { db, mockAll } = createMockD1();
-			mockAll.mockResolvedValue({
-				results: [
-					{
-						id: "p-1",
-						workspace_id: WID,
-						name: "CEO",
-						title: "Chief",
-						manager_id: null,
-						dotted_manager_id: null,
-						is_root: 1,
-						sort_order: 0,
-						created_at: "2026-01-01T00:00:00Z",
-						updated_at: "2026-01-01T00:00:00Z",
+			const { db } = createSequenceD1([
+				{
+					type: "all",
+					value: {
+						results: [
+							{
+								id: "p-1",
+								workspace_id: WID,
+								name: "CEO",
+								title: "Chief",
+								manager_id: null,
+								dotted_manager_id: null,
+								is_root: 1,
+								sort_order: 0,
+								created_at: "2026-01-01T00:00:00Z",
+								updated_at: "2026-01-01T00:00:00Z",
+							},
+						],
+						success: true,
 					},
-				],
-				success: true,
-			});
+				},
+				{ type: "all", value: { results: [], success: true } },
+			]);
 
 			const res = await app.fetch(makeRequest("GET", BASE), {
 				DB: db,
@@ -69,7 +74,94 @@ describe("person routes", () => {
 				sortOrder: 0,
 				createdAt: "2026-01-01T00:00:00Z",
 				updatedAt: "2026-01-01T00:00:00Z",
+				tags: [],
 			});
+		});
+
+		it("filters by tagIds", async () => {
+			const { db } = createSequenceD1([
+				{
+					type: "all",
+					value: {
+						results: [
+							{
+								id: "p-1",
+								workspace_id: WID,
+								name: "Tagged Person",
+								title: "Dev",
+								manager_id: null,
+								dotted_manager_id: null,
+								is_root: 1,
+								sort_order: 0,
+								created_at: "2026-01-01T00:00:00Z",
+								updated_at: "2026-01-01T00:00:00Z",
+							},
+						],
+						success: true,
+					},
+				},
+				{ type: "all", value: { results: [], success: true } },
+			]);
+
+			const res = await app.fetch(makeRequest("GET", `${BASE}?tagIds=tag-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data[0].name).toBe("Tagged Person");
+		});
+
+		it("returns all persons with empty tagIds", async () => {
+			const { db } = createSequenceD1([
+				{ type: "all", value: { results: [], success: true } },
+				{ type: "all", value: { results: [], success: true } },
+			]);
+
+			const res = await app.fetch(makeRequest("GET", `${BASE}?tagIds=`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data).toEqual([]);
+		});
+
+		it("embeds tags on persons", async () => {
+			const { db } = createSequenceD1([
+				{
+					type: "all",
+					value: {
+						results: [
+							{
+								id: "p-1",
+								workspace_id: WID,
+								name: "Dev",
+								title: "Engineer",
+								manager_id: null,
+								dotted_manager_id: null,
+								is_root: 1,
+								sort_order: 0,
+								created_at: "2026-01-01T00:00:00Z",
+								updated_at: "2026-01-01T00:00:00Z",
+							},
+						],
+						success: true,
+					},
+				},
+				{
+					type: "all",
+					value: {
+						results: [{ person_id: "p-1", id: "tag-1", name: "Senior", color: "#3b82f6" }],
+						success: true,
+					},
+				},
+			]);
+
+			const res = await app.fetch(makeRequest("GET", BASE), { DB: db, ENVIRONMENT: "test" });
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data[0].tags).toEqual([{ id: "tag-1", name: "Senior", color: "#3b82f6" }]);
 		});
 	});
 
