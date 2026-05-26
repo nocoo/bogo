@@ -136,7 +136,11 @@ describe("tag CRUD (real D1)", () => {
 	});
 
 	it("GET /api/w/:wid/tags/stats returns distribution", async () => {
-		const res = await api(`/api/w/${wsId}/tags/stats?scope=document`);
+		const noScopeRes = await api(`/api/w/${wsId}/tags/stats`);
+		expect(noScopeRes.status).toBe(400);
+
+		const params = new URLSearchParams({ scope: "document" });
+		const res = await api(`/api/w/${wsId}/tags/stats?${params}`);
 		expect(res.status).toBe(200);
 		const json = await res.json();
 		expect(json.data.length).toBeGreaterThan(0);

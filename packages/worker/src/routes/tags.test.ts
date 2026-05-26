@@ -263,4 +263,228 @@ describe("tag routes", () => {
 			expect(res.status).toBe(404);
 		});
 	});
+
+	describe("PUT /api/w/:wid/tags/:id/documents/:docId", () => {
+		it("assigns tag to document", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { scope: "document" } },
+				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+			]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/tag-1/documents/doc-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.assigned).toBe(true);
+		});
+
+		it("rejects scope mismatch", async () => {
+			const { db } = createSequenceD1([{ type: "first", value: { scope: "person" } }]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/tag-1/documents/doc-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("SCOPE_MISMATCH");
+		});
+
+		it("returns 404 for missing tag", async () => {
+			const { db } = createSequenceD1([{ type: "first", value: null }]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/missing/documents/doc-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(404);
+		});
+
+		it("returns INVALID_REFERENCE on FK violation", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { scope: "document" } },
+				{ type: "run", value: null },
+			]);
+			const stmt = (db.prepare as ReturnType<typeof import("vitest").vi.fn>).mock.results;
+			const lastStmt = stmt[stmt.length - 1]?.value;
+			if (lastStmt?.bind) {
+				lastStmt.bind.mockReturnValue({
+					...lastStmt,
+					run: async () => {
+						throw new Error("FOREIGN KEY constraint failed");
+					},
+				});
+			}
+
+			const { db: db2 } = createSequenceD1([
+				{ type: "first", value: { scope: "document" } },
+				{ type: "run", value: null },
+			]);
+			const prep = db2.prepare as ReturnType<typeof import("vitest").vi.fn>;
+			let callIdx = 0;
+			prep.mockImplementation(() => {
+				callIdx++;
+				if (callIdx === 1) {
+					return {
+						bind: () => ({
+							first: async () => ({ scope: "document" }),
+						}),
+					};
+				}
+				return {
+					bind: () => ({
+						run: async () => {
+							throw new Error("FOREIGN KEY constraint failed");
+						},
+					}),
+				};
+			});
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/tag-1/documents/doc-1`), {
+				DB: db2,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_REFERENCE");
+		});
+	});
+
+	describe("DELETE /api/w/:wid/tags/:id/documents/:docId", () => {
+		it("unassigns tag from document", async () => {
+			const { db, mockRun } = createMockD1();
+			mockRun.mockResolvedValue({ success: true, meta: { changes: 1 } });
+
+			const res = await app.fetch(makeRequest("DELETE", `${BASE}/tag-1/documents/doc-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.removed).toBe(true);
+		});
+	});
+
+	describe("PUT /api/w/:wid/tags/:id/persons/:personId", () => {
+		it("assigns tag to person", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { scope: "person" } },
+				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+			]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/tag-1/persons/p-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.assigned).toBe(true);
+		});
+
+		it("rejects scope mismatch", async () => {
+			const { db } = createSequenceD1([{ type: "first", value: { scope: "document" } }]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/tag-1/persons/p-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("SCOPE_MISMATCH");
+		});
+
+		it("returns 404 for missing tag", async () => {
+			const { db } = createSequenceD1([{ type: "first", value: null }]);
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/missing/persons/p-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(404);
+		});
+
+		it("returns INVALID_REFERENCE on FK violation", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { scope: "person" } },
+				{ type: "run", value: null },
+			]);
+			const prep = db.prepare as ReturnType<typeof import("vitest").vi.fn>;
+			let callIdx = 0;
+			prep.mockImplementation(() => {
+				callIdx++;
+				if (callIdx === 1) {
+					return {
+						bind: () => ({
+							first: async () => ({ scope: "person" }),
+						}),
+					};
+				}
+				return {
+					bind: () => ({
+						run: async () => {
+							throw new Error("FOREIGN KEY constraint failed");
+						},
+					}),
+				};
+			});
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/tag-1/persons/p-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("INVALID_REFERENCE");
+		});
+	});
+
+	describe("DELETE /api/w/:wid/tags/:id/persons/:personId", () => {
+		it("unassigns tag from person", async () => {
+			const { db, mockRun } = createMockD1();
+			mockRun.mockResolvedValue({ success: true, meta: { changes: 1 } });
+
+			const res = await app.fetch(makeRequest("DELETE", `${BASE}/tag-1/persons/p-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.removed).toBe(true);
+		});
+	});
+
+	describe("GET /api/w/:wid/tags/stats", () => {
+		it("returns tag distribution", async () => {
+			const { db, mockAll } = createMockD1();
+			mockAll.mockResolvedValue({
+				results: [
+					{ id: "tag-1", name: "Eng", color: "#3b82f6", sort_order: 0, count: 5 },
+					{ id: "tag-2", name: "Design", color: null, sort_order: 1, count: 0 },
+				],
+				success: true,
+			});
+
+			const res = await app.fetch(makeRequest("GET", `${BASE}/stats?scope=document`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data).toEqual([
+				{ id: "tag-1", name: "Eng", color: "#3b82f6", sortOrder: 0, count: 5 },
+				{ id: "tag-2", name: "Design", color: null, sortOrder: 1, count: 0 },
+			]);
+		});
+
+		it("rejects missing scope", async () => {
+			const { db } = createMockD1();
+			const res = await app.fetch(makeRequest("GET", `${BASE}/stats`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+		});
+	});
 });

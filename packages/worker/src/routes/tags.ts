@@ -1,5 +1,6 @@
 import {
 	type Tag,
+	type TagStats,
 	type TagWithCount,
 	createTagSchema,
 	generateId,
@@ -155,6 +156,130 @@ tagRoutes.delete("/:id", async (c) => {
 	}
 
 	return c.json({ data: { deleted: true } });
+});
+
+tagRoutes.put("/:id/documents/:docId", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const { id, docId } = c.req.param();
+
+	const tag = await c.env.DB.prepare("SELECT scope FROM tags WHERE id = ? AND workspace_id = ?")
+		.bind(id, wid)
+		.first<{ scope: string }>();
+
+	if (!tag) {
+		return c.json({ error: { code: "NOT_FOUND", message: "Tag not found" } }, 404);
+	}
+	if (tag.scope !== "document") {
+		return c.json(
+			{ error: { code: "SCOPE_MISMATCH", message: "Tag scope does not match target entity" } },
+			400,
+		);
+	}
+
+	try {
+		await c.env.DB.prepare(
+			"INSERT OR IGNORE INTO tag_documents (workspace_id, tag_id, document_id) VALUES (?, ?, ?)",
+		)
+			.bind(wid, id, docId)
+			.run();
+	} catch (e: unknown) {
+		if (e instanceof Error && e.message.includes("FOREIGN KEY constraint failed")) {
+			return c.json(
+				{ error: { code: "INVALID_REFERENCE", message: "Entity not found in workspace" } },
+				400,
+			);
+		}
+		throw e;
+	}
+
+	return c.json({ data: { assigned: true } });
+});
+
+tagRoutes.delete("/:id/documents/:docId", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const { id, docId } = c.req.param();
+
+	await c.env.DB.prepare(
+		"DELETE FROM tag_documents WHERE workspace_id = ? AND tag_id = ? AND document_id = ?",
+	)
+		.bind(wid, id, docId)
+		.run();
+
+	return c.json({ data: { removed: true } });
+});
+
+tagRoutes.put("/:id/persons/:personId", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const { id, personId } = c.req.param();
+
+	const tag = await c.env.DB.prepare("SELECT scope FROM tags WHERE id = ? AND workspace_id = ?")
+		.bind(id, wid)
+		.first<{ scope: string }>();
+
+	if (!tag) {
+		return c.json({ error: { code: "NOT_FOUND", message: "Tag not found" } }, 404);
+	}
+	if (tag.scope !== "person") {
+		return c.json(
+			{ error: { code: "SCOPE_MISMATCH", message: "Tag scope does not match target entity" } },
+			400,
+		);
+	}
+
+	try {
+		await c.env.DB.prepare(
+			"INSERT OR IGNORE INTO tag_persons (workspace_id, tag_id, person_id) VALUES (?, ?, ?)",
+		)
+			.bind(wid, id, personId)
+			.run();
+	} catch (e: unknown) {
+		if (e instanceof Error && e.message.includes("FOREIGN KEY constraint failed")) {
+			return c.json(
+				{ error: { code: "INVALID_REFERENCE", message: "Entity not found in workspace" } },
+				400,
+			);
+		}
+		throw e;
+	}
+
+	return c.json({ data: { assigned: true } });
+});
+
+tagRoutes.delete("/:id/persons/:personId", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const { id, personId } = c.req.param();
+
+	await c.env.DB.prepare(
+		"DELETE FROM tag_persons WHERE workspace_id = ? AND tag_id = ? AND person_id = ?",
+	)
+		.bind(wid, id, personId)
+		.run();
+
+	return c.json({ data: { removed: true } });
+});
+
+tagRoutes.get("/stats", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const scope = c.req.query("scope");
+
+	if (!scope || (scope !== "document" && scope !== "person")) {
+		return c.json({ error: { code: "VALIDATION_ERROR", message: "scope is required" } }, 400);
+	}
+
+	const joinTable = scope === "document" ? "tag_documents" : "tag_persons";
+	const sql = `SELECT t.id, t.name, t.color, t.sort_order, COUNT(j.tag_id) as count FROM tags t LEFT JOIN ${joinTable} j ON j.workspace_id = t.workspace_id AND j.tag_id = t.id WHERE t.workspace_id = ? AND t.scope = ? GROUP BY t.id ORDER BY t.sort_order ASC, t.name ASC`;
+
+	const rows = await c.env.DB.prepare(sql).bind(wid, scope).all();
+
+	const data: TagStats[] = rows.results.map((row) => ({
+		id: row.id as string,
+		name: row.name as string,
+		color: (row.color as string) || null,
+		sortOrder: row.sort_order as number,
+		count: (row.count as number) ?? 0,
+	}));
+
+	return c.json({ data });
 });
 
 function mapRow(row: Record<string, unknown>): Tag {
