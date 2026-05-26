@@ -51,3 +51,17 @@ export {
 	type AddDocPersonInput,
 	type DocumentPerson,
 } from "./document-person.js";
+
+export {
+	tagSchema,
+	createTagSchema,
+	updateTagSchema,
+	tagWithCountSchema,
+	tagStatsSchema,
+	type Tag,
+	type TagScope,
+	type TagWithCount,
+	type CreateTagInput,
+	type UpdateTagInput,
+	type TagStats,
+} from "./tag.js";
