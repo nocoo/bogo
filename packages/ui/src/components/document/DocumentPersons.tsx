@@ -102,7 +102,7 @@ export function DocumentPersons({
 							<select
 								value={selectedPersonId}
 								onChange={(e) => setSelectedPersonId(e.target.value)}
-								className="flex-1 rounded-md border border-border bg-secondary px-3 py-2 text-xs text-foreground outline-none focus:border-primary transition-colors"
+								className="flex-1 rounded-md border border-border bg-secondary pl-3 pr-8 py-2 text-xs text-foreground outline-none focus:border-primary transition-colors"
 								aria-label="Select person to add"
 							>
 								<option value="">Select person…</option>

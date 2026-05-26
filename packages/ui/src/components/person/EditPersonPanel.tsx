@@ -115,7 +115,7 @@ export function EditPersonPanel({
 						type="text"
 						value={name}
 						onChange={(e) => setName(e.target.value)}
-						className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary"
+						className="mt-1 w-full rounded-md border border-border bg-background pl-3 pr-8 py-1.5 text-sm text-foreground outline-none focus:border-primary"
 					/>
 				</div>
 
@@ -142,7 +142,7 @@ export function EditPersonPanel({
 							id="edit-manager"
 							value={managerId ?? ""}
 							onChange={(e) => handleManagerChange(e.target.value)}
-							className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary"
+							className="mt-1 w-full rounded-md border border-border bg-background pl-3 pr-8 py-1.5 text-sm text-foreground outline-none focus:border-primary"
 						>
 							{eligibleManagers.map((p) => (
 								<option key={p.id} value={p.id}>
@@ -161,7 +161,7 @@ export function EditPersonPanel({
 						id="edit-dotted"
 						value={dottedManagerId ?? ""}
 						onChange={(e) => setDottedManagerId(e.target.value || null)}
-						className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary"
+						className="mt-1 w-full rounded-md border border-border bg-background pl-3 pr-8 py-1.5 text-sm text-foreground outline-none focus:border-primary"
 					>
 						<option value="">None</option>
 						{eligibleDottedManagers.map((p) => (

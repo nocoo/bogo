@@ -118,6 +118,8 @@ function FieldInput({
 }) {
 	const baseClass =
 		"mt-1 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground outline-none focus:border-primary";
+	const selectClass =
+		"mt-1 w-full rounded-md border border-border bg-secondary pl-3 pr-8 py-2 text-sm text-foreground outline-none focus:border-primary";
 
 	switch (def.fieldType) {
 		case "boolean":
@@ -127,7 +129,7 @@ function FieldInput({
 					value={value}
 					onChange={(e) => onChange(e.target.value)}
 					onBlur={onBlur}
-					className={baseClass}
+					className={selectClass}
 				>
 					<option value="">—</option>
 					<option value="true">Yes</option>
@@ -141,7 +143,7 @@ function FieldInput({
 					value={value}
 					onChange={(e) => onChange(e.target.value)}
 					onBlur={onBlur}
-					className={baseClass}
+					className={selectClass}
 				>
 					<option value="">—</option>
 					{(def.options ?? []).map((opt) => (

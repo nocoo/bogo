@@ -71,7 +71,7 @@ export function CreatePersonDialog({
 						id="person-manager"
 						value={managerId}
 						onChange={(e) => setManagerId(e.target.value)}
-						className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary"
+						className="mt-1 w-full rounded-md border border-border bg-background pl-3 pr-8 py-1.5 text-sm text-foreground outline-none focus:border-primary"
 					>
 						{persons.map((p) => (
 							<option key={p.id} value={p.id}>

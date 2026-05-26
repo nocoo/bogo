@@ -173,7 +173,7 @@ function CreateFieldForm({
 						id="field-type"
 						value={fieldType}
 						onChange={(e) => setFieldType(e.target.value as FieldType)}
-						className="mt-1 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+						className="mt-1 w-full rounded-md border border-border bg-secondary pl-3 pr-8 py-2 text-sm text-foreground outline-none focus:border-primary"
 					>
 						{Object.entries(FIELD_TYPE_LABELS).map(([k, v]) => (
 							<option key={k} value={k}>
@@ -376,7 +376,7 @@ function FieldDefRow({
 				<select
 					value={def.fieldType}
 					onChange={(e) => handleTypeChange(e.target.value as FieldType)}
-					className="rounded border border-border bg-secondary px-2 py-1 text-xs text-foreground outline-none focus:border-primary"
+					className="rounded border border-border bg-secondary pl-2 pr-7 py-1 text-xs text-foreground outline-none focus:border-primary"
 					aria-label={`Type for ${def.name}`}
 				>
 					{Object.entries(FIELD_TYPE_LABELS).map(([k, v]) => (
