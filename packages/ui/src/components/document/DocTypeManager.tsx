@@ -41,7 +41,7 @@ export function DocTypeManager({ vm }: { vm: DocTypesVM }) {
 					type="button"
 					onClick={() => setShowCreate(true)}
 					disabled={showCreate}
-					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
 					aria-label="Add document type"
 				>
 					<Plus className="h-3 w-3" strokeWidth={2} />
@@ -140,7 +140,7 @@ function CreateDocTypeForm({
 					value={name}
 					onChange={(e) => setName(e.target.value)}
 					placeholder="Type name"
-					className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
+					className="mt-1 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
 					// biome-ignore lint/a11y/noAutofocus: intentional focus on form open
 					autoFocus={true}
 				/>
@@ -169,7 +169,7 @@ function CreateDocTypeForm({
 					type="button"
 					onClick={handleSubmit}
 					disabled={!name.trim() || isCreating}
-					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
 				>
 					{isCreating ? (
 						<Loader2 className="h-3 w-3 animate-spin" />
@@ -181,7 +181,7 @@ function CreateDocTypeForm({
 				<button
 					type="button"
 					onClick={onCancel}
-					className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+					className="rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
 				>
 					Cancel
 				</button>

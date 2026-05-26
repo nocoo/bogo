@@ -44,7 +44,7 @@ export function DocumentsPage() {
 					type="button"
 					onClick={() => setShowCreate(true)}
 					disabled={showCreate}
-					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
 					aria-label="Create document"
 				>
 					<Plus className="h-4 w-4" strokeWidth={2} />
@@ -132,7 +132,7 @@ function CreateDocumentForm({
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
 					placeholder="Document title"
-					className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
+					className="mt-1 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
 					// biome-ignore lint/a11y/noAutofocus: intentional focus on form open
 					autoFocus={true}
 				/>
@@ -146,7 +146,7 @@ function CreateDocumentForm({
 						id="doc-type-select"
 						value={typeId}
 						onChange={(e) => setTypeId(e.target.value)}
-						className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary"
+						className="mt-1 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
 					>
 						<option value="">None</option>
 						{docTypes.map((dt) => (
@@ -162,7 +162,7 @@ function CreateDocumentForm({
 					type="button"
 					onClick={handleSubmit}
 					disabled={!title.trim() || isCreating}
-					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
 				>
 					{isCreating ? (
 						<Loader2 className="h-3 w-3 animate-spin" />
@@ -174,7 +174,7 @@ function CreateDocumentForm({
 				<button
 					type="button"
 					onClick={onCancel}
-					className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+					className="rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
 				>
 					Cancel
 				</button>

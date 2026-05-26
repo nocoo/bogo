@@ -114,7 +114,7 @@ export function DocumentEditor({
 					type="button"
 					onClick={handleSave}
 					disabled={!dirty || vm.isUpdating}
-					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
 					aria-label="Save document"
 				>
 					{vm.isUpdating ? (
@@ -132,7 +132,7 @@ export function DocumentEditor({
 					type="date"
 					value={eventDate}
 					onChange={(e) => handleEventDateChange(e.target.value)}
-					className="bg-transparent border border-border rounded px-2 py-0.5 text-xs text-muted-foreground focus:border-primary outline-none transition-colors"
+					className="bg-transparent border border-border rounded px-2 py-1 text-xs text-muted-foreground focus:border-primary outline-none transition-colors"
 					aria-label="Event date"
 				/>
 				{dirty && <span className="text-amber-400">Unsaved changes</span>}

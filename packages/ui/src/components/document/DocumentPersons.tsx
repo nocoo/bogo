@@ -73,7 +73,7 @@ export function DocumentPersons({
 					return (
 						<div
 							key={dp.personId}
-							className="flex items-center gap-2 rounded-md px-3 py-1.5 text-xs bg-card border border-border"
+							className="flex items-center gap-2 rounded-md px-3 py-2 text-xs bg-card border border-border"
 						>
 							<span className="flex-1 truncate font-medium text-foreground">
 								{person?.name ?? dp.personId}
@@ -105,7 +105,7 @@ export function DocumentPersons({
 							<select
 								value={selectedPersonId}
 								onChange={(e) => setSelectedPersonId(e.target.value)}
-								className="flex-1 rounded-md border border-border bg-card px-2 py-1.5 text-xs text-foreground outline-none focus:border-primary transition-colors"
+								className="flex-1 rounded-md border border-border bg-secondary px-3 py-2 text-xs text-foreground outline-none focus:border-primary transition-colors"
 								aria-label="Select person to add"
 							>
 								<option value="">Select person…</option>
@@ -119,7 +119,7 @@ export function DocumentPersons({
 								type="button"
 								onClick={handleAdd}
 								disabled={!selectedPersonId || isAdding}
-								className="inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+								className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
 								aria-label="Add person"
 							>
 								{isAdding ? (

@@ -117,7 +117,7 @@ function FieldInput({
 	onBlur: () => void;
 }) {
 	const baseClass =
-		"mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary";
+		"mt-1 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground outline-none focus:border-primary";
 
 	switch (def.fieldType) {
 		case "boolean":

@@ -38,7 +38,7 @@ export function FieldDefsManager({ vm }: { vm: FieldDefsVM }) {
 					type="button"
 					onClick={() => setShowCreate(true)}
 					disabled={showCreate}
-					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
 					aria-label="Add field definition"
 				>
 					<Plus className="h-3 w-3" strokeWidth={2} />
@@ -160,7 +160,7 @@ function CreateFieldForm({
 						value={name}
 						onChange={(e) => setName(e.target.value)}
 						placeholder="Field name"
-						className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
+						className="mt-1 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
 						// biome-ignore lint/a11y/noAutofocus: intentional focus on form open
 						autoFocus={true}
 					/>
@@ -173,7 +173,7 @@ function CreateFieldForm({
 						id="field-type"
 						value={fieldType}
 						onChange={(e) => setFieldType(e.target.value as FieldType)}
-						className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary"
+						className="mt-1 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
 					>
 						{Object.entries(FIELD_TYPE_LABELS).map(([k, v]) => (
 							<option key={k} value={k}>
@@ -194,7 +194,7 @@ function CreateFieldForm({
 						value={options}
 						onChange={(e) => setOptions(e.target.value)}
 						placeholder="Option 1, Option 2, ..."
-						className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
+						className="mt-1 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
 					/>
 				</div>
 			)}
@@ -218,7 +218,7 @@ function CreateFieldForm({
 						isCreating ||
 						(fieldType === "select" && !options.split(",").some((o) => o.trim()))
 					}
-					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
 				>
 					{isCreating ? (
 						<Loader2 className="h-3 w-3 animate-spin" />
@@ -230,7 +230,7 @@ function CreateFieldForm({
 				<button
 					type="button"
 					onClick={onCancel}
-					className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+					className="rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
 				>
 					Cancel
 				</button>
@@ -339,7 +339,7 @@ function FieldDefRow({
 									setEditing(false);
 								}
 							}}
-							className="w-full rounded border border-primary bg-background px-2 py-0.5 text-sm text-foreground outline-none"
+							className="w-full rounded border border-primary bg-secondary px-2 py-1 text-sm text-foreground outline-none"
 							// biome-ignore lint/a11y/noAutofocus: intentional focus on inline edit
 							autoFocus={true}
 							aria-label={`Edit name for ${def.name}`}
@@ -376,7 +376,7 @@ function FieldDefRow({
 				<select
 					value={def.fieldType}
 					onChange={(e) => handleTypeChange(e.target.value as FieldType)}
-					className="rounded border border-border bg-background px-2 py-0.5 text-xs text-foreground outline-none focus:border-primary"
+					className="rounded border border-border bg-secondary px-2 py-1 text-xs text-foreground outline-none focus:border-primary"
 					aria-label={`Type for ${def.name}`}
 				>
 					{Object.entries(FIELD_TYPE_LABELS).map(([k, v]) => (
@@ -407,7 +407,7 @@ function FieldDefRow({
 						onChange={(e) => setEditOptions(e.target.value)}
 						onBlur={handleOptionsBlur}
 						placeholder="Option 1, Option 2, ..."
-						className="w-full rounded border border-border bg-background px-2 py-0.5 text-xs text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
+						className="w-full rounded border border-border bg-secondary px-2 py-1 text-xs text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
 						aria-label={`Options for ${def.name}`}
 					/>
 				</div>
