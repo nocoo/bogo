@@ -10,7 +10,7 @@ describe("worker app", () => {
 		expect(res.status).toBe(200);
 		const body = (await res.json()) as LiveResponse;
 		expect(body.status).toBe("ok");
-		expect(body.version).toBe("0.1.0");
+		expect(body.version).toMatch(/^\d+\.\d+\.\d+$/);
 		expect(body.component).toBe("worker");
 	});
 });

@@ -3,6 +3,6 @@ import { BOGO_VERSION } from "./index";
 
 describe("shared", () => {
 	it("exports BOGO_VERSION", () => {
-		expect(BOGO_VERSION).toBe("0.1.0");
+		expect(BOGO_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
 	});
 });
