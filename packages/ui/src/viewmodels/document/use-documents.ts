@@ -19,12 +19,12 @@ export interface DocumentsVM {
 	isRemoving: boolean;
 }
 
-export function useDocuments(): DocumentsVM {
+export function useDocuments(tagIds?: string[]): DocumentsVM {
 	const queryClient = useQueryClient();
 	const { workspaceId } = useWorkspaceContext();
 	const wid = workspaceId ?? "";
 
-	const { data, isLoading, error } = useQuery(documentModel.listQueryOptions(wid));
+	const { data, isLoading, error } = useQuery(documentModel.listQueryOptions(wid, tagIds));
 
 	const createMutation = useMutation({
 		...documentModel.createMutationOptions(wid),

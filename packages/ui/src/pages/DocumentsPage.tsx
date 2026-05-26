@@ -2,13 +2,16 @@ import type { Document } from "@bogo/shared";
 import { FileText, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Link } from "react-router";
+import { TagBadge } from "../components/TagBadge.js";
+import { TagFilter } from "../components/TagFilter.js";
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
 import { useDocTypes } from "../viewmodels/document/use-doc-types.js";
 import { useDocuments } from "../viewmodels/document/use-documents.js";
 
 export function DocumentsPage() {
 	const { workspaceId } = useWorkspaceContext();
-	const vm = useDocuments();
+	const [filterTagIds, setFilterTagIds] = useState<string[]>([]);
+	const vm = useDocuments(filterTagIds.length > 0 ? filterTagIds : undefined);
 	const docTypesVm = useDocTypes();
 	const [showCreate, setShowCreate] = useState(false);
 
@@ -63,6 +66,8 @@ export function DocumentsPage() {
 					docTypes={docTypesVm.types}
 				/>
 			)}
+
+			<TagFilter scope="document" selected={filterTagIds} onChange={setFilterTagIds} />
 
 			{vm.documents.length === 0 && !showCreate && (
 				<div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -220,6 +225,13 @@ function DocumentRow({
 						)}
 						{doc.eventDate && <span>{doc.eventDate}</span>}
 						<span>v{doc.version}</span>
+						{doc.tags.length > 0 && (
+							<span className="flex items-center gap-1 ml-1">
+								{doc.tags.map((tag) => (
+									<TagBadge key={tag.id} name={tag.name} color={tag.color} size="sm" />
+								))}
+							</span>
+						)}
 					</div>
 				</div>
 			</Link>

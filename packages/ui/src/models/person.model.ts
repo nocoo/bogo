@@ -3,16 +3,19 @@ import { queryOptions } from "@tanstack/react-query";
 import { api } from "../lib/api/index.js";
 
 export const personKeys = {
-	all: (wid: string) => ["persons", wid] as const,
+	all: (wid: string, tagIds?: string[]) =>
+		tagIds && tagIds.length > 0
+			? (["persons", wid, { tagIds }] as const)
+			: (["persons", wid] as const),
 	detail: (wid: string, id: string) => ["persons", wid, id] as const,
 	documents: (wid: string, id: string) => ["persons", wid, id, "documents"] as const,
 };
 
 export const personModel = {
-	listQueryOptions: (wid: string) =>
+	listQueryOptions: (wid: string, tagIds?: string[]) =>
 		queryOptions({
-			queryKey: personKeys.all(wid),
-			queryFn: () => api.persons.list(wid),
+			queryKey: personKeys.all(wid, tagIds),
+			queryFn: () => api.persons.list(wid, tagIds),
 			enabled: !!wid,
 		}),
 

@@ -3,17 +3,20 @@ import { queryOptions } from "@tanstack/react-query";
 import { api } from "../lib/api/index.js";
 
 export const documentKeys = {
-	all: (wid: string) => ["documents", wid] as const,
+	all: (wid: string, tagIds?: string[]) =>
+		tagIds && tagIds.length > 0
+			? (["documents", wid, { tagIds }] as const)
+			: (["documents", wid] as const),
 	detail: (wid: string, id: string) => ["documents", wid, id] as const,
 	versions: (wid: string, id: string) => ["documents", wid, id, "versions"] as const,
 	persons: (wid: string, id: string) => ["documents", wid, id, "persons"] as const,
 };
 
 export const documentModel = {
-	listQueryOptions: (wid: string) =>
+	listQueryOptions: (wid: string, tagIds?: string[]) =>
 		queryOptions({
-			queryKey: documentKeys.all(wid),
-			queryFn: () => api.documents.list(wid),
+			queryKey: documentKeys.all(wid, tagIds),
+			queryFn: () => api.documents.list(wid, tagIds),
 			enabled: !!wid,
 		}),
 

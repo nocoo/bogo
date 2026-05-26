@@ -11,8 +11,10 @@ export function personApi(client: Client) {
 	const base = (wid: string) => `/api/w/${wid}/persons`;
 
 	return {
-		list(wid: string): Promise<Person[]> {
-			return client.request<Person[]>(base(wid));
+		list(wid: string, tagIds?: string[]): Promise<Person[]> {
+			const url =
+				tagIds && tagIds.length > 0 ? `${base(wid)}?tagIds=${tagIds.join(",")}` : base(wid);
+			return client.request<Person[]>(url);
 		},
 		get(wid: string, id: string): Promise<Person> {
 			return client.request<Person>(`${base(wid)}/${id}`);

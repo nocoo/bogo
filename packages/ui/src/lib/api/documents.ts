@@ -12,8 +12,10 @@ export function documentApi(client: Client) {
 	const base = (wid: string) => `/api/w/${wid}/documents`;
 
 	return {
-		list(wid: string): Promise<Document[]> {
-			return client.request<Document[]>(base(wid));
+		list(wid: string, tagIds?: string[]): Promise<Document[]> {
+			const url =
+				tagIds && tagIds.length > 0 ? `${base(wid)}?tagIds=${tagIds.join(",")}` : base(wid);
+			return client.request<Document[]>(url);
 		},
 		get(wid: string, id: string): Promise<Document> {
 			return client.request<Document>(`${base(wid)}/${id}`);

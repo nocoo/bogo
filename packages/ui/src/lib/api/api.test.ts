@@ -75,6 +75,15 @@ describe("personApi", () => {
 		expect(mockFetch).toHaveBeenCalledWith("/api/w/ws-1/persons", expect.any(Object));
 	});
 
+	it("list appends tagIds query param when provided", async () => {
+		mockFetch.mockResolvedValue(ok([]));
+		await persons.list("ws-1", ["tag-a", "tag-b"]);
+		expect(mockFetch).toHaveBeenCalledWith(
+			"/api/w/ws-1/persons?tagIds=tag-a,tag-b",
+			expect.any(Object),
+		);
+	});
+
 	it("get fetches single person", async () => {
 		mockFetch.mockResolvedValue(ok({ id: "p-1", name: "Dev" }));
 		const result = await persons.get("ws-1", "p-1");
@@ -204,6 +213,15 @@ describe("documentApi", () => {
 		mockFetch.mockResolvedValue(ok([{ id: "d-1", title: "Q1" }]));
 		const result = await documents.list("ws-1");
 		expect(result).toEqual([{ id: "d-1", title: "Q1" }]);
+	});
+
+	it("list appends tagIds query param when provided", async () => {
+		mockFetch.mockResolvedValue(ok([]));
+		await documents.list("ws-1", ["tag-x"]);
+		expect(mockFetch).toHaveBeenCalledWith(
+			"/api/w/ws-1/documents?tagIds=tag-x",
+			expect.any(Object),
+		);
 	});
 
 	it("get fetches single document with full shape", async () => {

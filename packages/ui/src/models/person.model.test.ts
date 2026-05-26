@@ -20,6 +20,14 @@ describe("personKeys", () => {
 		expect(personKeys.all("ws-1")).toEqual(["persons", "ws-1"]);
 	});
 
+	it("all includes tagIds when provided", () => {
+		expect(personKeys.all("ws-1", ["t-1"])).toEqual(["persons", "ws-1", { tagIds: ["t-1"] }]);
+	});
+
+	it("all ignores empty tagIds array", () => {
+		expect(personKeys.all("ws-1", [])).toEqual(["persons", "ws-1"]);
+	});
+
 	it("detail returns key with workspace and person id", () => {
 		expect(personKeys.detail("ws-1", "p-1")).toEqual(["persons", "ws-1", "p-1"]);
 	});
@@ -30,6 +38,11 @@ describe("personModel", () => {
 		it("generates correct queryKey scoped to workspace", () => {
 			const opts = personModel.listQueryOptions("ws-1");
 			expect(opts.queryKey).toEqual(["persons", "ws-1"]);
+		});
+
+		it("includes tagIds in queryKey when provided", () => {
+			const opts = personModel.listQueryOptions("ws-1", ["t-1"]);
+			expect(opts.queryKey).toEqual(["persons", "ws-1", { tagIds: ["t-1"] }]);
 		});
 
 		it("is disabled when wid is empty", () => {

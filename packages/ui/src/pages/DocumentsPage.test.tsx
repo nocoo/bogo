@@ -11,6 +11,10 @@ vi.mock("../viewmodels/document/use-documents.js", () => ({
 	useDocuments: vi.fn(),
 }));
 
+vi.mock("../components/TagFilter.js", () => ({
+	TagFilter: () => <div data-testid="tag-filter" />,
+}));
+
 vi.mock("../contexts/workspace-context.js", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("../contexts/workspace-context.js")>();
 	return {
