@@ -29,8 +29,8 @@ export function tagApi(client: Client) {
 				body: input,
 			});
 		},
-		update(wid: string, id: string, input: UpdateTagInput): Promise<{ updated: boolean }> {
-			return client.request<{ updated: boolean }>(`${base(wid)}/${id}`, {
+		update(wid: string, id: string, input: UpdateTagInput): Promise<Tag> {
+			return client.request<Tag>(`${base(wid)}/${id}`, {
 				method: "PUT",
 				body: input,
 			});

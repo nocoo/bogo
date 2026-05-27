@@ -130,17 +130,39 @@ tagRoutes.put("/:id", async (c) => {
 	values.push(id);
 	values.push(wid);
 
-	const result = await c.env.DB.prepare(
-		`UPDATE tags SET ${sets.join(", ")} WHERE id = ? AND workspace_id = ?`,
-	)
-		.bind(...values)
-		.run();
+	let result: D1Result;
+	try {
+		result = await c.env.DB.prepare(
+			`UPDATE tags SET ${sets.join(", ")} WHERE id = ? AND workspace_id = ?`,
+		)
+			.bind(...values)
+			.run();
+	} catch (e: unknown) {
+		if (e instanceof Error && e.message.includes("UNIQUE constraint failed")) {
+			return c.json(
+				{
+					error: {
+						code: "DUPLICATE",
+						message: "A tag with this name already exists in this scope",
+					},
+				},
+				409,
+			);
+		}
+		throw e;
+	}
 
 	if (!result.meta.changes) {
 		return c.json({ error: { code: "NOT_FOUND", message: "Tag not found" } }, 404);
 	}
 
-	return c.json({ data: { updated: true } });
+	const row = await c.env.DB.prepare(
+		"SELECT id, workspace_id, name, scope, color, sort_order, created_at, updated_at FROM tags WHERE id = ? AND workspace_id = ?",
+	)
+		.bind(id, wid)
+		.first();
+
+	return c.json({ data: mapRow(row as Record<string, unknown>) });
 });
 
 tagRoutes.delete("/:id", async (c) => {

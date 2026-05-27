@@ -208,19 +208,30 @@ describe("document routes", () => {
 	});
 
 	describe("GET /api/w/:wid/documents/:id", () => {
-		it("returns document", async () => {
-			const { db, mockFirst } = createMockD1();
-			mockFirst.mockResolvedValue({
-				id: "d-1",
-				workspace_id: WID,
-				type_id: null,
-				title: "Doc",
-				content: "Content",
-				event_date: null,
-				version: 1,
-				created_at: "2026-01-01T00:00:00Z",
-				updated_at: "2026-01-01T00:00:00Z",
-			});
+		it("returns document with tags", async () => {
+			const { db } = createSequenceD1([
+				{
+					type: "first",
+					value: {
+						id: "d-1",
+						workspace_id: WID,
+						type_id: null,
+						title: "Doc",
+						content: "Content",
+						event_date: null,
+						version: 1,
+						created_at: "2026-01-01T00:00:00Z",
+						updated_at: "2026-01-01T00:00:00Z",
+					},
+				},
+				{
+					type: "all",
+					value: {
+						results: [{ id: "tag-1", name: "Eng", color: "#3b82f6" }],
+						success: true,
+					},
+				},
+			]);
 
 			const res = await app.fetch(makeRequest("GET", `${BASE}/d-1`), {
 				DB: db,
@@ -229,6 +240,36 @@ describe("document routes", () => {
 			expect(res.status).toBe(200);
 			const json = await res.json();
 			expect(json.data.id).toBe("d-1");
+			expect(json.data.tags).toEqual([{ id: "tag-1", name: "Eng", color: "#3b82f6" }]);
+		});
+
+		it("returns document with empty tags", async () => {
+			const { db } = createSequenceD1([
+				{
+					type: "first",
+					value: {
+						id: "d-1",
+						workspace_id: WID,
+						type_id: null,
+						title: "Doc",
+						content: "Content",
+						event_date: null,
+						version: 1,
+						created_at: "2026-01-01T00:00:00Z",
+						updated_at: "2026-01-01T00:00:00Z",
+					},
+				},
+				{ type: "all", value: { results: [], success: true } },
+			]);
+
+			const res = await app.fetch(makeRequest("GET", `${BASE}/d-1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.id).toBe("d-1");
+			expect(json.data.tags).toEqual([]);
 		});
 
 		it("returns 404", async () => {

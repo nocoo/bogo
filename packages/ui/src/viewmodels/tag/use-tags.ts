@@ -51,6 +51,12 @@ export function useTags(scope: TagScope): TagsVM {
 			);
 			return { previous };
 		},
+		onSuccess: (updated) => {
+			const qk = tagKeys.withCounts(wid, scope);
+			queryClient.setQueryData(qk, (old: TagWithCount[] | undefined) =>
+				(old ?? []).map((t) => (t.id === updated.id ? { ...t, ...updated } : t)),
+			);
+		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(tagKeys.withCounts(wid, scope), context?.previous);
 			toast.error(err.message);

@@ -166,7 +166,20 @@ personRoutes.get("/:id", async (c) => {
 		return c.json({ error: { code: "NOT_FOUND", message: "Person not found" } }, 404);
 	}
 
-	return c.json({ data: mapRow(row) });
+	const tagRows = await c.env.DB.prepare(
+		"SELECT t.id, t.name, t.color FROM tag_persons tp INNER JOIN tags t ON t.id = tp.tag_id AND t.workspace_id = tp.workspace_id WHERE tp.workspace_id = ? AND tp.person_id = ?",
+	)
+		.bind(wid, id)
+		.all();
+
+	const person = mapRow(row);
+	person.tags = tagRows.results.map((r) => ({
+		id: r.id as string,
+		name: r.name as string,
+		color: (r.color as string) || null,
+	}));
+
+	return c.json({ data: person });
 });
 
 personRoutes.put("/:id", async (c) => {

@@ -237,7 +237,7 @@ describe("person routes", () => {
 	});
 
 	describe("GET /api/w/:wid/persons/:id", () => {
-		it("returns person", async () => {
+		it("returns person with tags", async () => {
 			const { db } = createSequenceD1([
 				{
 					type: "first",
@@ -254,6 +254,13 @@ describe("person routes", () => {
 						updated_at: "2026-01-01T00:00:00Z",
 					},
 				},
+				{
+					type: "all",
+					value: {
+						results: [{ id: "tag-1", name: "Senior", color: "#22c55e" }],
+						success: true,
+					},
+				},
 			]);
 
 			const res = await app.fetch(makeRequest("GET", `${BASE}/p-1`), {
@@ -264,6 +271,7 @@ describe("person routes", () => {
 			const json = await res.json();
 			expect(json.data.id).toBe("p-1");
 			expect(json.data.managerId).toBe("p-0");
+			expect(json.data.tags).toEqual([{ id: "tag-1", name: "Senior", color: "#22c55e" }]);
 		});
 
 		it("returns 404 when not found", async () => {

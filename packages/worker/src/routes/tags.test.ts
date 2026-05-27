@@ -199,9 +199,22 @@ describe("tag routes", () => {
 	});
 
 	describe("PUT /api/w/:wid/tags/:id", () => {
-		it("updates name", async () => {
+		it("updates name and returns full tag", async () => {
 			const { db } = createSequenceD1([
 				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+				{
+					type: "first",
+					value: {
+						id: "tag-1",
+						workspace_id: WID,
+						name: "Renamed",
+						scope: "document",
+						color: "#3b82f6",
+						sort_order: 0,
+						created_at: "2026-01-01T00:00:00Z",
+						updated_at: "2026-05-27T00:00:00Z",
+					},
+				},
 			]);
 
 			const res = await app.fetch(makeRequest("PUT", `${BASE}/tag-1`, { name: "Renamed" }), {
@@ -210,12 +223,27 @@ describe("tag routes", () => {
 			});
 			expect(res.status).toBe(200);
 			const json = await res.json();
-			expect(json.data.updated).toBe(true);
+			expect(json.data.name).toBe("Renamed");
+			expect(json.data.id).toBe("tag-1");
+			expect(json.data.scope).toBe("document");
 		});
 
 		it("updates color and sortOrder", async () => {
 			const { db } = createSequenceD1([
 				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+				{
+					type: "first",
+					value: {
+						id: "tag-1",
+						workspace_id: WID,
+						name: "Eng",
+						scope: "document",
+						color: "#ef4444",
+						sort_order: 3,
+						created_at: "2026-01-01T00:00:00Z",
+						updated_at: "2026-05-27T00:00:00Z",
+					},
+				},
 			]);
 
 			const res = await app.fetch(
@@ -224,12 +252,26 @@ describe("tag routes", () => {
 			);
 			expect(res.status).toBe(200);
 			const json = await res.json();
-			expect(json.data.updated).toBe(true);
+			expect(json.data.color).toBe("#ef4444");
+			expect(json.data.sortOrder).toBe(3);
 		});
 
 		it("allows setting color to null", async () => {
 			const { db } = createSequenceD1([
 				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+				{
+					type: "first",
+					value: {
+						id: "tag-1",
+						workspace_id: WID,
+						name: "Eng",
+						scope: "document",
+						color: null,
+						sort_order: 0,
+						created_at: "2026-01-01T00:00:00Z",
+						updated_at: "2026-05-27T00:00:00Z",
+					},
+				},
 			]);
 
 			const res = await app.fetch(makeRequest("PUT", `${BASE}/tag-1`, { color: null }), {
@@ -237,6 +279,28 @@ describe("tag routes", () => {
 				ENVIRONMENT: "test",
 			});
 			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.color).toBeNull();
+		});
+
+		it("returns 409 on duplicate name", async () => {
+			const { db } = createSequenceD1([{ type: "run", value: null }]);
+			const prep = db.prepare as ReturnType<typeof import("vitest").vi.fn>;
+			prep.mockImplementation(() => ({
+				bind: () => ({
+					run: async () => {
+						throw new Error("UNIQUE constraint failed: tags.workspace_id, tags.scope, tags.name");
+					},
+				}),
+			}));
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/tag-1`, { name: "Existing" }), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(409);
+			const json = await res.json();
+			expect(json.error.code).toBe("DUPLICATE");
 		});
 
 		it("returns 404 for missing tag", async () => {
@@ -260,6 +324,35 @@ describe("tag routes", () => {
 			expect(res.status).toBe(200);
 			const json = await res.json();
 			expect(json.data.updated).toBe(false);
+		});
+
+		it("rejects invalid color in update", async () => {
+			const { db } = createMockD1();
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/tag-1`, { color: "red" }), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+			const json = await res.json();
+			expect(json.error.code).toBe("VALIDATION_ERROR");
+		});
+
+		it("rethrows non-unique errors on update", async () => {
+			const { db } = createSequenceD1([{ type: "run", value: null }]);
+			const prep = db.prepare as ReturnType<typeof import("vitest").vi.fn>;
+			prep.mockImplementation(() => ({
+				bind: () => ({
+					run: async () => {
+						throw new Error("D1_ERROR: database is locked");
+					},
+				}),
+			}));
+
+			const res = await app.fetch(makeRequest("PUT", `${BASE}/tag-1`, { name: "X" }), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(500);
 		});
 	});
 

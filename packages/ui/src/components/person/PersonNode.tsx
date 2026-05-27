@@ -1,3 +1,4 @@
+import { TagBadge } from "@/components/TagBadge.js";
 import type { PersonNodeData } from "@/viewmodels/person/person-tree-layout.js";
 import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { GripVertical, User } from "lucide-react";
@@ -25,6 +26,13 @@ export const PersonNode = memo(function PersonNode({
 				<p className="text-sm font-medium text-foreground truncate">{data.person.name}</p>
 				{data.person.title && (
 					<p className="text-xs text-muted-foreground truncate">{data.person.title}</p>
+				)}
+				{data.person.tags.length > 0 && (
+					<div className="flex gap-1 mt-1 flex-wrap">
+						{data.person.tags.map((tag) => (
+							<TagBadge key={tag.id} name={tag.name} color={tag.color} size="sm" />
+						))}
+					</div>
 				)}
 			</div>
 

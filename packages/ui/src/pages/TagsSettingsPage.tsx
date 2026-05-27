@@ -280,6 +280,9 @@ function ColorPicker({
 	onChange: (color: string | null) => void;
 }) {
 	const [open, setOpen] = useState(false);
+	const [hexInput, setHexInput] = useState("");
+
+	const isValidHex = /^#[0-9a-fA-F]{6}$/.test(hexInput);
 
 	return (
 		<div className="relative">
@@ -291,29 +294,61 @@ function ColorPicker({
 				aria-label="Pick color"
 			/>
 			{open && (
-				<div className="absolute top-7 left-0 z-10 grid grid-cols-6 gap-1 rounded-lg border border-border bg-popover p-2 shadow-md">
-					<button
-						type="button"
-						onClick={() => {
-							onChange(null);
-							setOpen(false);
-						}}
-						className="h-5 w-5 rounded-full border border-border bg-gray-200"
-						aria-label="No color"
-					/>
-					{PRESET_HEX_VALUES.map((hex) => (
+				<div className="absolute top-7 left-0 z-10 rounded-lg border border-border bg-popover p-2 shadow-md">
+					<div className="grid grid-cols-6 gap-1">
 						<button
-							key={hex}
 							type="button"
 							onClick={() => {
-								onChange(hex);
+								onChange(null);
 								setOpen(false);
 							}}
-							className={`h-5 w-5 rounded-full border ${value === hex ? "border-foreground ring-1 ring-foreground" : "border-border"}`}
-							style={{ backgroundColor: hex }}
-							aria-label={`Color ${hex}`}
+							className="h-5 w-5 rounded-full border border-border bg-gray-200"
+							aria-label="No color"
 						/>
-					))}
+						{PRESET_HEX_VALUES.map((hex) => (
+							<button
+								key={hex}
+								type="button"
+								onClick={() => {
+									onChange(hex);
+									setOpen(false);
+								}}
+								className={`h-5 w-5 rounded-full border ${value === hex ? "border-foreground ring-1 ring-foreground" : "border-border"}`}
+								style={{ backgroundColor: hex }}
+								aria-label={`Color ${hex}`}
+							/>
+						))}
+					</div>
+					<div className="mt-2 flex items-center gap-1 border-t border-border pt-2">
+						<input
+							type="text"
+							value={hexInput}
+							onChange={(e) => setHexInput(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" && isValidHex) {
+									onChange(hexInput.toLowerCase());
+									setHexInput("");
+									setOpen(false);
+								}
+							}}
+							placeholder="#000000"
+							className="w-[5.5rem] rounded border border-border bg-background px-1.5 py-0.5 text-xs text-foreground placeholder:text-muted-foreground"
+							aria-label="Custom hex color"
+						/>
+						{isValidHex && (
+							<button
+								type="button"
+								onClick={() => {
+									onChange(hexInput.toLowerCase());
+									setHexInput("");
+									setOpen(false);
+								}}
+								className="h-5 w-5 rounded-full border border-border"
+								style={{ backgroundColor: hexInput }}
+								aria-label="Apply custom color"
+							/>
+						)}
+					</div>
 				</div>
 			)}
 		</div>

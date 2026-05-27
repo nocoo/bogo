@@ -169,7 +169,20 @@ documentRoutes.get("/:id", async (c) => {
 		return c.json({ error: { code: "NOT_FOUND", message: "Document not found" } }, 404);
 	}
 
-	return c.json({ data: mapDocRow(row) });
+	const tagRows = await c.env.DB.prepare(
+		"SELECT t.id, t.name, t.color FROM tag_documents td INNER JOIN tags t ON t.id = td.tag_id AND t.workspace_id = td.workspace_id WHERE td.workspace_id = ? AND td.document_id = ?",
+	)
+		.bind(wid, id)
+		.all();
+
+	const doc = mapDocRow(row);
+	doc.tags = tagRows.results.map((r) => ({
+		id: r.id as string,
+		name: r.name as string,
+		color: (r.color as string) || null,
+	}));
+
+	return c.json({ data: doc });
 });
 
 documentRoutes.put("/:id", async (c) => {
