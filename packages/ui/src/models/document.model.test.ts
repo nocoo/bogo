@@ -56,7 +56,7 @@ describe("documentModel", () => {
 		const queryFn = opts.queryFn as (...args: unknown[]) => Promise<unknown>;
 		await queryFn({});
 		expect(mockFetch).toHaveBeenCalledWith(
-			"/api/w/ws-1/documents?tagIds=t-1,t-2",
+			"/api/w/ws-1/documents?tagIds=t-1,t-2&tagMode=any",
 			expect.any(Object),
 		);
 	});

@@ -14,7 +14,9 @@ export function documentApi(client: Client) {
 	return {
 		list(wid: string, tagIds?: string[]): Promise<Document[]> {
 			const url =
-				tagIds && tagIds.length > 0 ? `${base(wid)}?tagIds=${tagIds.join(",")}` : base(wid);
+				tagIds && tagIds.length > 0
+					? `${base(wid)}?tagIds=${tagIds.join(",")}&tagMode=any`
+					: base(wid);
 			return client.request<Document[]>(url);
 		},
 		get(wid: string, id: string): Promise<Document> {

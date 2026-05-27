@@ -12,15 +12,10 @@ export function PeoplePage() {
 	const { workspaceId } = useWorkspaceContext();
 	const wid = workspaceId ?? "";
 
-	const { data: persons } = useQuery({
-		...personModel.listQueryOptions(wid),
+	const { data: filteredPersons } = useQuery({
+		...personModel.listQueryOptions(wid, selectedTags),
 		enabled: !!wid && selectedTags.length > 0,
 	});
-
-	const filteredPersons =
-		selectedTags.length > 0
-			? (persons ?? []).filter((p) => p.tags.some((t) => selectedTags.includes(t.id)))
-			: [];
 
 	return (
 		<div className="flex flex-col h-full">
@@ -29,13 +24,13 @@ export function PeoplePage() {
 			</div>
 			{selectedTags.length > 0 ? (
 				<div className="flex-1 overflow-y-auto px-4 pb-4">
-					{filteredPersons.length === 0 ? (
+					{(filteredPersons ?? []).length === 0 ? (
 						<p className="text-sm text-muted-foreground py-8 text-center">
 							No people match the selected tags.
 						</p>
 					) : (
 						<div className="space-y-2">
-							{filteredPersons.map((person) => (
+							{(filteredPersons ?? []).map((person) => (
 								<div
 									key={person.id}
 									className="flex items-center gap-3 rounded-lg border border-border bg-secondary px-4 py-3"

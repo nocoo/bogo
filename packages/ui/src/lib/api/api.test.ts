@@ -79,7 +79,7 @@ describe("personApi", () => {
 		mockFetch.mockResolvedValue(ok([]));
 		await persons.list("ws-1", ["tag-a", "tag-b"]);
 		expect(mockFetch).toHaveBeenCalledWith(
-			"/api/w/ws-1/persons?tagIds=tag-a,tag-b",
+			"/api/w/ws-1/persons?tagIds=tag-a,tag-b&tagMode=any",
 			expect.any(Object),
 		);
 	});
@@ -219,7 +219,7 @@ describe("documentApi", () => {
 		mockFetch.mockResolvedValue(ok([]));
 		await documents.list("ws-1", ["tag-x"]);
 		expect(mockFetch).toHaveBeenCalledWith(
-			"/api/w/ws-1/documents?tagIds=tag-x",
+			"/api/w/ws-1/documents?tagIds=tag-x&tagMode=any",
 			expect.any(Object),
 		);
 	});
