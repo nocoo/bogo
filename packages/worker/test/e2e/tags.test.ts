@@ -88,7 +88,9 @@ describe("tag CRUD (real D1)", () => {
 		});
 		expect(res.status).toBe(200);
 		const json = await res.json();
-		expect(json.data.updated).toBe(true);
+		expect(json.data.id).toBe(tagDocId);
+		expect(json.data.name).toBe("Eng");
+		expect(json.data.color).toBe("#ef4444");
 	});
 
 	it("setup: create person and document for assignment", async () => {
