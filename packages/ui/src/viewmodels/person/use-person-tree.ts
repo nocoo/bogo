@@ -1,10 +1,10 @@
 import type { Person } from "@bogo/shared";
 import { useCallback, useMemo, useState } from "react";
 import {
-	type PersonEdge,
-	type PersonNode,
 	computeTreeLayout,
 	findDropTarget,
+	type PersonEdge,
+	type PersonNode,
 	wouldCreateCycle,
 } from "./person-tree-layout.js";
 import { usePersonList } from "./use-person-list.js";

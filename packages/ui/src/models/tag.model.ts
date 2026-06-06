@@ -42,8 +42,11 @@ export const tagModel = {
 			tagId,
 			entityType,
 			entityId,
-		}: { tagId: string; entityType: "documents" | "persons"; entityId: string }) =>
-			api.tags.assign(wid, tagId, entityType, entityId),
+		}: {
+			tagId: string;
+			entityType: "documents" | "persons";
+			entityId: string;
+		}) => api.tags.assign(wid, tagId, entityType, entityId),
 	}),
 
 	unassignMutationOptions: (wid: string) => ({
@@ -51,7 +54,10 @@ export const tagModel = {
 			tagId,
 			entityType,
 			entityId,
-		}: { tagId: string; entityType: "documents" | "persons"; entityId: string }) =>
-			api.tags.unassign(wid, tagId, entityType, entityId),
+		}: {
+			tagId: string;
+			entityType: "documents" | "persons";
+			entityId: string;
+		}) => api.tags.unassign(wid, tagId, entityType, entityId),
 	}),
 };

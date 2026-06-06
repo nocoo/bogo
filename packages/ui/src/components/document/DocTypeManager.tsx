@@ -149,6 +149,7 @@ function CreateDocTypeForm({
 				<span className="text-xs text-muted-foreground">Color</span>
 				<div className="mt-1 flex flex-wrap gap-2" role="radiogroup" aria-label="Color selection">
 					{PRESET_COLORS.map((c) => (
+						// biome-ignore lint/a11y/useSemanticElements: custom color-swatch radio — visual block, not a native input
 						<button
 							key={c}
 							type="button"

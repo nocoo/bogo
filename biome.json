@@ -1,12 +1,9 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-	"organizeImports": {
-		"enabled": true
-	},
+	"$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"all": true,
 			"correctness": {
 				"noUnusedImports": "error",
 				"noUnusedVariables": "error",
@@ -37,9 +34,7 @@
 				"useTopLevelRegex": "off",
 				"noBarrelFile": "off"
 			},
-			"nursery": {
-				"all": false
-			}
+			"nursery": {}
 		}
 	},
 	"formatter": {
@@ -55,18 +50,21 @@
 		}
 	},
 	"files": {
-		"ignore": [
-			"node_modules",
-			"dist",
-			".turbo",
-			"coverage",
-			".wrangler",
-			".claude/skills",
-			"packages/worker/static",
-			"scripts",
-			"**/test-results",
-			"**/playwright-report",
-			"**/blob-report"
+		"includes": [
+			"**",
+			"!**/node_modules",
+			"!**/dist",
+			"!**/.turbo",
+			"!**/coverage",
+			"!**/.wrangler",
+			"!**/.claude/skills",
+			"!**/packages/worker/static",
+			"!**/scripts",
+			"!**/test-results",
+			"!**/playwright-report",
+			"!**/blob-report",
+			"!**/.clip-output",
+			"!**/packages/ui/src/index.css"
 		]
 	}
 }

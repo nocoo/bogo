@@ -1,9 +1,9 @@
 import {
 	type CreateWorkspaceInput,
-	type Workspace,
 	createWorkspaceSchema,
 	generateId,
 	updateWorkspaceSchema,
+	type Workspace,
 } from "@bogo/shared";
 import { Hono } from "hono";
 import type { AppEnv } from "../types.js";

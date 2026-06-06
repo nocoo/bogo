@@ -1,7 +1,7 @@
-import { useWorkspaceList } from "@/viewmodels/workspace/use-workspace-list.js";
 import type { Workspace } from "@bogo/shared";
 import { Building2, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
+import { useWorkspaceList } from "@/viewmodels/workspace/use-workspace-list.js";
 
 function WorkspaceItem({
 	workspace,
@@ -29,6 +29,7 @@ function WorkspaceItem({
 
 	return (
 		// biome-ignore lint/a11y/useKeyWithClickEvents: workspace item with nested interactive elements
+		// biome-ignore lint/a11y/noStaticElementInteractions: card-shaped clickable wrapper, nested controls handle keyboard
 		<div
 			className={`group flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors cursor-pointer ${
 				isSelected ? "bg-primary/10 border border-primary/20" : "bg-secondary hover:bg-accent"

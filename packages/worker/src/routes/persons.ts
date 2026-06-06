@@ -1,10 +1,10 @@
 import {
 	type CreatePersonInput,
-	type Document,
-	type Person,
 	createPersonSchema,
+	type Document,
 	generateId,
 	movePersonSchema,
+	type Person,
 	updatePersonSchema,
 } from "@bogo/shared";
 import { Hono } from "hono";

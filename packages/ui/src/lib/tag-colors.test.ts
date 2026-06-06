@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PRESET_HEX_VALUES, getTagColors } from "./tag-colors.js";
+import { getTagColors, PRESET_HEX_VALUES } from "./tag-colors.js";
 
 describe("getTagColors", () => {
 	it("returns fallback gray for null color", () => {

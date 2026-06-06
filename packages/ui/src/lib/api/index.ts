@@ -6,8 +6,8 @@ import { personApi } from "./persons.js";
 import { tagApi } from "./tags.js";
 import { workspaceApi } from "./workspaces.js";
 
-export { ApiError, createClient } from "./client.js";
 export type { Client } from "./client.js";
+export { ApiError, createClient } from "./client.js";
 
 export function createApi(baseUrl = "") {
 	const client = createClient(baseUrl);

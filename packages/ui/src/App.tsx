@@ -1,3 +1,4 @@
+import { BrowserRouter, Route, Routes } from "react-router";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Toaster } from "@/components/ui/toaster";
 import { AppProviders } from "@/contexts/app-providers";
@@ -10,7 +11,6 @@ import { PeoplePage } from "@/pages/PeoplePage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { TagsSettingsPage } from "@/pages/TagsSettingsPage";
 import { WorkspacesPage } from "@/pages/WorkspacesPage";
-import { BrowserRouter, Route, Routes } from "react-router";
 
 export function App() {
 	return (

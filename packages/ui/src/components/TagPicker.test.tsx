@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { WorkspaceProvider, useWorkspaceContext } from "../contexts/workspace-context.js";
+import { useWorkspaceContext, WorkspaceProvider } from "../contexts/workspace-context.js";
 import { TagPicker } from "./TagPicker.js";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));

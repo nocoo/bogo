@@ -171,9 +171,7 @@ export function DocumentEditor({
 				{/* Editor + Preview side by side */}
 				<div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[400px]">
 					<div className="flex flex-col">
-						<span className="mb-1 text-xs font-medium text-muted-foreground" aria-label="Edit tab">
-							Edit
-						</span>
+						<span className="mb-1 text-xs font-medium text-muted-foreground">Edit</span>
 						<textarea
 							value={content}
 							onChange={(e) => handleContentChange(e.target.value)}
@@ -183,12 +181,7 @@ export function DocumentEditor({
 						/>
 					</div>
 					<div className="flex flex-col">
-						<span
-							className="mb-1 text-xs font-medium text-muted-foreground"
-							aria-label="Preview tab"
-						>
-							Preview
-						</span>
+						<span className="mb-1 text-xs font-medium text-muted-foreground">Preview</span>
 						<MarkdownPreview content={content} />
 					</div>
 				</div>
@@ -215,7 +208,7 @@ function MarkdownPreview({ content }: { content: string }) {
 	const html = useMemo(() => renderMarkdown(content), [content]);
 
 	return (
-		<div
+		<article
 			className="flex-1 w-full rounded-lg border border-border bg-secondary p-6 text-sm text-foreground prose prose-sm prose-invert max-w-none overflow-y-auto prose-headings:font-semibold prose-headings:text-foreground prose-h1:text-xl prose-h1:border-b prose-h1:border-border prose-h1:pb-2 prose-h2:text-lg prose-h3:text-base prose-p:leading-relaxed"
 			aria-label="Markdown preview"
 			// biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown from user input only

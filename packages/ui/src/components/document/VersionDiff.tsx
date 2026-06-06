@@ -1,6 +1,6 @@
 import type { DocumentVersion } from "@bogo/shared";
 import { Loader2 } from "lucide-react";
-import { Suspense, lazy } from "react";
+import { lazy, Suspense } from "react";
 
 const LazyMultiFileDiff = lazy(() =>
 	import("@pierre/diffs/react").then((m) => ({ default: m.MultiFileDiff })),
@@ -30,7 +30,11 @@ export function VersionDiff({
 			)}
 			<Suspense
 				fallback={
-					<div className="flex items-center justify-center py-8" aria-label="Loading diff">
+					<div
+						className="flex items-center justify-center py-8"
+						role="status"
+						aria-label="Loading diff"
+					>
 						<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
 					</div>
 				}

@@ -2,8 +2,8 @@ import type { CustomFieldDefinition, Person } from "@bogo/shared";
 import { Loader2, Save, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
-import { TagPicker } from "../TagPicker.js";
 import { PersonFieldValues } from "../field/PersonFieldValues.js";
+import { TagPicker } from "../TagPicker.js";
 
 function getDescendantIds(persons: Person[], personId: string): Set<string> {
 	const ids = new Set<string>();

@@ -43,13 +43,7 @@ export function PersonFieldValues({
 	);
 }
 
-function FieldValueRow({
-	def,
-	vm,
-}: {
-	def: CustomFieldDefinition;
-	vm: FieldValuesVM;
-}) {
+function FieldValueRow({ def, vm }: { def: CustomFieldDefinition; vm: FieldValuesVM }) {
 	const currentValue = vm.getValueFor(def.id);
 	const [localValue, setLocalValue] = useState(currentValue);
 	const [validationError, setValidationError] = useState<string | null>(null);

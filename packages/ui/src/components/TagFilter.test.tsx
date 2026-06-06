@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { WorkspaceProvider, useWorkspaceContext } from "../contexts/workspace-context.js";
+import { useWorkspaceContext, WorkspaceProvider } from "../contexts/workspace-context.js";
 import { TagFilter } from "./TagFilter.js";
 
 const mockFetch = vi.fn();
@@ -65,7 +65,10 @@ function Wrapper({ children }: { children: ReactNode }) {
 function SetupAndRender({
 	selected,
 	onChange,
-}: { selected: string[]; onChange: (ids: string[]) => void }) {
+}: {
+	selected: string[];
+	onChange: (ids: string[]) => void;
+}) {
 	const ctx = useWorkspaceContext();
 	ctx.switchWorkspace(WS);
 	return <TagFilter scope="document" selected={selected} onChange={onChange} />;

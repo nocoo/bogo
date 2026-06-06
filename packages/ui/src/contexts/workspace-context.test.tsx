@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { WorkspaceProvider, useWorkspaceContext } from "./workspace-context.js";
+import { useWorkspaceContext, WorkspaceProvider } from "./workspace-context.js";
 
 function createWrapper() {
 	return function Wrapper({ children }: { children: ReactNode }) {

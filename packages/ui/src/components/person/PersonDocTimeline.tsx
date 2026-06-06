@@ -1,10 +1,10 @@
-import { useWorkspaceContext } from "@/contexts/workspace-context.js";
-import { personModel } from "@/models/person.model.js";
 import type { Document } from "@bogo/shared";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, X } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
+import { useWorkspaceContext } from "@/contexts/workspace-context.js";
+import { personModel } from "@/models/person.model.js";
 
 export function PersonDocTimeline({
 	personId,

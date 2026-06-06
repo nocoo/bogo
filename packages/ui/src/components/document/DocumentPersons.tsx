@@ -40,7 +40,7 @@ export function DocumentPersons({
 
 	if (isLoading) {
 		return (
-			<div className="flex items-center gap-2 py-2" aria-label="Loading persons">
+			<div className="flex items-center gap-2 py-2" role="status" aria-label="Loading persons">
 				<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
 				<span className="text-xs text-muted-foreground">Loading associations…</span>
 			</div>
@@ -92,7 +92,7 @@ export function DocumentPersons({
 
 			{!personsError &&
 				(allPersonsLoading ? (
-					<div className="flex items-center gap-2 py-1" aria-label="Loading people">
+					<div className="flex items-center gap-2 py-1" role="status" aria-label="Loading people">
 						<Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
 						<span className="text-xs text-muted-foreground">Loading people…</span>
 					</div>

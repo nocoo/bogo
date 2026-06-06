@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { WorkspaceProvider, useWorkspaceContext } from "../../contexts/workspace-context.js";
-import { PersonTree, getNodeCenter } from "./PersonTree.js";
+import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
+import { getNodeCenter, PersonTree } from "./PersonTree.js";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
@@ -26,6 +26,7 @@ vi.mock("@xyflow/react", async () => {
 				{/* biome-ignore lint/suspicious/noExplicitAny: test mock iteration */}
 				{nodes?.map((node: any) => (
 					// biome-ignore lint/a11y/useKeyWithClickEvents: test mock
+					// biome-ignore lint/a11y/noStaticElementInteractions: test mock
 					<div
 						key={node.id}
 						data-testid={`node-${node.id}`}
@@ -37,6 +38,7 @@ vi.mock("@xyflow/react", async () => {
 					</div>
 				))}
 				{/* biome-ignore lint/a11y/useKeyWithClickEvents: test helper */}
+				{/* biome-ignore lint/a11y/noStaticElementInteractions: test helper */}
 				<div data-testid="pane" onClick={() => onPaneClick?.()} />
 				<button
 					type="button"

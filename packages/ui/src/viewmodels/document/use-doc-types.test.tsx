@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { WorkspaceProvider, useWorkspaceContext } from "../../contexts/workspace-context.js";
+import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { useDocTypes } from "./use-doc-types.js";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));

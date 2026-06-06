@@ -1,8 +1,8 @@
 import {
-	type Document,
-	type DocumentVersion,
 	addDocPersonSchema,
 	createDocumentSchema,
+	type Document,
+	type DocumentVersion,
 	generateId,
 	updateDocumentSchema,
 } from "@bogo/shared";

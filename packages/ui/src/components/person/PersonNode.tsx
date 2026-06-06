@@ -1,8 +1,8 @@
-import { TagBadge } from "@/components/TagBadge.js";
-import type { PersonNodeData } from "@/viewmodels/person/person-tree-layout.js";
 import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { GripVertical, User } from "lucide-react";
 import { memo } from "react";
+import { TagBadge } from "@/components/TagBadge.js";
+import type { PersonNodeData } from "@/viewmodels/person/person-tree-layout.js";
 
 export const PersonNode = memo(function PersonNode({
 	data,

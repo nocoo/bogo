@@ -1,3 +1,6 @@
+import { Github, Menu } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Outlet, useLocation } from "react-router";
 import { AppSidebar } from "@/components/AppSidebar";
 import type { BreadcrumbItem } from "@/components/layout/Breadcrumbs";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -5,9 +8,6 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { WorkspaceSelector } from "@/components/workspace/WorkspaceSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { Github, Menu } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Outlet, useLocation } from "react-router";
 
 const SECTION_LABELS: Record<string, string> = {
 	"/": "Overview",
@@ -75,6 +75,7 @@ export function DashboardLayout() {
 			{isMobile && mobileOpen && (
 				<>
 					{/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop dismiss pattern */}
+					{/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop overlay */}
 					<div
 						className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs"
 						onClick={() => setMobileOpen(false)}

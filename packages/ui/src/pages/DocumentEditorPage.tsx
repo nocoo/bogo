@@ -1,8 +1,8 @@
+import { useNavigate, useParams } from "react-router";
 import { DocumentEditor } from "@/components/document/DocumentEditor";
 import { useWorkspaceContext } from "@/contexts/workspace-context";
 import { useDocument } from "@/viewmodels/document/use-document";
 import { usePersonList } from "@/viewmodels/person/use-person-list";
-import { useNavigate, useParams } from "react-router";
 
 export function DocumentEditorPage() {
 	const { workspaceId } = useWorkspaceContext();

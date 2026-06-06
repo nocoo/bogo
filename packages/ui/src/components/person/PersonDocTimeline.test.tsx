@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { WorkspaceProvider, useWorkspaceContext } from "../../contexts/workspace-context.js";
+import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { PersonDocTimeline } from "./PersonDocTimeline.js";
 
 const mockFetch = vi.fn();

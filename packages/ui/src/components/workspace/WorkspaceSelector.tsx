@@ -1,8 +1,8 @@
-import { cn } from "@/lib/utils";
 import type { Workspace } from "@bogo/shared";
 import { AlertCircle, Building2, ChevronDown, Settings } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { cn } from "@/lib/utils";
 import { useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { useWorkspaceList } from "../../viewmodels/workspace/use-workspace-list.js";
 

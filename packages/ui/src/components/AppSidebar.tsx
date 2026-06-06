@@ -1,5 +1,3 @@
-import { useUserInfo } from "@/hooks/use-user-info";
-import { cn } from "@/lib/utils";
 import { BOGO_VERSION } from "@bogo/shared";
 import {
 	FileText,
@@ -14,6 +12,8 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
+import { useUserInfo } from "@/hooks/use-user-info";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
 	title: string;
@@ -260,11 +260,13 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
 			{searchOpen && (
 				// biome-ignore lint/a11y/useKeyWithClickEvents: backdrop dismiss pattern
+				// biome-ignore lint/a11y/noStaticElementInteractions: backdrop overlay, ESC-closable
 				<div
 					className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] bg-black/50 backdrop-blur-xs"
 					onClick={() => setSearchOpen(false)}
 				>
 					{/* biome-ignore lint/a11y/useKeyWithClickEvents: stop propagation for modal */}
+					{/* biome-ignore lint/a11y/noStaticElementInteractions: modal container, focus held by input child */}
 					<div
 						className="w-full max-w-md rounded-xl bg-card border border-border shadow-lg p-2"
 						onClick={(e) => e.stopPropagation()}

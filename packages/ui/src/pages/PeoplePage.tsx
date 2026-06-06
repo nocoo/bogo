@@ -1,11 +1,11 @@
-import { TagBadge } from "@/components/TagBadge";
-import { TagFilter } from "@/components/TagFilter";
-import { PersonTree } from "@/components/person/PersonTree";
-import { useWorkspaceContext } from "@/contexts/workspace-context";
-import { personModel } from "@/models/person.model";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "lucide-react";
 import { useState } from "react";
+import { PersonTree } from "@/components/person/PersonTree";
+import { TagBadge } from "@/components/TagBadge";
+import { TagFilter } from "@/components/TagFilter";
+import { useWorkspaceContext } from "@/contexts/workspace-context";
+import { personModel } from "@/models/person.model";
 
 export function PeoplePage() {
 	const [selectedTags, setSelectedTags] = useState<string[]>([]);
