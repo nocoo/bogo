@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.2.1] - 2026-06-07
+
+### Changed
+- Dependency upgrades — refresh toolchain to latest
+  - Minor: `vitest` 4.1.5 → 4.1.8, `@vitest/coverage-v8` 4.1.5 → 4.1.8, `turbo` 2.5.0 → 2.9.16
+  - `packageManager`: `bun` 1.3.11 → 1.3.14
+  - Major: `lint-staged` 16.4.0 → 17.0.7
+  - Major: `@biomejs/biome` 1.9.4 → 2.4.16 (config migrated to v2 schema)
+  - Major: `typescript` 5.8.2 → 6.0.3
+- A11y improvements driven by Biome v2 rules
+  - Loading wrappers now expose `role="status"` for screen readers
+  - `MarkdownPreview` promoted from `<div role="article">` to `<article>`
+  - Dropped redundant `aria-label` from static `<span>` tab labels
+- CLI: add `clip.yaml` for cf-access-protected API consumption
+
+### Fixed
+- Tag E2E PUT response shape mismatch in regression test
+
 ## [0.2.0] - 2026-05-29
 
 ### Added
