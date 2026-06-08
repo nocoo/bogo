@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "react-router";
 import { DocumentEditor } from "@/components/document/DocumentEditor";
 import { useWorkspaceContext } from "@/contexts/workspace-context";
+import { useDocTypes } from "@/viewmodels/document/use-doc-types";
 import { useDocument } from "@/viewmodels/document/use-document";
 import { usePersonList } from "@/viewmodels/person/use-person-list";
 
@@ -9,6 +10,7 @@ export function DocumentEditorPage() {
 	const { id } = useParams<{ id: string }>();
 	const vm = useDocument(id ?? "");
 	const personListVM = usePersonList();
+	const docTypesVM = useDocTypes();
 	const navigate = useNavigate();
 
 	if (!workspaceId) {
@@ -26,6 +28,7 @@ export function DocumentEditorPage() {
 			allPersons={personListVM.persons}
 			allPersonsLoading={personListVM.isLoading}
 			allPersonsError={personListVM.error}
+			docTypes={docTypesVM.types}
 			onBack={() => navigate("/documents")}
 		/>
 	);

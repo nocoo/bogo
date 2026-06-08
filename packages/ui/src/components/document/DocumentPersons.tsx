@@ -14,6 +14,7 @@ export function DocumentPersons({
 	isAdding,
 	onRemove,
 	isRemoving,
+	compact = false,
 }: {
 	persons: DocumentPerson[];
 	allPersons: Person[];
@@ -25,6 +26,9 @@ export function DocumentPersons({
 	isAdding: boolean;
 	onRemove: (personId: string, opts?: { onSuccess?: () => void }) => void;
 	isRemoving: boolean;
+	/** When true, omits the built-in "Associated People" heading — useful when
+	 * embedded under an external section label. */
+	compact?: boolean;
 }) {
 	const [selectedPersonId, setSelectedPersonId] = useState("");
 
@@ -49,7 +53,7 @@ export function DocumentPersons({
 
 	return (
 		<div className="space-y-2">
-			<h3 className="text-sm font-semibold text-foreground">Associated People</h3>
+			{!compact && <h3 className="text-sm font-semibold text-foreground">Associated People</h3>}
 
 			{personsError && (
 				<div className="rounded-md border border-red-500/20 bg-red-500/5 p-2 text-xs text-red-400">

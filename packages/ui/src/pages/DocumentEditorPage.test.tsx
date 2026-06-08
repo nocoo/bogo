@@ -6,6 +6,21 @@ vi.mock("../viewmodels/document/use-document.js", () => ({
 	useDocument: vi.fn(),
 }));
 
+vi.mock("../viewmodels/document/use-doc-types.js", () => ({
+	useDocTypes: vi.fn(() => ({
+		types: [],
+		isLoading: false,
+		error: null,
+		create: vi.fn(),
+		update: vi.fn(),
+		remove: vi.fn(),
+		reorder: vi.fn(),
+		isCreating: false,
+		isUpdating: false,
+		isRemoving: false,
+	})),
+}));
+
 vi.mock("../viewmodels/person/use-person-list.js", () => ({
 	usePersonList: vi.fn(),
 }));
