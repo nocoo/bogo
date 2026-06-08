@@ -129,7 +129,9 @@ function extractFrontmatter(src: string): ExtractResult {
 
 	let data: unknown;
 	try {
-		data = jsYaml.load(yamlText);
+		// JSON_SCHEMA keeps types narrow (null/bool/int/float/string) and avoids
+		// YAML 1.1 surprises like `2026-05-30` being auto-coerced into a Date.
+		data = jsYaml.load(yamlText, { schema: jsYaml.JSON_SCHEMA });
 	} catch {
 		// Malformed YAML — silently strip the block so it doesn't pollute the
 		// rendered preview as raw text or accidental setext headings.
@@ -167,9 +169,6 @@ function formatFrontmatterValue(value: unknown): string {
 	}
 	if (typeof value === "number" || typeof value === "boolean") {
 		return escapeHtml(String(value));
-	}
-	if (value instanceof Date) {
-		return escapeHtml(value.toISOString());
 	}
 	if (Array.isArray(value)) {
 		if (value.length === 0) return `<span class="markdown-frontmatter-empty">—</span>`;

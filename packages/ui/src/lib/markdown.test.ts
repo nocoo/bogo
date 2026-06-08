@@ -244,10 +244,11 @@ describe("renderMarkdown — YAML frontmatter", () => {
 		expect(result).toContain('<th scope="row">name</th>');
 	});
 
-	it("renders Date values from YAML as ISO strings", () => {
+	it("preserves date-like strings verbatim (no auto Date coercion)", () => {
 		const input = "---\nfetched_at: 2026-05-30\n---\nbody";
 		const result = renderMarkdown(input);
-		expect(result).toContain("<td>2026-05-30T00:00:00.000Z</td>");
+		expect(result).toContain("<td>2026-05-30</td>");
+		expect(result).not.toContain("T00:00:00");
 	});
 
 	it("renders nested objects as inline JSON code", () => {
