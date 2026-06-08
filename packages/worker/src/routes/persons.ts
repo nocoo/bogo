@@ -16,19 +16,15 @@ personRoutes.get("/", async (c) => {
 	const wid = c.req.param("wid") as string;
 	const tagIds = c.req.query("tagIds");
 
+	const ids = tagIds ? tagIds.split(",").filter(Boolean) : [];
+
 	let sql: string;
 	const params: unknown[] = [wid];
 
-	if (tagIds) {
-		const ids = tagIds.split(",").filter(Boolean);
-		if (ids.length > 0) {
-			const placeholders = ids.map(() => "?").join(",");
-			sql = `SELECT DISTINCT p.id, p.workspace_id, p.name, p.title, p.manager_id, p.dotted_manager_id, p.avatar_url, p.is_root, p.sort_order, p.created_at, p.updated_at FROM persons p INNER JOIN tag_persons tp ON tp.workspace_id = p.workspace_id AND tp.person_id = p.id WHERE p.workspace_id = ? AND tp.tag_id IN (${placeholders}) ORDER BY p.sort_order ASC`;
-			params.push(...ids);
-		} else {
-			sql =
-				"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, avatar_url, is_root, sort_order, created_at, updated_at FROM persons WHERE workspace_id = ? ORDER BY sort_order ASC";
-		}
+	if (ids.length > 0) {
+		const placeholders = ids.map(() => "?").join(",");
+		sql = `SELECT DISTINCT p.id, p.workspace_id, p.name, p.title, p.manager_id, p.dotted_manager_id, p.avatar_url, p.is_root, p.sort_order, p.created_at, p.updated_at FROM persons p INNER JOIN tag_persons tp ON tp.workspace_id = p.workspace_id AND tp.person_id = p.id WHERE p.workspace_id = ? AND tp.tag_id IN (${placeholders}) ORDER BY p.sort_order ASC`;
+		params.push(...ids);
 	} else {
 		sql =
 			"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, avatar_url, is_root, sort_order, created_at, updated_at FROM persons WHERE workspace_id = ? ORDER BY sort_order ASC";
@@ -369,7 +365,38 @@ personRoutes.get("/:id/documents", async (c) => {
 		.bind(id, wid)
 		.all();
 
-	return c.json({ data: rows.results.map(mapDocRow) });
+	const docs = rows.results.map(mapDocRow);
+
+	if (docs.length === 0) {
+		return c.json({ data: docs });
+	}
+
+	const docIdPlaceholders = docs.map(() => "?").join(",");
+	const tagRows = await c.env.DB.prepare(
+		`SELECT td.document_id, t.id, t.name, t.color
+		 FROM tag_documents td
+		 INNER JOIN tags t ON t.id = td.tag_id AND t.workspace_id = td.workspace_id
+		 WHERE td.workspace_id = ? AND td.document_id IN (${docIdPlaceholders})`,
+	)
+		.bind(wid, ...docs.map((d) => d.id))
+		.all();
+
+	const tagMap = new Map<string, Array<{ id: string; name: string; color: string | null }>>();
+	for (const row of tagRows.results) {
+		const docId = row.document_id as string;
+		if (!tagMap.has(docId)) {
+			tagMap.set(docId, []);
+		}
+		tagMap.get(docId)?.push({
+			id: row.id as string,
+			name: row.name as string,
+			color: (row.color as string) || null,
+		});
+	}
+
+	return c.json({
+		data: docs.map((doc) => ({ ...doc, tags: tagMap.get(doc.id) ?? [] })),
+	});
 });
 
 personRoutes.delete("/:id", async (c) => {

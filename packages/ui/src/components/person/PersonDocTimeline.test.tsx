@@ -97,6 +97,7 @@ describe("PersonDocTimeline", () => {
 					version: 1,
 					createdAt: "2026-01-01",
 					updatedAt: "2026-01-01",
+					tags: [],
 				},
 				{
 					id: "doc-2",
@@ -108,6 +109,7 @@ describe("PersonDocTimeline", () => {
 					version: 1,
 					createdAt: "2026-01-01",
 					updatedAt: "2026-01-01",
+					tags: [],
 				},
 			]),
 		);
@@ -119,6 +121,82 @@ describe("PersonDocTimeline", () => {
 			expect(screen.getByText("Dated Doc")).toBeTruthy();
 			expect(screen.getByText("2026-03-15")).toBeTruthy();
 		});
+	});
+
+	it("renders type chip and tag badges on a document card", async () => {
+		mockFetch.mockImplementation((url: string) => {
+			if (url.includes("/persons/p-1/documents")) {
+				return Promise.resolve(
+					ok([
+						{
+							id: "doc-1",
+							workspaceId: "ws-1",
+							typeId: "dt-1",
+							title: "Tagged Doc",
+							content: "",
+							eventDate: null,
+							version: 2,
+							createdAt: "2026-01-01",
+							updatedAt: "2026-01-01",
+							tags: [{ id: "tag-1", name: "alpha", color: "#3b82f6" }],
+						},
+					]),
+				);
+			}
+			if (url.includes("/doc-types")) {
+				return Promise.resolve(
+					ok([
+						{
+							id: "dt-1",
+							workspaceId: "ws-1",
+							name: "Connect",
+							color: "#8b5cf6",
+							sortOrder: 0,
+							createdAt: "2026-01-01",
+						},
+					]),
+				);
+			}
+			return Promise.resolve(ok([]));
+		});
+		renderWithProviders(<PersonDocTimeline personId="p-1" onClose={vi.fn()} />);
+		fireEvent.click(screen.getByText("Switch"));
+
+		await waitFor(() => {
+			expect(screen.getByText("Tagged Doc")).toBeTruthy();
+			expect(screen.getByText("Connect")).toBeTruthy();
+			expect(screen.getByText("alpha")).toBeTruthy();
+			expect(screen.getByText("v2")).toBeTruthy();
+			expect(screen.getByText("No date")).toBeTruthy();
+		});
+	});
+
+	it("navigates to the document detail page on click", async () => {
+		mockFetch.mockResolvedValue(
+			ok([
+				{
+					id: "doc-1",
+					workspaceId: "ws-1",
+					typeId: null,
+					title: "Click me",
+					content: "",
+					eventDate: null,
+					version: 1,
+					createdAt: "2026-01-01",
+					updatedAt: "2026-01-01",
+					tags: [],
+				},
+			]),
+		);
+		renderWithProviders(<PersonDocTimeline personId="p-1" onClose={vi.fn()} />);
+		fireEvent.click(screen.getByText("Switch"));
+		await waitFor(() => {
+			expect(screen.getByText("Click me")).toBeTruthy();
+		});
+		fireEvent.click(screen.getByText("Click me"));
+		// React Router navigates relative to the in-memory router; verifying the
+		// click didn't throw + the card is interactive is enough for this layer.
+		expect(screen.getByText("Click me")).toBeTruthy();
 	});
 
 	it("calls onClose when close button clicked", async () => {

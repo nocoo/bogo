@@ -5,6 +5,8 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useWorkspaceContext } from "@/contexts/workspace-context.js";
 import { personModel } from "@/models/person.model.js";
+import { useDocTypes } from "@/viewmodels/document/use-doc-types.js";
+import { TagBadge } from "../TagBadge.js";
 
 export function PersonDocTimeline({
 	personId,
@@ -18,10 +20,17 @@ export function PersonDocTimeline({
 	const navigate = useNavigate();
 
 	const { data: documents, isLoading } = useQuery(personModel.documentsQueryOptions(wid, personId));
+	const docTypesVm = useDocTypes();
+
+	const typeById = useMemo(() => {
+		const map = new Map<string, { name: string; color: string | null }>();
+		for (const t of docTypesVm.types) map.set(t.id, { name: t.name, color: t.color ?? null });
+		return map;
+	}, [docTypesVm.types]);
 
 	const { undated, dated } = useMemo(() => {
 		if (!documents) {
-			return { undated: [], dated: [] };
+			return { undated: [] as Document[], dated: [] as Document[] };
 		}
 		const undated: Document[] = [];
 		const dated: Document[] = [];
@@ -36,52 +45,62 @@ export function PersonDocTimeline({
 	}, [documents]);
 
 	return (
-		<div className="w-64 rounded-lg border border-border bg-card shadow-lg overflow-hidden">
-			<div className="flex items-center justify-between px-3 py-2 border-b border-border">
-				<h3 className="text-xs font-semibold text-foreground">Documents</h3>
+		<div className="w-72 rounded-xl border border-border bg-secondary p-4 shadow-lg">
+			<div className="flex items-center justify-between mb-4">
+				<h3 className="text-sm font-semibold text-foreground">Documents</h3>
 				<button
 					type="button"
 					onClick={onClose}
-					className="text-muted-foreground hover:text-foreground transition-colors"
+					className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
 					aria-label="Close timeline"
 				>
-					<X className="h-3.5 w-3.5" />
+					<X className="h-4 w-4" strokeWidth={1.5} />
 				</button>
 			</div>
 
-			<div className="max-h-[400px] overflow-y-auto p-3">
+			<div className="max-h-[480px] overflow-y-auto -mr-2 pr-2">
 				{isLoading && (
-					<div className="flex justify-center py-4">
+					<div className="flex justify-center py-6">
 						<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
 					</div>
 				)}
 
 				{!isLoading && documents?.length === 0 && (
-					<p className="text-xs text-muted-foreground text-center py-4">No documents</p>
+					<p className="text-sm text-muted-foreground text-center py-6">No documents</p>
 				)}
 
 				{!isLoading && documents && documents.length > 0 && (
-					<div className="relative pl-4">
-						<div className="absolute left-[3.5px] top-1 bottom-1 w-px bg-border" />
-
-						{undated.map((doc) => (
-							<TimelineItem
-								key={doc.id}
-								doc={doc}
-								onClick={() => navigate(`/documents/${doc.id}`)}
-							/>
-						))}
-
-						{undated.length > 0 && dated.length > 0 && <DateSeparator />}
-
-						{dated.map((doc, i) => (
-							<div key={doc.id}>
-								{(i === 0 || dated[i - 1].eventDate !== doc.eventDate) && (
-									<DateSeparator date={doc.eventDate ?? undefined} />
-								)}
-								<TimelineItem doc={doc} onClick={() => navigate(`/documents/${doc.id}`)} />
+					<div className="space-y-2">
+						{undated.length > 0 && (
+							<div className="space-y-2">
+								<SectionLabel label="No date" />
+								{undated.map((doc) => (
+									<DocCard
+										key={doc.id}
+										doc={doc}
+										type={doc.typeId ? typeById.get(doc.typeId) : undefined}
+										onClick={() => navigate(`/documents/${doc.id}`)}
+									/>
+								))}
 							</div>
-						))}
+						)}
+
+						{dated.length > 0 && (
+							<div className="space-y-2">
+								{dated.map((doc, i) => (
+									<div key={doc.id} className="space-y-2">
+										{(i === 0 || dated[i - 1].eventDate !== doc.eventDate) && (
+											<SectionLabel label={doc.eventDate ?? ""} />
+										)}
+										<DocCard
+											doc={doc}
+											type={doc.typeId ? typeById.get(doc.typeId) : undefined}
+											onClick={() => navigate(`/documents/${doc.id}`)}
+										/>
+									</div>
+								))}
+							</div>
+						)}
 					</div>
 				)}
 			</div>
@@ -89,27 +108,52 @@ export function PersonDocTimeline({
 	);
 }
 
-function TimelineItem({ doc, onClick }: { doc: Document; onClick: () => void }) {
+function SectionLabel({ label }: { label: string }) {
+	return (
+		<div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground pt-1">
+			{label}
+		</div>
+	);
+}
+
+function DocCard({
+	doc,
+	type,
+	onClick,
+}: {
+	doc: Document;
+	type?: { name: string; color: string | null };
+	onClick: () => void;
+}) {
 	return (
 		<button
 			type="button"
 			onClick={onClick}
-			className="relative flex items-start gap-2 w-full text-left py-1.5 group"
+			className="group w-full text-left rounded-md border border-border bg-background px-3 py-2.5 hover:border-primary/40 hover:bg-accent/40 transition-colors space-y-1.5"
 		>
-			<div className="absolute -left-4 top-2.5 w-2 h-2 rounded-full bg-primary/60 group-hover:bg-primary transition-colors" />
-			<span className="text-xs text-foreground group-hover:text-primary truncate transition-colors">
+			<h4 className="text-sm font-medium text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
 				{doc.title}
-			</span>
+			</h4>
+			<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+				{type && (
+					<span className="inline-flex items-center gap-1">
+						<span
+							className="inline-block h-1.5 w-1.5 rounded-full"
+							style={{ backgroundColor: type.color ?? "currentColor" }}
+							aria-hidden="true"
+						/>
+						{type.name}
+					</span>
+				)}
+				<span>v{doc.version}</span>
+				{doc.tags.length > 0 && (
+					<span className="flex items-center gap-1 flex-wrap">
+						{doc.tags.map((tag) => (
+							<TagBadge key={tag.id} name={tag.name} color={tag.color} size="sm" />
+						))}
+					</span>
+				)}
+			</div>
 		</button>
-	);
-}
-
-function DateSeparator({ date }: { date?: string }) {
-	return (
-		<div className="flex items-center gap-2 py-1.5">
-			<div className="flex-1 border-t border-border/60" />
-			{date && <span className="text-[10px] text-muted-foreground shrink-0">{date}</span>}
-			<div className="flex-1 border-t border-border/60" />
-		</div>
 	);
 }

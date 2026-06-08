@@ -51,4 +51,16 @@ describe("PersonAvatarCluster", () => {
 		const root = container.firstChild as HTMLElement;
 		expect(root.getAttribute("title")).toBe("1 person associated");
 	});
+
+	it("applies xs size class to overflow bubble", () => {
+		render(<PersonAvatarCluster people={PEOPLE} max={2} size="xs" />);
+		const bubble = screen.getByText("+4");
+		expect(bubble.className).toContain("h-5");
+	});
+
+	it("applies md size class to overflow bubble", () => {
+		render(<PersonAvatarCluster people={PEOPLE} max={2} size="md" />);
+		const bubble = screen.getByText("+4");
+		expect(bubble.className).toContain("h-7");
+	});
 });

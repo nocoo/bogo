@@ -477,6 +477,24 @@ describe("person routes", () => {
 			expect(json.error.code).toBe("INVALID_PARENT");
 		});
 
+		it("moves person under a different manager when no cycle", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: UUID1, is_root: 0 } }, // person exists
+				{ type: "first", value: { id: UUID2 } }, // new parent exists
+				// detectCycle walks managers; manager UUID2's manager is null → no cycle
+				{ type: "first", value: { manager_id: null } },
+				{ type: "run", value: { success: true, meta: { changes: 1 } } }, // UPDATE
+			]);
+
+			const res = await app.fetch(
+				makeRequest("PUT", `${BASE}/${UUID1}/move`, { managerId: UUID2 }),
+				{ DB: db, ENVIRONMENT: "test" },
+			);
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.moved).toBe(true);
+		});
+
 		it("succeeds with valid move", async () => {
 			const { db } = createSequenceD1([
 				{ type: "first", value: { id: UUID1, is_root: 0 } }, // person exists
@@ -636,6 +654,20 @@ describe("person routes", () => {
 						success: true,
 					},
 				},
+				{
+					type: "all",
+					value: {
+						results: [
+							{
+								document_id: "doc-1",
+								id: "tag-1",
+								name: "review",
+								color: "#3b82f6",
+							},
+						],
+						success: true,
+					},
+				},
 			]);
 
 			const res = await app.fetch(makeRequest("GET", `${BASE}/${UUID1}/documents`), {
@@ -647,6 +679,21 @@ describe("person routes", () => {
 			expect(json.data).toHaveLength(1);
 			expect(json.data[0].title).toBe("Review");
 			expect(json.data[0].eventDate).toBeNull();
+			expect(json.data[0].tags).toEqual([{ id: "tag-1", name: "review", color: "#3b82f6" }]);
+		});
+
+		it("skips the tag fan-out when the person has no documents", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: UUID1 } },
+				{ type: "all", value: { results: [], success: true } },
+			]);
+
+			const res = await app.fetch(makeRequest("GET", `${BASE}/${UUID1}/documents`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			expect((await res.json()).data).toEqual([]);
 		});
 
 		it("returns 404 when person not found", async () => {
