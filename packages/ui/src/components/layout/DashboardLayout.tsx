@@ -1,7 +1,8 @@
-import { Github, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 import { AppSidebar } from "@/components/AppSidebar";
+import { Github } from "@/components/icons/Github";
 import type { BreadcrumbItem } from "@/components/layout/Breadcrumbs";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
