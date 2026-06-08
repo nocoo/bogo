@@ -109,3 +109,19 @@
 		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 	}
 }
+
+@layer components {
+	/* Rendered markdown surface — used by document preview and any other
+	 * markdown-rendered content. Pairs `@tailwindcss/typography` prose styles
+	 * with theme tokens for the card-like background and heading rhythm. */
+	.markdown-surface {
+		@apply prose prose-sm max-w-none overflow-y-auto rounded-lg border border-border bg-secondary p-6 text-sm text-foreground;
+		@apply prose-headings:font-semibold prose-headings:text-foreground;
+		@apply prose-h1:text-xl prose-h1:border-b prose-h1:border-border prose-h1:pb-2;
+		@apply prose-h2:text-lg prose-h3:text-base;
+		@apply prose-p:leading-relaxed;
+	}
+	.dark .markdown-surface {
+		@apply prose-invert;
+	}
+}
