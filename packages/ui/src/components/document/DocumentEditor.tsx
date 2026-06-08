@@ -1,5 +1,5 @@
 import type { DocumentType, DocumentVersion, Person, UpdateDocumentInput } from "@bogo/shared";
-import { ArrowLeft, Calendar, GitCompareArrows, Loader2, Pencil, Save } from "lucide-react";
+import { ArrowLeft, GitCompareArrows, Loader2, Pencil, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { renderMarkdown } from "../../lib/markdown.js";
 import type { DocumentVM } from "../../viewmodels/document/use-document.js";
@@ -105,23 +105,23 @@ export function DocumentEditor({
 	return (
 		<div className="flex h-full overflow-hidden">
 			{/* Main column — header strip + editor/preview */}
-			<div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+			<div className="flex-1 min-w-0 flex flex-col overflow-hidden gap-3">
 				{/* Header strip: back · title · save */}
-				<div className="shrink-0 flex items-center gap-3 px-6 pt-4">
+				<div className="shrink-0 flex items-center gap-3">
 					<button
 						type="button"
 						onClick={onBack}
-						className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+						className="shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
 						aria-label="Back to documents"
 					>
-						<ArrowLeft className="h-5 w-5" />
+						<ArrowLeft className="h-4 w-4" />
 					</button>
 					<TitleField title={title} onChange={handleTitleChange} />
 					<button
 						type="button"
 						onClick={handleSave}
 						disabled={!dirty || vm.isUpdating}
-						className="shrink-0 inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+						className="shrink-0 inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
 						aria-label="Save document"
 					>
 						{vm.isUpdating ? (
@@ -134,7 +134,7 @@ export function DocumentEditor({
 				</div>
 
 				{/* Status row: dirty indicator + version + updated time */}
-				<div className="shrink-0 flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-6 py-2.5 text-xs text-muted-foreground">
+				<div className="shrink-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
 					<DirtyChip dirty={dirty} />
 					<span>v{vm.document.version}</span>
 					<span aria-hidden="true">·</span>
@@ -142,7 +142,7 @@ export function DocumentEditor({
 				</div>
 
 				{/* Editor + Preview */}
-				<div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4 px-6 pt-4 pb-6">
+				<div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
 					<div className="flex flex-col min-h-0">
 						<span className="shrink-0 mb-1 text-xs font-medium text-muted-foreground">Edit</span>
 						<textarea
@@ -161,7 +161,7 @@ export function DocumentEditor({
 			</div>
 
 			{/* Right sidebar — metadata + history (always shown on xl+) */}
-			<aside className="hidden xl:flex w-72 shrink-0 flex-col gap-5 border-l border-border bg-background/40 px-5 py-5 overflow-y-auto">
+			<aside className="hidden xl:flex w-80 shrink-0 flex-col gap-5 border-l border-border pl-5 ml-5 overflow-y-auto">
 				<SidebarSection label="Type">
 					<DocTypePicker
 						types={docTypes}
@@ -192,17 +192,14 @@ export function DocumentEditor({
 				</SidebarSection>
 
 				<SidebarSection label="Event date">
-					<div className="flex items-center gap-2 text-sm text-foreground">
-						<Calendar className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.6} />
-						<input
-							id="event-date"
-							type="date"
-							value={eventDate}
-							onChange={(e) => handleEventDateChange(e.target.value)}
-							className="flex-1 min-w-0 rounded border border-border bg-secondary px-2 py-1 text-xs text-foreground focus:border-primary outline-none transition-colors"
-							aria-label="Event date"
-						/>
-					</div>
+					<input
+						id="event-date"
+						type="date"
+						value={eventDate}
+						onChange={(e) => handleEventDateChange(e.target.value)}
+						className="h-8 w-full rounded-md border border-border bg-secondary px-2.5 text-sm text-foreground focus:border-primary outline-none transition-colors"
+						aria-label="Event date"
+					/>
 				</SidebarSection>
 
 				{vm.versions.length > 0 && (
