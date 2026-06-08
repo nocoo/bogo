@@ -32,6 +32,26 @@ vi.mock("../components/TagFilter.js", () => ({
 	TagFilter: () => <div data-testid="tag-filter" />,
 }));
 
+vi.mock("../components/DocumentFilters.js", () => ({
+	DocumentFilters: () => <div data-testid="document-filters" />,
+	EMPTY_FILTERS: {
+		keyword: "",
+		typeId: "all",
+		dateFrom: "",
+		dateTo: "",
+		tagIds: [],
+		personIds: [],
+	},
+}));
+
+vi.mock("@tanstack/react-query", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("@tanstack/react-query")>();
+	return {
+		...actual,
+		useQuery: vi.fn(() => ({ data: [], isLoading: false, error: null })),
+	};
+});
+
 vi.mock("../contexts/workspace-context.js", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("../contexts/workspace-context.js")>();
 	return {

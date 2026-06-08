@@ -1,19 +1,27 @@
-import type { Document } from "@bogo/shared";
+import type { Document, Tag } from "@bogo/shared";
+import { useQuery } from "@tanstack/react-query";
 import { FileText, Loader2, Plus, Trash2, X } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router";
+import { DocumentFilters, EMPTY_FILTERS } from "../components/DocumentFilters.js";
 import { TagBadge } from "../components/TagBadge.js";
-import { TagFilter } from "../components/TagFilter.js";
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
+import { tagModel } from "../models/tag.model.js";
 import { useDocTypes } from "../viewmodels/document/use-doc-types.js";
 import { useDocuments } from "../viewmodels/document/use-documents.js";
+import { usePersonList } from "../viewmodels/person/use-person-list.js";
 
 export function DocumentsPage() {
 	const { workspaceId } = useWorkspaceContext();
-	const [filterTagIds, setFilterTagIds] = useState<string[]>([]);
-	const vm = useDocuments(filterTagIds.length > 0 ? filterTagIds : undefined);
+	const wid = workspaceId ?? "";
+	const vm = useDocuments();
 	const docTypesVm = useDocTypes();
+	const personListVM = usePersonList();
+	const { data: allTags } = useQuery(tagModel.queryOptions(wid, "document"));
 	const [showCreate, setShowCreate] = useState(false);
+	const [filters, setFilters] = useState(EMPTY_FILTERS);
+
+	const filteredDocs = useMemo(() => applyFilters(vm.documents, filters), [vm.documents, filters]);
 
 	if (!workspaceId) {
 		return (
@@ -38,6 +46,9 @@ export function DocumentsPage() {
 			</div>
 		);
 	}
+
+	const hasActiveFilters =
+		filters !== EMPTY_FILTERS && JSON.stringify(filters) !== JSON.stringify(EMPTY_FILTERS);
 
 	return (
 		<div className="space-y-4">
@@ -67,17 +78,25 @@ export function DocumentsPage() {
 				/>
 			)}
 
-			<TagFilter scope="document" selected={filterTagIds} onChange={setFilterTagIds} />
+			<DocumentFilters
+				value={filters}
+				onChange={setFilters}
+				docTypes={docTypesVm.types}
+				allTags={(allTags ?? []) as Tag[]}
+				allPersons={personListVM.persons}
+			/>
 
-			{vm.documents.length === 0 && !showCreate && (
+			{filteredDocs.length === 0 && !showCreate && (
 				<div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
 					<FileText className="h-10 w-10 mb-3 opacity-50" />
-					<p className="text-sm">No documents yet</p>
+					<p className="text-sm">
+						{hasActiveFilters ? "No documents match your filters" : "No documents yet"}
+					</p>
 				</div>
 			)}
 
 			<div className="space-y-3">
-				{vm.documents.map((doc) => (
+				{filteredDocs.map((doc) => (
 					<DocumentRow
 						key={doc.id}
 						doc={doc}
@@ -90,6 +109,39 @@ export function DocumentsPage() {
 			</div>
 		</div>
 	);
+}
+
+/**
+ * Client-side filtering for the document list. The list payload already
+ * carries everything we need (title, eventDate, typeId, tags, personIds);
+ * this avoids a server round-trip for each filter change.
+ */
+export function applyFilters(docs: Document[], f: typeof EMPTY_FILTERS): Document[] {
+	const kw = f.keyword.trim().toLowerCase();
+	return docs.filter((d) => {
+		if (kw && !d.title.toLowerCase().includes(kw)) return false;
+
+		if (f.typeId === "none") {
+			if (d.typeId !== null) return false;
+		} else if (f.typeId !== "all") {
+			if (d.typeId !== f.typeId) return false;
+		}
+
+		if (f.dateFrom && (!d.eventDate || d.eventDate < f.dateFrom)) return false;
+		if (f.dateTo && (!d.eventDate || d.eventDate > f.dateTo)) return false;
+
+		if (f.tagIds.length > 0) {
+			const docTagIds = new Set(d.tags.map((t) => t.id));
+			if (!f.tagIds.every((id) => docTagIds.has(id))) return false;
+		}
+
+		if (f.personIds.length > 0) {
+			const docPersonIds = new Set(d.personIds ?? []);
+			if (!f.personIds.every((id) => docPersonIds.has(id))) return false;
+		}
+
+		return true;
+	});
 }
 
 function CreateDocumentForm({
@@ -203,18 +255,23 @@ function DocumentRow({
 }) {
 	return (
 		<div className="group rounded-xl border border-border bg-secondary p-4 shadow-sm hover:border-primary/40 transition-colors">
-			<div className="flex items-start gap-3">
+			<div className="flex items-center gap-3">
 				<Link
 					to={`/documents/${doc.id}`}
-					className="flex flex-1 items-start gap-3 min-w-0"
+					className="flex flex-1 items-center gap-3 min-w-0"
 					aria-label={`Open ${doc.title}`}
 				>
-					<FileText className="h-5 w-5 shrink-0 mt-0.5 text-muted-foreground" strokeWidth={1.6} />
-					<div className="flex-1 min-w-0 space-y-2">
+					<div
+						className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground"
+						aria-hidden="true"
+					>
+						<FileText className="h-4 w-4" strokeWidth={1.6} />
+					</div>
+					<div className="flex-1 min-w-0 space-y-1.5">
 						<h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
 							{doc.title}
 						</h3>
-						<div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
+						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
 							{typeName && (
 								<span className="inline-flex items-center gap-1.5">
 									<span
