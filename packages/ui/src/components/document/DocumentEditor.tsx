@@ -93,11 +93,11 @@ export function DocumentEditor({
 	}
 
 	return (
-		<div className="flex gap-4 h-full">
+		<div className="flex gap-4 h-full overflow-hidden">
 			{/* Main content — left */}
-			<div className="flex-1 min-w-0 flex flex-col gap-4">
+			<div className="flex-1 min-w-0 flex flex-col gap-4 overflow-hidden">
 				{/* Header */}
-				<div className="flex items-center gap-3">
+				<div className="shrink-0 flex items-center gap-3">
 					<button
 						type="button"
 						onClick={onBack}
@@ -130,7 +130,7 @@ export function DocumentEditor({
 				</div>
 
 				{/* Metadata bar */}
-				<div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-secondary/50 px-4 py-3">
+				<div className="shrink-0 flex flex-wrap items-center gap-4 rounded-lg border border-border bg-secondary/50 px-4 py-3">
 					<div className="flex items-center gap-2">
 						<span className="text-xs font-medium text-muted-foreground">Version</span>
 						<span className="text-xs text-foreground">v{vm.document.version}</span>
@@ -153,7 +153,7 @@ export function DocumentEditor({
 				</div>
 
 				{/* Associated People */}
-				<div className="rounded-lg border border-border bg-secondary/50 px-4 py-3">
+				<div className="shrink-0 rounded-lg border border-border bg-secondary/50 px-4 py-3">
 					<DocumentPersons
 						persons={vm.persons}
 						allPersons={allPersons}
@@ -168,27 +168,27 @@ export function DocumentEditor({
 					/>
 				</div>
 
-				{/* Editor + Preview side by side */}
-				<div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[400px]">
-					<div className="flex flex-col">
-						<span className="mb-1 text-xs font-medium text-muted-foreground">Edit</span>
+				{/* Editor + Preview side by side — fill remaining height, scroll internally */}
+				<div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
+					<div className="flex flex-col min-h-0">
+						<span className="shrink-0 mb-1 text-xs font-medium text-muted-foreground">Edit</span>
 						<textarea
 							value={content}
 							onChange={(e) => handleContentChange(e.target.value)}
-							className="flex-1 w-full rounded-lg border border-border bg-secondary p-4 text-sm text-foreground font-mono outline-none focus:border-primary resize-y transition-colors"
+							className="flex-1 min-h-0 w-full rounded-lg border border-border bg-secondary p-4 text-sm text-foreground font-mono outline-none focus:border-primary resize-none transition-colors"
 							placeholder="Write document content..."
 							aria-label="Document content"
 						/>
 					</div>
-					<div className="flex flex-col">
-						<span className="mb-1 text-xs font-medium text-muted-foreground">Preview</span>
+					<div className="flex flex-col min-h-0">
+						<span className="shrink-0 mb-1 text-xs font-medium text-muted-foreground">Preview</span>
 						<MarkdownPreview content={content} />
 					</div>
 				</div>
 
 				{/* Version history — inline below editor on < xl */}
 				{vm.versions.length > 0 && (
-					<div className="xl:hidden">
+					<div className="shrink-0 max-h-48 overflow-y-auto xl:hidden">
 						<VersionList versions={vm.versions} currentVersion={vm.document.version} />
 					</div>
 				)}
@@ -196,7 +196,7 @@ export function DocumentEditor({
 
 			{/* Right sidebar — version history on xl+ */}
 			{vm.versions.length > 0 && (
-				<div className="hidden xl:block w-64 shrink-0">
+				<div className="hidden xl:block w-64 shrink-0 overflow-y-auto">
 					<VersionList versions={vm.versions} currentVersion={vm.document.version} />
 				</div>
 			)}
@@ -209,7 +209,7 @@ function MarkdownPreview({ content }: { content: string }) {
 
 	return (
 		<article
-			className="markdown-surface flex-1 w-full"
+			className="markdown-surface flex-1 min-h-0 w-full"
 			aria-label="Markdown preview"
 			// biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown from user input only
 			dangerouslySetInnerHTML={{ __html: html }}
