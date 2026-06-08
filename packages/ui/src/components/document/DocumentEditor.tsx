@@ -105,17 +105,20 @@ export function DocumentEditor({
 	return (
 		<div className="flex h-full overflow-hidden">
 			{/* Main column — header strip + editor/preview */}
-			<div className="flex-1 min-w-0 flex flex-col overflow-hidden gap-3">
-				{/* Header strip: back · title · save */}
+			<div className="flex-1 min-w-0 flex flex-col overflow-hidden gap-2">
+				{/* Back link — own row, low-weight */}
+				<button
+					type="button"
+					onClick={onBack}
+					className="shrink-0 inline-flex items-center gap-1.5 self-start text-xs text-muted-foreground hover:text-foreground transition-colors -ml-0.5"
+					aria-label="Back to documents"
+				>
+					<ArrowLeft className="h-3.5 w-3.5" />
+					All documents
+				</button>
+
+				{/* Title row: title fills width, save floats right */}
 				<div className="shrink-0 flex items-center gap-3">
-					<button
-						type="button"
-						onClick={onBack}
-						className="shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-						aria-label="Back to documents"
-					>
-						<ArrowLeft className="h-4 w-4" />
-					</button>
 					<TitleField title={title} onChange={handleTitleChange} />
 					<button
 						type="button"
@@ -142,7 +145,7 @@ export function DocumentEditor({
 				</div>
 
 				{/* Editor + Preview */}
-				<div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
+				<div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
 					<div className="flex flex-col min-h-0">
 						<span className="shrink-0 mb-1 text-xs font-medium text-muted-foreground">Edit</span>
 						<textarea
@@ -247,7 +250,7 @@ function TitleField({ title, onChange }: { title: string; onChange: (value: stri
 				type="text"
 				value={title}
 				onChange={(e) => onChange(e.target.value)}
-				className="flex-1 min-w-0 bg-transparent text-xl font-semibold text-foreground outline-none rounded px-1 -mx-1 hover:bg-accent/60 focus:bg-accent/60 transition-colors"
+				className="flex-1 min-w-0 bg-transparent text-2xl font-semibold tracking-tight text-foreground outline-none rounded-md px-1.5 -ml-1.5 hover:bg-accent/60 focus:bg-accent/60 transition-colors"
 				aria-label="Document title"
 				placeholder="Untitled document"
 			/>
