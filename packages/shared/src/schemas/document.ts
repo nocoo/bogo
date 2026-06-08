@@ -35,6 +35,11 @@ export interface Document {
 	createdAt: string;
 	updatedAt: string;
 	tags: EmbeddedTag[];
+	/** Person IDs associated with this document; hydrated by the list API.
+	 * Only the IDs are sent — the UI is expected to look up display info
+	 * (name, avatar) from its own person cache. May be omitted on responses
+	 * from older endpoints that don't carry it. */
+	personIds?: string[];
 }
 
 export interface DocumentVersion {

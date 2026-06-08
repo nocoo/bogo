@@ -11,6 +11,23 @@ vi.mock("../viewmodels/document/use-documents.js", () => ({
 	useDocuments: vi.fn(),
 }));
 
+vi.mock("../viewmodels/person/use-person-list.js", () => ({
+	usePersonList: vi.fn(() => ({
+		persons: [],
+		isLoading: false,
+		error: null,
+		create: vi.fn(),
+		update: vi.fn(),
+		move: vi.fn(),
+		remove: vi.fn(),
+		isCreating: false,
+		isMoving: false,
+		isRemoving: false,
+		mutationError: null,
+		clearMutationError: vi.fn(),
+	})),
+}));
+
 vi.mock("../components/TagFilter.js", () => ({
 	TagFilter: () => <div data-testid="tag-filter" />,
 }));

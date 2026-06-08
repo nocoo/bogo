@@ -58,9 +58,25 @@ documentRoutes.get("/", async (c) => {
 		});
 	}
 
+	const personRows = await c.env.DB.prepare(
+		"SELECT document_id, person_id FROM document_persons WHERE workspace_id = ?",
+	)
+		.bind(wid)
+		.all();
+
+	const personMap = new Map<string, string[]>();
+	for (const row of personRows.results) {
+		const docId = row.document_id as string;
+		if (!personMap.has(docId)) {
+			personMap.set(docId, []);
+		}
+		personMap.get(docId)?.push(row.person_id as string);
+	}
+
 	const data = docs.map((doc) => ({
 		...doc,
 		tags: tagMap.get(doc.id) ?? [],
+		personIds: personMap.get(doc.id) ?? [],
 	}));
 
 	return c.json({ data });

@@ -1,19 +1,28 @@
-import type { Document } from "@bogo/shared";
+import type { Document, Person } from "@bogo/shared";
 import { FileText, Loader2, Plus, Trash2, X } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router";
+import { PersonAvatarCluster } from "../components/person/PersonAvatarCluster.js";
 import { TagBadge } from "../components/TagBadge.js";
 import { TagFilter } from "../components/TagFilter.js";
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
 import { useDocTypes } from "../viewmodels/document/use-doc-types.js";
 import { useDocuments } from "../viewmodels/document/use-documents.js";
+import { usePersonList } from "../viewmodels/person/use-person-list.js";
 
 export function DocumentsPage() {
 	const { workspaceId } = useWorkspaceContext();
 	const [filterTagIds, setFilterTagIds] = useState<string[]>([]);
 	const vm = useDocuments(filterTagIds.length > 0 ? filterTagIds : undefined);
 	const docTypesVm = useDocTypes();
+	const personListVM = usePersonList();
 	const [showCreate, setShowCreate] = useState(false);
+
+	const personById = useMemo(() => {
+		const map = new Map<string, Person>();
+		for (const p of personListVM.persons) map.set(p.id, p);
+		return map;
+	}, [personListVM.persons]);
 
 	if (!workspaceId) {
 		return (
@@ -83,6 +92,9 @@ export function DocumentsPage() {
 						doc={doc}
 						typeName={docTypesVm.types.find((t) => t.id === doc.typeId)?.name ?? null}
 						typeColor={docTypesVm.types.find((t) => t.id === doc.typeId)?.color ?? null}
+						persons={(doc.personIds ?? [])
+							.map((pid) => personById.get(pid))
+							.filter((p): p is Person => Boolean(p))}
 						onRemove={vm.remove}
 						isRemoving={vm.isRemoving}
 					/>
@@ -192,12 +204,14 @@ function DocumentRow({
 	doc,
 	typeName,
 	typeColor,
+	persons,
 	onRemove,
 	isRemoving,
 }: {
 	doc: Document;
 	typeName: string | null;
 	typeColor: string | null;
+	persons: Person[];
 	onRemove: (id: string) => void;
 	isRemoving: boolean;
 }) {
@@ -211,9 +225,9 @@ function DocumentRow({
 				<FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
 				<div className="flex-1 min-w-0">
 					<p className="text-sm font-medium text-foreground truncate">{doc.title}</p>
-					<div className="flex items-center gap-2 text-xs text-muted-foreground">
+					<div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
 						{typeName && (
-							<span className="inline-flex items-center gap-1">
+							<span className="inline-flex items-center gap-1.5">
 								{typeColor && (
 									<span
 										className="inline-block h-2 w-2 rounded-full"
@@ -226,12 +240,13 @@ function DocumentRow({
 						{doc.eventDate && <span>{doc.eventDate}</span>}
 						<span>v{doc.version}</span>
 						{doc.tags.length > 0 && (
-							<span className="flex items-center gap-1 ml-1">
+							<span className="flex items-center gap-1">
 								{doc.tags.map((tag) => (
 									<TagBadge key={tag.id} name={tag.name} color={tag.color} size="sm" />
 								))}
 							</span>
 						)}
+						{persons.length > 0 && <PersonAvatarCluster people={persons} max={4} size="xs" />}
 					</div>
 				</div>
 			</Link>
