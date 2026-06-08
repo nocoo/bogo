@@ -23,15 +23,15 @@ personRoutes.get("/", async (c) => {
 		const ids = tagIds.split(",").filter(Boolean);
 		if (ids.length > 0) {
 			const placeholders = ids.map(() => "?").join(",");
-			sql = `SELECT DISTINCT p.id, p.workspace_id, p.name, p.title, p.manager_id, p.dotted_manager_id, p.is_root, p.sort_order, p.created_at, p.updated_at FROM persons p INNER JOIN tag_persons tp ON tp.workspace_id = p.workspace_id AND tp.person_id = p.id WHERE p.workspace_id = ? AND tp.tag_id IN (${placeholders}) ORDER BY p.sort_order ASC`;
+			sql = `SELECT DISTINCT p.id, p.workspace_id, p.name, p.title, p.manager_id, p.dotted_manager_id, p.avatar_url, p.is_root, p.sort_order, p.created_at, p.updated_at FROM persons p INNER JOIN tag_persons tp ON tp.workspace_id = p.workspace_id AND tp.person_id = p.id WHERE p.workspace_id = ? AND tp.tag_id IN (${placeholders}) ORDER BY p.sort_order ASC`;
 			params.push(...ids);
 		} else {
 			sql =
-				"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, is_root, sort_order, created_at, updated_at FROM persons WHERE workspace_id = ? ORDER BY sort_order ASC";
+				"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, avatar_url, is_root, sort_order, created_at, updated_at FROM persons WHERE workspace_id = ? ORDER BY sort_order ASC";
 		}
 	} else {
 		sql =
-			"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, is_root, sort_order, created_at, updated_at FROM persons WHERE workspace_id = ? ORDER BY sort_order ASC";
+			"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, avatar_url, is_root, sort_order, created_at, updated_at FROM persons WHERE workspace_id = ? ORDER BY sort_order ASC";
 	}
 
 	const rows = await c.env.DB.prepare(sql)
@@ -122,7 +122,7 @@ personRoutes.post("/", async (c) => {
 	const now = new Date().toISOString();
 
 	await c.env.DB.prepare(
-		"INSERT INTO persons (id, workspace_id, name, title, manager_id, dotted_manager_id, is_root, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?, ?)",
+		"INSERT INTO persons (id, workspace_id, name, title, manager_id, dotted_manager_id, avatar_url, is_root, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)",
 	)
 		.bind(
 			id,
@@ -131,6 +131,7 @@ personRoutes.post("/", async (c) => {
 			input.title ?? "",
 			input.managerId,
 			input.dottedManagerId ?? null,
+			input.avatarUrl ?? null,
 			now,
 			now,
 		)
@@ -143,6 +144,7 @@ personRoutes.post("/", async (c) => {
 		title: input.title ?? "",
 		managerId: input.managerId,
 		dottedManagerId: input.dottedManagerId ?? null,
+		avatarUrl: input.avatarUrl ?? null,
 		isRoot: false,
 		sortOrder: 0,
 		createdAt: now,
@@ -157,7 +159,7 @@ personRoutes.get("/:id", async (c) => {
 	const wid = c.req.param("wid") as string;
 	const { id } = c.req.param();
 	const row = await c.env.DB.prepare(
-		"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, is_root, sort_order, created_at, updated_at FROM persons WHERE id = ? AND workspace_id = ?",
+		"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, avatar_url, is_root, sort_order, created_at, updated_at FROM persons WHERE id = ? AND workspace_id = ?",
 	)
 		.bind(id, wid)
 		.first();
@@ -233,6 +235,10 @@ personRoutes.put("/:id", async (c) => {
 		sets.push("dotted_manager_id = ?");
 		values.push(parsed.data.dottedManagerId);
 	}
+	if (parsed.data.avatarUrl !== undefined) {
+		sets.push("avatar_url = ?");
+		values.push(parsed.data.avatarUrl);
+	}
 
 	if (sets.length === 0) {
 		return c.json({ data: { updated: false } });
@@ -249,7 +255,7 @@ personRoutes.put("/:id", async (c) => {
 		.run();
 
 	const row = await c.env.DB.prepare(
-		"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, is_root, sort_order, created_at, updated_at FROM persons WHERE id = ? AND workspace_id = ?",
+		"SELECT id, workspace_id, name, title, manager_id, dotted_manager_id, avatar_url, is_root, sort_order, created_at, updated_at FROM persons WHERE id = ? AND workspace_id = ?",
 	)
 		.bind(id, wid)
 		.first();
@@ -466,6 +472,7 @@ function mapRow(row: Record<string, unknown>): Person {
 		title: row.title as string,
 		managerId: (row.manager_id as string) || null,
 		dottedManagerId: (row.dotted_manager_id as string) || null,
+		avatarUrl: (row.avatar_url as string) || null,
 		isRoot: row.is_root === 1,
 		sortOrder: row.sort_order as number,
 		createdAt: row.created_at as string,

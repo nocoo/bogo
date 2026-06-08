@@ -70,6 +70,7 @@ describe("person routes", () => {
 				title: "Chief",
 				managerId: null,
 				dottedManagerId: null,
+				avatarUrl: null,
 				isRoot: true,
 				sortOrder: 0,
 				createdAt: "2026-01-01T00:00:00Z",
@@ -361,6 +362,64 @@ describe("person routes", () => {
 			expect(res.status).toBe(400);
 			const json = await res.json();
 			expect(json.error.code).toBe("INVALID_DOTTED_MANAGER");
+		});
+
+		it("updates avatarUrl (set and clear)", async () => {
+			const setDb = createSequenceD1([
+				{ type: "first", value: { id: "p-1" } },
+				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+				{
+					type: "first",
+					value: {
+						id: "p-1",
+						workspace_id: WID,
+						name: "Dev",
+						title: "",
+						manager_id: "p-0",
+						dotted_manager_id: null,
+						avatar_url: "https://example.com/a.png",
+						is_root: 0,
+						sort_order: 0,
+						created_at: "2026-01-01T00:00:00Z",
+						updated_at: "2026-05-24T00:00:00Z",
+					},
+				},
+			]).db;
+
+			const setRes = await app.fetch(
+				makeRequest("PUT", `${BASE}/p-1`, { avatarUrl: "https://example.com/a.png" }),
+				{ DB: setDb, ENVIRONMENT: "test" },
+			);
+			expect(setRes.status).toBe(200);
+			expect((await setRes.json()).data.avatarUrl).toBe("https://example.com/a.png");
+
+			const clearDb = createSequenceD1([
+				{ type: "first", value: { id: "p-1" } },
+				{ type: "run", value: { success: true, meta: { changes: 1 } } },
+				{
+					type: "first",
+					value: {
+						id: "p-1",
+						workspace_id: WID,
+						name: "Dev",
+						title: "",
+						manager_id: "p-0",
+						dotted_manager_id: null,
+						avatar_url: null,
+						is_root: 0,
+						sort_order: 0,
+						created_at: "2026-01-01T00:00:00Z",
+						updated_at: "2026-05-24T00:00:00Z",
+					},
+				},
+			]).db;
+
+			const clearRes = await app.fetch(makeRequest("PUT", `${BASE}/p-1`, { avatarUrl: null }), {
+				DB: clearDb,
+				ENVIRONMENT: "test",
+			});
+			expect(clearRes.status).toBe(200);
+			expect((await clearRes.json()).data.avatarUrl).toBeNull();
 		});
 	});
 

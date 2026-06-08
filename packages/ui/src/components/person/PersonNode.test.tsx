@@ -18,6 +18,7 @@ const BASE_PROPS = {
 			title: "Engineer",
 			managerId: null,
 			dottedManagerId: null,
+			avatarUrl: null,
 			isRoot: false,
 			sortOrder: 0,
 			createdAt: "2026-01-01",

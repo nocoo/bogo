@@ -5,12 +5,14 @@ export const createPersonSchema = z.object({
 	title: z.string().max(200).optional().default(""),
 	managerId: z.string().uuid().nullable(),
 	dottedManagerId: z.string().uuid().nullable().optional(),
+	avatarUrl: z.string().max(2048).nullable().optional(),
 });
 
 export const updatePersonSchema = z.object({
 	name: z.string().min(1).max(200).optional(),
 	title: z.string().max(200).optional(),
 	dottedManagerId: z.string().uuid().nullable().optional(),
+	avatarUrl: z.string().max(2048).nullable().optional(),
 });
 
 export const movePersonSchema = z.object({
@@ -30,6 +32,7 @@ export interface Person {
 	title: string;
 	managerId: string | null;
 	dottedManagerId: string | null;
+	avatarUrl: string | null;
 	isRoot: boolean;
 	sortOrder: number;
 	createdAt: string;
