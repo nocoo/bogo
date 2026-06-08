@@ -49,7 +49,7 @@ function PersonTreeInner() {
 	}, [vm]);
 
 	const handleNodeDragStop = useCallback(
-		(_: React.MouseEvent, node: { id: string }, _nodes: unknown[]) => {
+		(_: MouseEvent | TouchEvent, node: { id: string }, _nodes: unknown[]) => {
 			const screenCenter = getNodeCenter(node.id);
 			if (!screenCenter) {
 				return;
