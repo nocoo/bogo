@@ -209,7 +209,7 @@ function MarkdownPreview({ content }: { content: string }) {
 
 	return (
 		<article
-			className="flex-1 w-full rounded-lg border border-border bg-secondary p-6 text-sm text-foreground prose prose-sm prose-invert max-w-none overflow-y-auto prose-headings:font-semibold prose-headings:text-foreground prose-h1:text-xl prose-h1:border-b prose-h1:border-border prose-h1:pb-2 prose-h2:text-lg prose-h3:text-base prose-p:leading-relaxed"
+			className="flex-1 w-full rounded-lg border border-border bg-secondary p-6 text-sm text-foreground prose prose-sm dark:prose-invert max-w-none overflow-y-auto prose-headings:font-semibold prose-headings:text-foreground prose-h1:text-xl prose-h1:border-b prose-h1:border-border prose-h1:pb-2 prose-h2:text-lg prose-h3:text-base prose-p:leading-relaxed"
 			aria-label="Markdown preview"
 			// biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown from user input only
 			dangerouslySetInnerHTML={{ __html: html }}
