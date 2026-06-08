@@ -251,7 +251,7 @@ describe("DocumentEditor", () => {
 		render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
 
 		const preview = screen.getByLabelText("Markdown preview");
-		expect(preview.innerHTML).toContain("<h1>Hello</h1>");
+		expect(preview.innerHTML).toContain('<h1 id="hello">Hello</h1>');
 		expect(preview.innerHTML).toContain("<strong>bold text</strong>");
 	});
 
@@ -264,7 +264,7 @@ describe("DocumentEditor", () => {
 		});
 
 		const preview = screen.getByLabelText("Markdown preview");
-		expect(preview.innerHTML).toContain("<h2>New heading</h2>");
+		expect(preview.innerHTML).toContain('<h2 id="new-heading">New heading</h2>');
 	});
 
 	it("retains draft and dirty state when save fails", () => {
