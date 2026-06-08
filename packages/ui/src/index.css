@@ -1,15 +1,33 @@
+/* ============================================================================
+ * Bogo design system — Deep Blue theme
+ *
+ * Order of sections matters; do not shuffle:
+ *   1. Imports + plugins      — tailwind v4 engine, animations, typography
+ *   2. Variants               — custom `dark` variant tied to .dark on <html>
+ *   3. Theme tokens (@theme)  — maps semantic vars into Tailwind color/utility names
+ *   4. Design tokens (:root)  — raw oklch values for light + dark mode
+ *   5. @layer base            — element-level resets and global typography
+ *   6. @layer components      — reusable component primitives and themed chrome
+ *
+ * Conventions: see docs/10-css-conventions.md.
+ * ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+ * 1. Imports + plugins
+ * --------------------------------------------------------------------------- */
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
+/* ---------------------------------------------------------------------------
+ * 2. Variants
+ * --------------------------------------------------------------------------- */
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Bogo — Deep Blue theme based on Basalt design language.
- * 3-Tier Luminance: L0 background (sidebar + shell) → L1 card (floating island) → L2 secondary (inner panels).
- * Primary accent: deep navy blue (250 hue in oklch).
- */
-
+/* ---------------------------------------------------------------------------
+ * 3. Theme tokens — expose semantic vars to Tailwind utilities
+ *    (`bg-card`, `text-foreground`, `border-border`, …)
+ * --------------------------------------------------------------------------- */
 @theme inline {
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
@@ -40,10 +58,18 @@
 	--font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
+/* ---------------------------------------------------------------------------
+ * 4. Design tokens — raw oklch values
+ *    Basalt 3-Tier Luminance:
+ *      L0 background (sidebar + shell)
+ *      L1 card       (floating island)
+ *      L2 secondary  (inner panels)
+ *    Primary accent: deep navy blue (hue 250).
+ * --------------------------------------------------------------------------- */
 :root {
 	--radius: 0.75rem;
 
-	/* Deep Blue Light Mode — L0 background / L1 card / L2 secondary */
+	/* Light mode */
 	--background: oklch(0.94 0.012 230);
 	--foreground: oklch(0.15 0.02 230);
 	--card: oklch(0.97 0.005 230);
@@ -66,7 +92,7 @@
 }
 
 .dark {
-	/* Deep Blue Dark Mode — L0 background / L1 card / L2 secondary */
+	/* Dark mode */
 	--background: oklch(0.15 0.02 250);
 	--foreground: oklch(0.9 0.01 230);
 	--card: oklch(0.19 0.02 250);
@@ -88,6 +114,11 @@
 	--ring: oklch(0.55 0.2 250);
 }
 
+/* ---------------------------------------------------------------------------
+ * 5. @layer base — element-level resets and global typography
+ *    Anything that targets a bare HTML element AND is essentially a reset
+ *    belongs here. Themed component chrome lives in @layer components.
+ * --------------------------------------------------------------------------- */
 @layer base {
 	* {
 		@apply border-border;
@@ -99,6 +130,11 @@
 	}
 }
 
+/* ---------------------------------------------------------------------------
+ * 6. @layer components — reusable primitives and themed element chrome
+ *    Component classes live here so utilities (mt-4, p-6, …) can still
+ *    override them at call sites.
+ * --------------------------------------------------------------------------- */
 @layer components {
 	/* Themed <select> chrome — bare <select> elements adopt this automatically. */
 	select {
