@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.3.0] - 2026-06-08
+
+### Added
+- **Person avatars as first-class data**
+  - `persons.avatar_url` column (migration `0003_persons_avatar.sql`)
+  - `PersonAvatar`: deterministic letter avatar with stable djb2 name → 8-color palette mapping; uploaded URL takes precedence and falls back on load failure
+  - `PersonChip` (left avatar + name + optional subtitle/× button) and `PersonAvatarCluster` (overlapping avatars + "+N" overflow) — the only sanctioned person-rendering surfaces
+  - `EditPersonPanel` gains an Avatar URL field with live preview
+- **YAML frontmatter rendering**
+  - Markdown preview auto-detects a leading `--- ... ---` block and renders it as a compact property table; arrays render as chips, nested objects collapse to inline JSON
+  - Malformed YAML and mid-document fences silently strip / fall through to normal markdown
+  - `js-yaml` `JSON_SCHEMA` keeps scalars verbatim — date-shaped strings like `2026-05-30` are preserved instead of being coerced into Date ISO strings
+- **DocType picker on the document editor** — colored pill in the right inspector, full set/unset menu via new `DocTypePicker` component
+- **Document list shows associated people** — overlapping avatar cluster on each row (later removed per spec; see Changed)
+- **Frontmatter-style YAML examples and component classes** documented in `docs/10-css-conventions.md`
+
+### Changed
+- **Document editor — full GitHub-style redesign**
+  - Two-column layout: editor + preview in main, fixed inspector on the right with grouped Type / Tags / People / Event date / History
+  - Inline-editable title (24px, hover shows pencil), back link on its own row, save chip with dirty/all-saved status indicator
+  - Viewport-locked height chain in `DashboardLayout`: long content scrolls inside the editor and preview panes instead of pushing the whole page
+  - Padding tightened so the editor inherits the layout card's `p-5` instead of double-padding
+  - Header strip aligns to column 0; control heights unified at `h-8`
+- **Markdown rendering rewrite**
+  - Replaced the 50-line regex stub with a proper `marked` v17 renderer mirroring firefly's architecture: HTML escaped, URLs sanitised, heading anchor ids, external links open in new tab
+  - `prose-invert` now scoped to `dark:`, fixing the white-bold-on-white-bg bug in light mode
+  - `.markdown-surface` extracted as a `@layer components` semantic class; `<select>` chrome moved from `@layer base` to `@layer components`
+- **CSS structure cleanup**
+  - `index.css` reorganised into 6 numbered sections (imports / variants / theme tokens / design tokens / base / components)
+  - Document list rows aligned to `EditPersonPanel` panel vocabulary (`bg-secondary` + `rounded-xl` + `shadow-sm`); titles wrap to two lines
+  - Person nodes keep an opaque `bg-secondary` background when selected (no more dotted-canvas bleed-through)
+- **PersonDocTimeline → Documents panel** — same panel vocabulary as `EditPersonPanel`, doc cards show title (2-line) + type chip + version + tag badges
+- **Worker `GET /persons/:id/documents`** — joins `tag_documents` so each doc carries its tag list
+- **Worker `GET /documents`** — embeds `personIds[]` per document; nested `if (tagIds && ids.length > 0)` collapsed to a single check
+- **Person `update` API surfaces** — `PersonListVM.update` / `EditPersonPanel.onUpdate` widened to `UpdatePersonInput` so the shared schema is the single source of truth
+
+### Fixed
+- White bold-text-on-white-background in markdown preview (light mode)
+- Editor + preview being pushed past the viewport when content was long
+- Frontmatter `2026-05-30` no longer rendered as `2026-05-30T00:00:00.000Z`
+
 ## [0.2.2] - 2026-06-08
 
 ### Changed
