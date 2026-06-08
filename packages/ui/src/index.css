@@ -162,4 +162,34 @@
 	.dark .markdown-surface {
 		@apply prose-invert;
 	}
+
+	/* YAML frontmatter rendered as a compact property table at the top of a
+	 * markdown surface. Visually distinct from prose-styled GFM tables so it
+	 * reads as document metadata rather than content. */
+	.markdown-frontmatter {
+		@apply mb-6 w-full border-separate border-spacing-0 overflow-hidden rounded-md border border-border bg-muted/40 text-xs;
+	}
+	.markdown-frontmatter th,
+	.markdown-frontmatter td {
+		@apply border-b border-border px-3 py-1.5 align-top;
+	}
+	.markdown-frontmatter tr:last-child th,
+	.markdown-frontmatter tr:last-child td {
+		@apply border-b-0;
+	}
+	.markdown-frontmatter th {
+		@apply w-40 font-medium text-muted-foreground text-left;
+	}
+	.markdown-frontmatter td {
+		@apply text-foreground break-words;
+	}
+	.markdown-frontmatter-chip {
+		@apply inline-block rounded bg-accent px-1.5 py-0.5 text-[0.7rem] font-medium text-accent-foreground mr-1;
+	}
+	.markdown-frontmatter-empty {
+		@apply text-muted-foreground;
+	}
+	.markdown-frontmatter code {
+		@apply rounded bg-background/60 px-1 py-0.5 font-mono text-[0.7rem];
+	}
 }
