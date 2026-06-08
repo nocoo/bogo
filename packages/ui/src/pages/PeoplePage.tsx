@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { User } from "lucide-react";
 import { useState } from "react";
+import { PersonAvatar } from "@/components/person/PersonAvatar";
 import { PersonTree } from "@/components/person/PersonTree";
 import { TagBadge } from "@/components/TagBadge";
 import { TagFilter } from "@/components/TagFilter";
@@ -35,9 +35,7 @@ export function PeoplePage() {
 									key={person.id}
 									className="flex items-center gap-3 rounded-lg border border-border bg-secondary px-4 py-3"
 								>
-									<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-										<User className="h-4 w-4 text-primary" strokeWidth={1.5} />
-									</div>
+									<PersonAvatar name={person.name} avatarUrl={person.avatarUrl} size="lg" />
 									<div className="flex-1 min-w-0">
 										<p className="text-sm font-medium text-foreground truncate">{person.name}</p>
 										{person.title && (

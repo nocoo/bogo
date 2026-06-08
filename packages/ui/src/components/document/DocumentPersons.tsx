@@ -1,6 +1,7 @@
 import type { DocumentPerson, Person } from "@bogo/shared";
-import { Loader2, Plus, X } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { useCallback, useState } from "react";
+import { PersonChip } from "../../components/person/PersonChip.js";
 import type { AddPersonInput } from "../../viewmodels/document/use-document.js";
 
 export function DocumentPersons({
@@ -71,25 +72,18 @@ export function DocumentPersons({
 				<p className="text-xs text-muted-foreground">No people associated yet.</p>
 			)}
 
-			<div className="flex flex-wrap gap-2">
+			<div className="flex flex-col gap-1.5">
 				{persons.map((dp) => {
 					const person = allPersons.find((p) => p.id === dp.personId);
 					return (
-						<span
+						<PersonChip
 							key={dp.personId}
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2.5 py-1.5 text-xs font-medium text-foreground"
-						>
-							{person?.name ?? dp.personId}
-							<button
-								type="button"
-								onClick={() => onRemove(dp.personId)}
-								disabled={isRemoving}
-								className="shrink-0 rounded-sm text-muted-foreground hover:text-red-400 disabled:opacity-50 transition-colors"
-								aria-label={`Remove ${person?.name ?? "person"}`}
-							>
-								<X className="h-3 w-3" />
-							</button>
-						</span>
+							name={person?.name ?? dp.personId}
+							avatarUrl={person?.avatarUrl}
+							subtitle={person?.title || undefined}
+							onRemove={() => onRemove(dp.personId)}
+							isRemoving={isRemoving}
+						/>
 					);
 				})}
 			</div>
