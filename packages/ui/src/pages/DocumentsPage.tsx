@@ -1,28 +1,19 @@
-import type { Document, Person } from "@bogo/shared";
+import type { Document } from "@bogo/shared";
 import { FileText, Loader2, Plus, Trash2, X } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { Link } from "react-router";
-import { PersonAvatarCluster } from "../components/person/PersonAvatarCluster.js";
 import { TagBadge } from "../components/TagBadge.js";
 import { TagFilter } from "../components/TagFilter.js";
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
 import { useDocTypes } from "../viewmodels/document/use-doc-types.js";
 import { useDocuments } from "../viewmodels/document/use-documents.js";
-import { usePersonList } from "../viewmodels/person/use-person-list.js";
 
 export function DocumentsPage() {
 	const { workspaceId } = useWorkspaceContext();
 	const [filterTagIds, setFilterTagIds] = useState<string[]>([]);
 	const vm = useDocuments(filterTagIds.length > 0 ? filterTagIds : undefined);
 	const docTypesVm = useDocTypes();
-	const personListVM = usePersonList();
 	const [showCreate, setShowCreate] = useState(false);
-
-	const personById = useMemo(() => {
-		const map = new Map<string, Person>();
-		for (const p of personListVM.persons) map.set(p.id, p);
-		return map;
-	}, [personListVM.persons]);
 
 	if (!workspaceId) {
 		return (
@@ -85,16 +76,13 @@ export function DocumentsPage() {
 				</div>
 			)}
 
-			<div className="space-y-2">
+			<div className="space-y-3">
 				{vm.documents.map((doc) => (
 					<DocumentRow
 						key={doc.id}
 						doc={doc}
 						typeName={docTypesVm.types.find((t) => t.id === doc.typeId)?.name ?? null}
 						typeColor={docTypesVm.types.find((t) => t.id === doc.typeId)?.color ?? null}
-						persons={(doc.personIds ?? [])
-							.map((pid) => personById.get(pid))
-							.filter((p): p is Person => Boolean(p))}
 						onRemove={vm.remove}
 						isRemoving={vm.isRemoving}
 					/>
@@ -204,65 +192,67 @@ function DocumentRow({
 	doc,
 	typeName,
 	typeColor,
-	persons,
 	onRemove,
 	isRemoving,
 }: {
 	doc: Document;
 	typeName: string | null;
 	typeColor: string | null;
-	persons: Person[];
 	onRemove: (id: string) => void;
 	isRemoving: boolean;
 }) {
 	return (
-		<div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 hover:border-primary/30 transition-colors">
-			<Link
-				to={`/documents/${doc.id}`}
-				className="flex flex-1 items-center gap-3 min-w-0"
-				aria-label={`Open ${doc.title}`}
-			>
-				<FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
-				<div className="flex-1 min-w-0">
-					<p className="text-sm font-medium text-foreground truncate">{doc.title}</p>
-					<div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-						{typeName && (
-							<span className="inline-flex items-center gap-1.5">
-								{typeColor && (
+		<div className="group rounded-xl border border-border bg-secondary p-4 shadow-sm hover:border-primary/40 transition-colors">
+			<div className="flex items-start gap-3">
+				<Link
+					to={`/documents/${doc.id}`}
+					className="flex flex-1 items-start gap-3 min-w-0"
+					aria-label={`Open ${doc.title}`}
+				>
+					<FileText className="h-5 w-5 shrink-0 mt-0.5 text-muted-foreground" strokeWidth={1.6} />
+					<div className="flex-1 min-w-0 space-y-2">
+						<h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
+							{doc.title}
+						</h3>
+						<div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
+							{typeName && (
+								<span className="inline-flex items-center gap-1.5">
 									<span
 										className="inline-block h-2 w-2 rounded-full"
-										style={{ backgroundColor: typeColor }}
+										style={{ backgroundColor: typeColor ?? "currentColor" }}
+										aria-hidden="true"
 									/>
-								)}
-								{typeName}
-							</span>
-						)}
-						{doc.eventDate && <span>{doc.eventDate}</span>}
-						<span>v{doc.version}</span>
-						{doc.tags.length > 0 && (
-							<span className="flex items-center gap-1">
-								{doc.tags.map((tag) => (
-									<TagBadge key={tag.id} name={tag.name} color={tag.color} size="sm" />
-								))}
-							</span>
-						)}
-						{persons.length > 0 && <PersonAvatarCluster people={persons} max={4} size="xs" />}
+									{typeName}
+								</span>
+							)}
+							{doc.eventDate && (
+								<span className="inline-flex items-center gap-1">{doc.eventDate}</span>
+							)}
+							<span className="inline-flex items-center gap-1">v{doc.version}</span>
+							{doc.tags.length > 0 && (
+								<span className="flex items-center gap-1.5 flex-wrap">
+									{doc.tags.map((tag) => (
+										<TagBadge key={tag.id} name={tag.name} color={tag.color} size="sm" />
+									))}
+								</span>
+							)}
+						</div>
 					</div>
-				</div>
-			</Link>
-			<button
-				type="button"
-				onClick={() => onRemove(doc.id)}
-				disabled={isRemoving}
-				className="shrink-0 text-muted-foreground hover:text-red-500 disabled:opacity-50 transition-colors"
-				aria-label={`Delete ${doc.title}`}
-			>
-				{isRemoving ? (
-					<Loader2 className="h-4 w-4 animate-spin" />
-				) : (
-					<Trash2 className="h-4 w-4" strokeWidth={1.5} />
-				)}
-			</button>
+				</Link>
+				<button
+					type="button"
+					onClick={() => onRemove(doc.id)}
+					disabled={isRemoving}
+					className="shrink-0 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-red-500 disabled:opacity-50 transition-all"
+					aria-label={`Delete ${doc.title}`}
+				>
+					{isRemoving ? (
+						<Loader2 className="h-4 w-4 animate-spin" />
+					) : (
+						<Trash2 className="h-4 w-4" strokeWidth={1.5} />
+					)}
+				</button>
+			</div>
 		</div>
 	);
 }
