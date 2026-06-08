@@ -1,8 +1,12 @@
 // ---------------------------------------------------------------------------
 // Markdown → HTML renderer (client-side, used by document preview)
 // Uses `marked` with a custom renderer that escapes raw HTML and sanitises URLs.
+// Detects YAML frontmatter (--- ... ---) at the top of the document and
+// renders it as a structured property table; falls back to silent strip if
+// the YAML payload fails to parse.
 // ---------------------------------------------------------------------------
 
+import jsYaml from "js-yaml";
 import { Marked, type MarkedExtension, type Tokens } from "marked";
 
 function escapeHtml(str: string): string {
@@ -101,15 +105,105 @@ function getMarked(): Marked {
 	return instance;
 }
 
+// ---------------------------------------------------------------------------
+// Frontmatter
+// ---------------------------------------------------------------------------
+
+/**
+ * Matches a YAML frontmatter block at the very start of the document.
+ * Permits an optional UTF-8 BOM and trailing newline after the closing `---`.
+ */
+const FRONTMATTER_RE = /^﻿?---\r?\n([\s\S]*?)\r?\n---[ \t]*\r?\n?/;
+
+interface ExtractResult {
+	frontmatterHtml: string;
+	body: string;
+}
+
+function extractFrontmatter(src: string): ExtractResult {
+	const match = src.match(FRONTMATTER_RE);
+	if (!match) return { frontmatterHtml: "", body: src };
+
+	const yamlText = match[1];
+	const body = src.slice(match[0].length);
+
+	let data: unknown;
+	try {
+		data = jsYaml.load(yamlText);
+	} catch {
+		// Malformed YAML — silently strip the block so it doesn't pollute the
+		// rendered preview as raw text or accidental setext headings.
+		return { frontmatterHtml: "", body };
+	}
+
+	if (!data || typeof data !== "object" || Array.isArray(data)) {
+		return { frontmatterHtml: "", body };
+	}
+
+	return { frontmatterHtml: renderFrontmatter(data as Record<string, unknown>), body };
+}
+
+function renderFrontmatter(data: Record<string, unknown>): string {
+	const entries = Object.entries(data);
+	if (entries.length === 0) return "";
+
+	const rows = entries
+		.map(([key, value]) => {
+			const k = escapeHtml(key);
+			const v = formatFrontmatterValue(value);
+			return `<tr><th scope="row">${k}</th><td>${v}</td></tr>`;
+		})
+		.join("");
+
+	return `<table class="markdown-frontmatter"><tbody>${rows}</tbody></table>\n`;
+}
+
+function formatFrontmatterValue(value: unknown): string {
+	if (value === null || value === undefined) {
+		return `<span class="markdown-frontmatter-empty">—</span>`;
+	}
+	if (typeof value === "string") {
+		return escapeHtml(value);
+	}
+	if (typeof value === "number" || typeof value === "boolean") {
+		return escapeHtml(String(value));
+	}
+	if (value instanceof Date) {
+		return escapeHtml(value.toISOString());
+	}
+	if (Array.isArray(value)) {
+		if (value.length === 0) return `<span class="markdown-frontmatter-empty">—</span>`;
+		return value
+			.map(
+				(item) => `<span class="markdown-frontmatter-chip">${formatFrontmatterValue(item)}</span>`,
+			)
+			.join(" ");
+	}
+	if (typeof value === "object") {
+		// Nested objects — render as a compact JSON snippet rather than recurse.
+		return `<code>${escapeHtml(JSON.stringify(value))}</code>`;
+	}
+	// Symbol / function would only appear if a caller bypassed YAML; not reachable from js-yaml output.
+	return escapeHtml(String(value));
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
 /**
  * Render markdown to a trusted HTML string.
  * - Raw HTML is escaped (XSS-safe)
  * - URLs are restricted to a safe scheme allowlist
  * - External links open in a new tab with rel="noopener noreferrer"
  * - Headings get auto-generated `id` anchors
+ * - YAML frontmatter (--- ... ---) at the top is parsed into a property table;
+ *   malformed YAML is silently stripped.
  */
 export function renderMarkdown(src: string): string {
 	if (!src) return "";
-	const result = getMarked().parse(src, { async: false });
-	return (typeof result === "string" ? result : "").trim();
+	const { frontmatterHtml, body } = extractFrontmatter(src);
+	const bodyResult = getMarked().parse(body, { async: false });
+	const bodyHtml = typeof bodyResult === "string" ? bodyResult : "";
+	return (frontmatterHtml + bodyHtml).trim();
 }

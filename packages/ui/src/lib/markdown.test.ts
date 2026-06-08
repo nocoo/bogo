@@ -161,3 +161,126 @@ describe("renderMarkdown", () => {
 		expect(result).toContain('href="https://ok.com"');
 	});
 });
+
+describe("renderMarkdown — YAML frontmatter", () => {
+	it("renders frontmatter as a property table and strips the source block", () => {
+		const input = "---\nname: Shizhe\nstatus: Posted\n---\n\n# Body";
+		const result = renderMarkdown(input);
+		expect(result).toContain('<table class="markdown-frontmatter">');
+		expect(result).toContain('<th scope="row">name</th>');
+		expect(result).toContain("<td>Shizhe</td>");
+		expect(result).toContain('<th scope="row">status</th>');
+		expect(result).toContain('<h1 id="body">Body</h1>');
+		// the raw fence delimiters should not leak into the body
+		expect(result).not.toContain("<hr>");
+	});
+
+	it("renders array values as chips", () => {
+		const input = "---\ntags: [a, b, c]\n---\nbody";
+		const result = renderMarkdown(input);
+		expect(result).toContain('<span class="markdown-frontmatter-chip">a</span>');
+		expect(result).toContain('<span class="markdown-frontmatter-chip">b</span>');
+		expect(result).toContain('<span class="markdown-frontmatter-chip">c</span>');
+	});
+
+	it("renders empty arrays / null / undefined as em-dash", () => {
+		const input = "---\nempty_arr: []\nempty_val:\n---\nbody";
+		const result = renderMarkdown(input);
+		expect(result).toContain('<span class="markdown-frontmatter-empty">—</span>');
+	});
+
+	it("renders numbers and booleans as text", () => {
+		const input = "---\ncount: 42\nactive: true\n---\nbody";
+		const result = renderMarkdown(input);
+		expect(result).toContain("<td>42</td>");
+		expect(result).toContain("<td>true</td>");
+	});
+
+	it("escapes HTML inside frontmatter values", () => {
+		const input = "---\nname: <script>alert(1)</script>\n---\nbody";
+		const result = renderMarkdown(input);
+		expect(result).toContain("&lt;script&gt;");
+		expect(result).not.toContain("<script>");
+	});
+
+	it("escapes HTML inside frontmatter keys", () => {
+		const input = '---\n"<bad>": value\n---\nbody';
+		const result = renderMarkdown(input);
+		expect(result).toContain("&lt;bad&gt;");
+	});
+
+	it("silently strips malformed YAML frontmatter", () => {
+		const input = "---\nname: : : invalid\n---\n\n# Body";
+		const result = renderMarkdown(input);
+		expect(result).not.toContain('<table class="markdown-frontmatter">');
+		expect(result).not.toContain("name");
+		expect(result).toContain('<h1 id="body">Body</h1>');
+	});
+
+	it("silently strips frontmatter whose YAML is a scalar (not a mapping)", () => {
+		const input = "---\nplain string\n---\n\n# Body";
+		const result = renderMarkdown(input);
+		expect(result).not.toContain('<table class="markdown-frontmatter">');
+		expect(result).toContain('<h1 id="body">Body</h1>');
+	});
+
+	it("does not treat mid-document --- fences as frontmatter", () => {
+		const input = "# Title\n\nbody\n\n---\nname: x\n---";
+		const result = renderMarkdown(input);
+		expect(result).not.toContain('<table class="markdown-frontmatter">');
+		expect(result).toContain('<h1 id="title">Title</h1>');
+	});
+
+	it("handles CRLF line endings in frontmatter", () => {
+		const input = "---\r\nname: Shizhe\r\n---\r\n\r\n# Body";
+		const result = renderMarkdown(input);
+		expect(result).toContain('<th scope="row">name</th>');
+		expect(result).toContain('<h1 id="body">Body</h1>');
+	});
+
+	it("renders frontmatter with no body", () => {
+		const input = "---\nname: x\n---\n";
+		const result = renderMarkdown(input);
+		expect(result).toContain('<th scope="row">name</th>');
+	});
+
+	it("renders Date values from YAML as ISO strings", () => {
+		const input = "---\nfetched_at: 2026-05-30\n---\nbody";
+		const result = renderMarkdown(input);
+		expect(result).toContain("<td>2026-05-30T00:00:00.000Z</td>");
+	});
+
+	it("renders nested objects as inline JSON code", () => {
+		const input = "---\nmeta:\n  key: value\n  count: 3\n---\nbody";
+		const result = renderMarkdown(input);
+		expect(result).toContain("<code>");
+		expect(result).toContain("&quot;key&quot;:&quot;value&quot;");
+		expect(result).toContain("&quot;count&quot;:3");
+	});
+
+	it("renders a realistic Connect document sample", () => {
+		const input = `---
+name: Shizhe Huang
+pernr: 6259965
+connect_name: "Connect Apr 2026"
+period: "Nov 27, 2025 - Apr 14, 2026"
+status: Posted
+tags: [connect, performance, shizhe]
+---
+
+# Connect Apr 2026 — Shizhe Huang
+
+**Reflection Period:** Nov 27, 2025
+`;
+		const result = renderMarkdown(input);
+		expect(result).toContain('<table class="markdown-frontmatter">');
+		expect(result).toContain('<th scope="row">name</th>');
+		expect(result).toContain("<td>Shizhe Huang</td>");
+		expect(result).toContain("<td>Connect Apr 2026</td>");
+		expect(result).toContain('<span class="markdown-frontmatter-chip">connect</span>');
+		expect(result).toContain('<h1 id="connect-apr-2026-shizhe-huang">');
+		// Ensure none of the raw frontmatter keys leak into the rendered body
+		expect(result).not.toContain("<p>name: Shizhe");
+		expect(result).not.toContain("<p>pernr:");
+	});
+});
