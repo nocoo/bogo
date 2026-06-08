@@ -1,9 +1,10 @@
-import type { CustomFieldDefinition, Person } from "@bogo/shared";
+import type { CustomFieldDefinition, Person, UpdatePersonInput } from "@bogo/shared";
 import { Loader2, Save, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
 import { PersonFieldValues } from "../field/PersonFieldValues.js";
 import { TagPicker } from "../TagPicker.js";
+import { PersonAvatar } from "./PersonAvatar.js";
 
 function getDescendantIds(persons: Person[], personId: string): Set<string> {
 	const ids = new Set<string>();
@@ -34,10 +35,7 @@ export function EditPersonPanel({
 }: {
 	person: Person;
 	persons: Person[];
-	onUpdate: (
-		id: string,
-		fields: { name?: string; title?: string; dottedManagerId?: string | null },
-	) => void;
+	onUpdate: (id: string, fields: UpdatePersonInput) => void;
 	onMove: (id: string, newManagerId: string | null) => void;
 	onRemove: (id: string) => void;
 	onClose: () => void;
@@ -49,12 +47,14 @@ export function EditPersonPanel({
 	const [title, setTitle] = useState(person.title);
 	const [managerId, setManagerId] = useState<string | null>(person.managerId);
 	const [dottedManagerId, setDottedManagerId] = useState<string | null>(person.dottedManagerId);
+	const [avatarUrl, setAvatarUrl] = useState<string>(person.avatarUrl ?? "");
 
 	useEffect(() => {
 		setName(person.name);
 		setTitle(person.title);
 		setManagerId(person.managerId);
 		setDottedManagerId(person.dottedManagerId);
+		setAvatarUrl(person.avatarUrl ?? "");
 	}, [person]);
 
 	const descendantIds = useMemo(() => getDescendantIds(persons, person.id), [persons, person.id]);
@@ -75,7 +75,7 @@ export function EditPersonPanel({
 	);
 
 	const handleSave = useCallback(() => {
-		const fields: { name?: string; title?: string; dottedManagerId?: string | null } = {};
+		const fields: UpdatePersonInput = {};
 		if (name.trim() && name.trim() !== person.name) {
 			fields.name = name.trim();
 		}
@@ -85,10 +85,14 @@ export function EditPersonPanel({
 		if (dottedManagerId !== person.dottedManagerId) {
 			fields.dottedManagerId = dottedManagerId;
 		}
+		const nextAvatar = avatarUrl.trim() === "" ? null : avatarUrl.trim();
+		if (nextAvatar !== (person.avatarUrl ?? null)) {
+			fields.avatarUrl = nextAvatar;
+		}
 		if (Object.keys(fields).length > 0) {
 			onUpdate(person.id, fields);
 		}
-	}, [name, title, dottedManagerId, person, onUpdate]);
+	}, [name, title, dottedManagerId, avatarUrl, person, onUpdate]);
 
 	const eligibleDottedManagers = persons.filter((p) => p.id !== person.id && p.id !== managerId);
 
@@ -107,6 +111,27 @@ export function EditPersonPanel({
 			</div>
 
 			<div className="space-y-3">
+				<div>
+					<span className="text-xs text-muted-foreground">Avatar</span>
+					<div className="mt-1 flex items-center gap-3">
+						<PersonAvatar name={name || person.name} avatarUrl={avatarUrl || null} size="lg" />
+						<div className="flex-1 min-w-0 space-y-1">
+							<input
+								id="edit-avatar"
+								type="url"
+								value={avatarUrl}
+								onChange={(e) => setAvatarUrl(e.target.value)}
+								placeholder="https://… (leave empty for letter avatar)"
+								className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
+								aria-label="Avatar URL"
+							/>
+							<p className="text-[10px] text-muted-foreground">
+								Leave blank to use a colored letter avatar.
+							</p>
+						</div>
+					</div>
+				</div>
+
 				<div>
 					<label htmlFor="edit-name" className="text-xs text-muted-foreground">
 						Name

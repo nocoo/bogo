@@ -156,6 +156,46 @@ describe("EditPersonPanel", () => {
 		expect(onUpdate).not.toHaveBeenCalled();
 	});
 
+	it("calls onUpdate with avatarUrl when set", () => {
+		const onUpdate = vi.fn();
+		render(
+			<EditPersonPanel
+				person={ALICE}
+				persons={[ROOT, ALICE, BOB]}
+				onUpdate={onUpdate}
+				onMove={vi.fn()}
+				onRemove={vi.fn()}
+				onClose={vi.fn()}
+				isRemoving={false}
+			/>,
+		);
+		fireEvent.change(screen.getByLabelText("Avatar URL"), {
+			target: { value: "https://example.com/a.png" },
+		});
+		fireEvent.click(screen.getByText("Save"));
+		expect(onUpdate).toHaveBeenCalledWith("p-alice", {
+			avatarUrl: "https://example.com/a.png",
+		});
+	});
+
+	it("calls onUpdate with null avatarUrl when cleared from a set value", () => {
+		const onUpdate = vi.fn();
+		render(
+			<EditPersonPanel
+				person={{ ...ALICE, avatarUrl: "https://example.com/a.png" }}
+				persons={[ROOT, ALICE, BOB]}
+				onUpdate={onUpdate}
+				onMove={vi.fn()}
+				onRemove={vi.fn()}
+				onClose={vi.fn()}
+				isRemoving={false}
+			/>,
+		);
+		fireEvent.change(screen.getByLabelText("Avatar URL"), { target: { value: "" } });
+		fireEvent.click(screen.getByText("Save"));
+		expect(onUpdate).toHaveBeenCalledWith("p-alice", { avatarUrl: null });
+	});
+
 	it("shows delete button for non-root person", () => {
 		render(
 			<EditPersonPanel

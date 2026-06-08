@@ -1,4 +1,4 @@
-import type { Person } from "@bogo/shared";
+import type { Person, UpdatePersonInput } from "@bogo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
@@ -11,10 +11,7 @@ export interface PersonListVM {
 	error: Error | null;
 
 	create: (name: string, managerId: string | null) => void;
-	update: (
-		id: string,
-		fields: { name?: string; title?: string; dottedManagerId?: string | null },
-	) => void;
+	update: (id: string, fields: UpdatePersonInput) => void;
 	move: (id: string, newManagerId: string | null) => void;
 	remove: (id: string) => void;
 
@@ -120,8 +117,7 @@ export function usePersonList(): PersonListVM {
 		[createMutation],
 	);
 	const update = useCallback(
-		(id: string, fields: { name?: string; title?: string; dottedManagerId?: string | null }) =>
-			updateMutation.mutate({ id, input: fields }),
+		(id: string, fields: UpdatePersonInput) => updateMutation.mutate({ id, input: fields }),
 		[updateMutation],
 	);
 	const move = useCallback(
