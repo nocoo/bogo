@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.2] - 2026-06-08
+
+### Changed
+- Dependency upgrades — close out outdated batch (#5)
+  - `@bogo/ui` minor: `@pierre/diffs` 1.2.3 → 1.2.7, `@tanstack/react-query` 5.100.14 → 5.101.0, `@xyflow/react` 12.10.2 → 12.11.0, `react` / `react-dom` 19.2.6 → 19.2.7, `react-router` 7.15.1 → 7.17.0, `@types/react` 19.2.15 → 19.2.17, `happy-dom` 20.9.0 → 20.10.2
+  - `@bogo/worker` minor: `hono` 4.12.22 → 4.12.23, `@cloudflare/workers-types` 4.20260523.1 → 4.20260607.1, `wrangler` 4.94.0 → 4.98.0
+  - `typescript` 5.8 → 6.0.3 in all workspaces (root was already 6.0.3)
+  - Major: `lucide-react` 0.511.0 → 1.17.0 (brand icons removed in v1; `Github` reintroduced as local `createLucideIcon` component)
+- `vite` / `@vitejs/plugin-react` deferred — major upgrade requires separate evaluation
+
+### Fixed
+- `PersonTree.onNodeDragStop` signature adjusted for `@xyflow/react` 12.11's narrower event type
+- Removed deprecated `baseUrl` from `packages/ui/tsconfig.json` (TS 6.0 warning; `paths` entries already use relative `./` prefixes)
+
 ## [0.2.1] - 2026-06-07
 
 ### Changed
