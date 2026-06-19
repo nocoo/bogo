@@ -53,7 +53,6 @@ export function DashboardLayout() {
 
 	const breadcrumbs = resolveBreadcrumbs(location.pathname);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: close mobile nav on route change
 	useEffect(() => {
 		setMobileOpen(false);
 	}, [location.pathname]);

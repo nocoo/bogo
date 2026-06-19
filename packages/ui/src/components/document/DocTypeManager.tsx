@@ -218,7 +218,6 @@ function DocTypeRow({
 		setEditName(docType.name);
 	}, [docType.name]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: close picker when color changes from server
 	useEffect(() => {
 		setEditingColor(false);
 	}, [docType.color]);

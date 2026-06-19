@@ -28,7 +28,6 @@ export function DocumentEditor({
 	const [eventDate, setEventDate] = useState(() => new Date().toISOString().slice(0, 10));
 	const [dirty, setDirty] = useState(false);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: only sync from server when not dirty (prevents rollback from overwriting user draft)
 	useEffect(() => {
 		if (vm.document && !dirty) {
 			setTitle(vm.document.title);
