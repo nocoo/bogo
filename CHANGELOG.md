@@ -14,7 +14,7 @@
   - `js-yaml` `JSON_SCHEMA` keeps scalars verbatim — date-shaped strings like `2026-05-30` are preserved instead of being coerced into Date ISO strings
 - **DocType picker on the document editor** — colored pill in the right inspector, full set/unset menu via new `DocTypePicker` component
 - **Document list shows associated people** — overlapping avatar cluster on each row (later removed per spec; see Changed)
-- **Frontmatter-style YAML examples and component classes** documented in `docs/10-css-conventions.md`
+- **Frontmatter-style YAML examples and component classes** documented in `docs/architecture/09-css-conventions.md`
 
 ### Changed
 - **Document editor — full GitHub-style redesign**

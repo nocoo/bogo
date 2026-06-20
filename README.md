@@ -35,6 +35,13 @@ bun run dev        # UI on :5173, Worker on :8787
 | `bun run lint` | Biome lint + format check |
 | `bun run test` | Run all tests |
 
+## Docs
+
+设计与规范文档见 [`docs/`](./docs/README.md)：
+
+- [`docs/architecture/`](./docs/architecture/README.md) — 实体模型、数据库、系统架构、UI 分层、测试策略
+- [`docs/features/`](./docs/features/README.md) — 按功能拆分的实施规格
+
 ## License
 
 Private.
