@@ -5,7 +5,7 @@
 把 bogo 从浏览器 SPA 扩展成"**浏览器 + 命令行**"双形态。用户（哥本人 + agent 自动化脚本）在 Mac 上跑一条命令就能：
 
 1. **登录** — `bogo login` 弹浏览器，复用 CF Access 已识别的身份,落 token 到 `~/.clip/bogo/credentials.json`(0600)
-2. **完整 CRUD** — `bogo workspaces-list`、`bogo persons-create --wid …`、`bogo documents-update …` 等覆盖所有 `/api/*` 端点
+2. **完整 CRUD** — `bogo workspaces-list`、`bogo persons-create <wid> --name …`、`bogo documents-update <wid> <id> …` 等覆盖所有 `/api/*` 端点
 3. **自证可用** — 仓库里有 `bogo cli` 的 e2e 测试,能从「`clip generate` → 启 wrangler dev → `bogo login` → 调一圈 CRUD → 撤销 token → 验 401」端到端跑通
 
 **CLI 本身的代码不写在这个仓库**——本仓库只产出一份 `clip.yaml`,由 [`../clip` v1.0.0+](../../../clip) `clip generate` 自动生成 commander 驱动的 TypeScript CLI 项目。本仓库要做的是:
@@ -45,7 +45,7 @@ const BrowserLoginAuthSchema = z.object({
 bogo login                       # 弹浏览器登录
 bogo me                          # GET /api/me
 bogo workspaces-list             # GET /api/workspaces
-bogo persons-list --wid <uuid>   # GET /api/w/:wid/persons
+bogo persons-list <wid>          # GET /api/w/:wid/persons (wid 是位置参数)
 …
 ```
 
@@ -97,7 +97,7 @@ worker `/api/auth/cli` 必须接 `callback` 和 `state` query 参数,验完 loop
 
 | 子命令 | HTTP | Path | 备注 |
 |--------|------|------|------|
-| `bogo live` | GET | `/api/live` | 健康检查;**仍需先登录拿 token**(clip 没"匿名子命令"概念),登录后任何 token 都能调,服务端不验 |
+| `bogo live` | GET | `/api/live` | 路由本身在 worker 中间件公开(无 bearer/JWT 时仍 200);**但 CLI 调用照样先 `loadConfig()` + 注入 `Authorization: Bearer <token>`**,而 §5.3 的 Bearer 分支优先于 `/api/live` 公开短路,所以 CLI 用撤销的 token 调 live 会 401。要做无凭据健康检查请 `curl /api/live` |
 | `bogo me` | GET | `/api/me` | 当前 userEmail |
 
 ### 3.2 Workspaces
@@ -169,7 +169,7 @@ worker `/api/auth/cli` 必须接 `callback` 和 `state` query 参数,验完 loop
 | 子命令 | HTTP | Path |
 |--------|------|------|
 | `bogo tags-list <wid> [--scope --includeCounts true\|false]` | GET | `/api/w/:wid/tags` |
-| `bogo tags-stats <wid> [--scope]` | GET | `/api/w/:wid/tags/stats` |
+| `bogo tags-stats <wid> --scope <document\|person>` | GET | `/api/w/:wid/tags/stats` |
 | `bogo tags-create <wid> --name --scope [--color --sortOrder]` | POST | `/api/w/:wid/tags` |
 | `bogo tags-update <wid> <id> [--name --color --sortOrder]` | PUT | `/api/w/:wid/tags/:id` |
 | `bogo tags-delete <wid> <id>` | DELETE | `/api/w/:wid/tags/:id` |
@@ -645,10 +645,10 @@ endpoints:
   - name: tags-stats
     method: GET
     path: "/api/w/:wid/tags/stats"
-    description: "Tag usage distribution"
+    description: "Tag usage distribution (scope required)"
     params:
       path: { wid: { type: string, required: true } }
-      query: { scope: { type: string } }
+      query: { scope: { type: string, required: true, description: "document|person" } }
   - name: tags-create
     method: POST
     path: "/api/w/:wid/tags"
@@ -754,6 +754,8 @@ documentRoutes.post("/", async (c) => {
 
 ## 8. 用户上手流程(README/CLAUDE.md 中要写)
 
+> **状态**:仓库根 `clip.yaml` 已与本 spec 同步(browser-login + kebab endpoint + query CSV + headerName/Prefix)。**但 `clip generate` 之后 `bogo login` 真正能跑通,仍依赖 Commit 1–5 把 worker 端的 `api_tokens` 表、`/api/auth/cli` 端点、中间件 Bearer 分支落地**。在 Commit 5 之前,下方命令到 `bogo login` 这一步会因后端缺端点而 404。
+
 ```bash
 # 一次性配置
 git clone https://github.com/nocoo/clip && (cd clip && bun install && bun link packages/cli)
@@ -841,12 +843,15 @@ bunx wrangler d1 execute bogo --remote --command "UPDATE api_tokens SET revoked_
 - 验证:`bun turbo test:e2e --filter=@bogo/worker`
 - Gate:pre-push
 
-### Commit 6 — `feat(cli): add root clip.yaml`
+### Commit 6 — `chore(cli): validate root clip.yaml matches generated CLI`
 
-- 新增仓库根 `clip.yaml`(§6 全文,所有 array 走 query CSV,字段用 camelCase)
-- 验证(手工):`cd ../clip && bun packages/cli/src/index.ts generate ../bogo/clip.yaml --output /tmp/bogo-cli-test`,应零错误产出可 `bun install` 的 CLI 项目
+> 根 `clip.yaml` 已经在前置改动里写成 §6 蓝图,Commit 6 只是"加 CI 守护 + 文档引用"。
+
+- 不动 yaml 内容(已就位)
+- 验证(手工,写进 PR 描述):`cd ../clip && bun packages/cli/src/index.ts generate ../bogo/clip.yaml --output /tmp/bogo-cli-test`,应零错误产出可 `bun install` 的 CLI 项目;`bogo --help` 能列出 §3 表里的所有子命令
+- 加 CI step(或 pre-push hook)跑 `cd /tmp && rm -rf bogo-clip-validate && clip generate $REPO_ROOT/clip.yaml --output bogo-clip-validate`,失败即 yaml 损坏
 - 不入 worker bundle(确认 `wrangler.toml` 的 `[assets].directory` 是 `./static` 不会扫到根目录的 yaml)
-- Gate:pre-commit
+- Gate:pre-commit(validate 步骤可作为 CI-only 任务)
 
 ### Commit 7 — `test(cli-e2e): generated CLI smoke test`
 
@@ -869,8 +874,16 @@ bunx wrangler d1 execute bogo --remote --command "UPDATE api_tokens SET revoked_
   6. **不**测 `bogo live`(它也要登录才能调,只是路由本身公开;`bogo live` 在登录前因 `loadConfig()` 失败 exit 1)
   7. `afterAll`:kill wrangler,清 tmpdir
 - 加根 `package.json` script:`"test:cli-e2e": "cd tests/cli-e2e && bun test"`
-- 加 `.husky/pre-push` 加一行 `bun run test:cli-e2e || ([ -z "$BOGO_SKIP_CLI_E2E" ] && exit 1)`;CI 上设 `BOGO_REQUIRE_CLI_E2E=1` 严格跑
-- 不依赖远程 prod;依赖 `clip` CLI 在 PATH(`command -v clip` 不存在时打 warning 跳过,见 §12 Q3)
+- 加 `.husky/pre-push` 一段(语义:CI 严格、本地可跳过):
+  ```bash
+  if [ -n "$BOGO_REQUIRE_CLI_E2E" ] || [ -z "$BOGO_SKIP_CLI_E2E" ]; then
+    bun run test:cli-e2e
+  else
+    echo "[pre-push] BOGO_SKIP_CLI_E2E set — skipping CLI e2e"
+  fi
+  ```
+  CI workflow 显式 `export BOGO_REQUIRE_CLI_E2E=1` 让"跳过"开关在 CI 上失效。
+- 不依赖远程 prod;依赖 `clip` CLI 在 PATH。`tests/cli-e2e/smoke.test.ts` 在 `beforeAll` 里先 `command -v clip` 检测,缺失时 `test.skip("requires clip in PATH")` 而非 hard fail(避免锁死没装 clip 的开发环境)
 - Gate:pre-push(条件性)
 
 ### Commit 8 — `docs(architecture): record bearer auth flow`

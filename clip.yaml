@@ -1,16 +1,17 @@
-name: "Bogo"
+name: "Bogo API"
 alias: bogo
-version: "0.2.0"
+version: "0.3.0"
 baseUrl: "https://bogo.hexly.ai"
 auth:
-  type: cf-access
+  type: browser-login
+  loginPath: /api/auth/cli
+  tokenParam: api_key
+  headerName: Authorization
+  headerPrefix: Bearer
 
 endpoints:
   # -------------------- Live + Me --------------------
-  - name: live
-    method: GET
-    path: /api/live
-    description: "Liveness check — public, no auth required"
+  - { name: live, method: GET, path: /api/live, description: "Liveness check (route is public; CLI still injects Authorization)" }
 
   - name: me
     method: GET
@@ -18,12 +19,9 @@ endpoints:
     description: "Current user info (email)"
 
   # -------------------- Workspaces --------------------
-  - name: list-workspaces
-    method: GET
-    path: /api/workspaces
-    description: "List all workspaces visible to the current user"
+  - { name: workspaces-list, method: GET, path: /api/workspaces, description: "List own workspaces" }
 
-  - name: create-workspace
+  - name: workspaces-create
     method: POST
     path: /api/workspaces
     description: "Create a new workspace"
@@ -31,61 +29,40 @@ endpoints:
       body:
         name: { type: string, required: true }
 
-  - name: get-workspace
+  - name: workspaces-get
     method: GET
     path: "/api/workspaces/:id"
     description: "Get a workspace by id"
     params:
-      path:
-        id: { type: string, required: true }
+      path: { id: { type: string, required: true } }
 
-  - name: update-workspace
+  - name: workspaces-update
     method: PUT
     path: "/api/workspaces/:id"
     description: "Rename a workspace"
     params:
-      path:
-        id: { type: string, required: true }
-      body:
-        name: { type: string, required: true }
+      path: { id: { type: string, required: true } }
+      body: { name: { type: string, required: true } }
 
-  - name: delete-workspace
+  - name: workspaces-delete
     method: DELETE
     path: "/api/workspaces/:id"
     description: "Delete a workspace"
     params:
-      path:
-        id: { type: string, required: true }
+      path: { id: { type: string, required: true } }
 
   # -------------------- Persons --------------------
-  - name: list-persons
+  - name: persons-list
     method: GET
     path: "/api/w/:wid/persons"
-    description: "List persons in a workspace, optionally filtered by tags"
+    description: "List persons in workspace (optionally filtered by tags)"
     params:
-      path:
-        wid: { type: string, required: true }
+      path: { wid: { type: string, required: true } }
       query:
         tagIds: { type: string, description: "Comma-separated tag IDs" }
-        tagMode: { type: string, enum: [any] }
+        tagMode: { type: string, description: "any" }
 
-  - name: create-person
-    method: POST
-    path: "/api/w/:wid/persons"
-    description: "Create a person under a manager"
-    params:
-      path:
-        wid: { type: string, required: true }
-      body:
-        name: { type: string, required: true }
-        title: { type: string }
-        managerId:
-          type: string
-          required: true
-          description: "UUID of the manager (cannot be null — root is auto-created)"
-        dottedManagerId: { type: string, nullable: true }
-
-  - name: get-person
+  - name: persons-get
     method: GET
     path: "/api/w/:wid/persons/:id"
     description: "Get a person by id"
@@ -94,355 +71,358 @@ endpoints:
         wid: { type: string, required: true }
         id: { type: string, required: true }
 
-  - name: update-person
+  - name: persons-create
+    method: POST
+    path: "/api/w/:wid/persons"
+    description: "Add a person under a manager (root is auto-created with workspace)"
+    params:
+      path: { wid: { type: string, required: true } }
+      body:
+        name:            { type: string, required: true }
+        managerId:       { type: string, required: true, description: "UUID of parent manager" }
+        title:           { type: string }
+        dottedManagerId: { type: string }
+        avatarUrl:       { type: string }
+
+  - name: persons-update
     method: PUT
     path: "/api/w/:wid/persons/:id"
-    description: "Update a person's name, title, or dotted manager"
+    description: "Update person fields"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
       body:
-        name: { type: string }
-        title: { type: string }
-        dottedManagerId: { type: string, nullable: true }
+        name:            { type: string }
+        title:           { type: string }
+        dottedManagerId: { type: string }
+        avatarUrl:       { type: string }
 
-  - name: move-person
+  - name: persons-move
     method: PUT
     path: "/api/w/:wid/persons/:id/move"
-    description: "Move a person under a different manager"
+    description: "Move person under a new manager (CLI cannot set managerId=null; use UI for promote-to-root)"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
       body:
-        managerId: { type: string, nullable: true }
+        managerId: { type: string, required: true }
 
-  - name: list-person-documents
-    method: GET
-    path: "/api/w/:wid/persons/:id/documents"
-    description: "List documents associated with a person"
-    params:
-      path:
-        wid: { type: string, required: true }
-        id: { type: string, required: true }
-
-  - name: delete-person
+  - name: persons-delete
     method: DELETE
     path: "/api/w/:wid/persons/:id"
-    description: "Delete a person (must have no direct or dotted reports)"
+    description: "Delete person (must have no reports)"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
+
+  - name: persons-documents
+    method: GET
+    path: "/api/w/:wid/persons/:id/documents"
+    description: "Documents attached to this person"
+    params:
+      path:
+        wid: { type: string, required: true }
+        id:  { type: string, required: true }
 
   # -------------------- Fields --------------------
-  - name: list-fields
+  - name: fields-list
     method: GET
     path: "/api/w/:wid/fields"
     description: "List custom field definitions"
     params:
-      path:
-        wid: { type: string, required: true }
+      path: { wid: { type: string, required: true } }
 
-  - name: create-field
+  - name: fields-create
     method: POST
     path: "/api/w/:wid/fields"
-    description: "Create a custom field definition"
+    description: "Create custom field definition; pass options=a,b in query when fieldType=select"
     params:
-      path:
-        wid: { type: string, required: true }
+      path: { wid: { type: string, required: true } }
+      query:
+        options: { type: string, description: "Comma-separated select options" }
       body:
-        name: { type: string, required: true }
-        fieldType:
-          type: string
-          required: true
-          enum: [text, number, date, select, boolean]
-        required: { type: boolean }
-        defaultValue: { type: string, nullable: true }
+        name:         { type: string, required: true }
+        fieldType:    { type: string, required: true, description: "text|number|date|select|boolean" }
+        required:     { type: boolean, description: "Pass --required true / --required false" }
+        defaultValue: { type: string }
 
-  - name: update-field
+  - name: fields-update
     method: PUT
     path: "/api/w/:wid/fields/:id"
-    description: "Update a custom field definition"
+    description: "Update field definition; pass options=a,b in query to replace select options"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
+      query:
+        options: { type: string, description: "Comma-separated select options" }
       body:
-        name: { type: string }
-        fieldType:
-          type: string
-          enum: [text, number, date, select, boolean]
-        required: { type: boolean }
-        defaultValue: { type: string, nullable: true }
-        sortOrder: { type: number }
+        name:         { type: string }
+        fieldType:    { type: string }
+        required:     { type: boolean }
+        defaultValue: { type: string }
+        sortOrder:    { type: number }
 
-  - name: delete-field
+  - name: fields-delete
     method: DELETE
     path: "/api/w/:wid/fields/:id"
-    description: "Delete a custom field definition"
+    description: "Delete field definition (cascades to values)"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
 
-  - name: get-field-values
+  - name: fields-values-get
     method: GET
     path: "/api/w/:wid/fields/values/:personId"
-    description: "Get all custom field values for a person"
+    description: "Get all field values for a person"
     params:
       path:
-        wid: { type: string, required: true }
+        wid:      { type: string, required: true }
         personId: { type: string, required: true }
 
-  - name: set-field-value
+  - name: fields-values-set
     method: PUT
     path: "/api/w/:wid/fields/values/:personId/:fieldDefId"
-    description: "Set a custom field value for a person"
+    description: "Set a single field value for a person"
     params:
       path:
-        wid: { type: string, required: true }
-        personId: { type: string, required: true }
+        wid:        { type: string, required: true }
+        personId:   { type: string, required: true }
         fieldDefId: { type: string, required: true }
       body:
         value: { type: string, required: true }
 
   # -------------------- Doc Types --------------------
-  - name: list-doc-types
+  - name: doc-types-list
     method: GET
     path: "/api/w/:wid/doc-types"
     description: "List document types"
     params:
-      path:
-        wid: { type: string, required: true }
+      path: { wid: { type: string, required: true } }
 
-  - name: create-doc-type
+  - name: doc-types-create
     method: POST
     path: "/api/w/:wid/doc-types"
     description: "Create a document type"
     params:
-      path:
-        wid: { type: string, required: true }
+      path: { wid: { type: string, required: true } }
       body:
-        name: { type: string, required: true }
-        color: { type: string, nullable: true }
+        name:  { type: string, required: true }
+        color: { type: string }
 
-  - name: update-doc-type
+  - name: doc-types-update
     method: PUT
     path: "/api/w/:wid/doc-types/:id"
-    description: "Update a document type"
+    description: "Update document type"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
       body:
-        name: { type: string }
-        color: { type: string, nullable: true }
+        name:      { type: string }
+        color:     { type: string }
         sortOrder: { type: number }
 
-  - name: delete-doc-type
+  - name: doc-types-delete
     method: DELETE
     path: "/api/w/:wid/doc-types/:id"
-    description: "Delete a document type"
+    description: "Delete document type (nullifies references)"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
 
   # -------------------- Documents --------------------
-  - name: list-documents
+  - name: documents-list
     method: GET
     path: "/api/w/:wid/documents"
-    description: "List documents, optionally filtered by tags"
+    description: "List documents (filterable by tags)"
     params:
-      path:
-        wid: { type: string, required: true }
+      path: { wid: { type: string, required: true } }
       query:
         tagIds: { type: string, description: "Comma-separated tag IDs" }
-        tagMode: { type: string, enum: [any] }
+        tagMode: { type: string, description: "any" }
 
-  - name: create-document
+  - name: documents-get
+    method: GET
+    path: "/api/w/:wid/documents/:id"
+    description: "Get a document"
+    params:
+      path:
+        wid: { type: string, required: true }
+        id:  { type: string, required: true }
+
+  - name: documents-create
     method: POST
     path: "/api/w/:wid/documents"
-    description: "Create a document"
+    description: "Create document; pass personIds=uuid-a,uuid-b in query to attach"
     params:
-      path:
-        wid: { type: string, required: true }
+      path: { wid: { type: string, required: true } }
+      query:
+        personIds: { type: string, description: "Comma-separated person UUIDs" }
       body:
-        title: { type: string, required: true }
-        content: { type: string }
-        typeId: { type: string, nullable: true }
-        eventDate: { type: string, nullable: true, description: "ISO date YYYY-MM-DD" }
+        title:     { type: string, required: true }
+        content:   { type: string }
+        typeId:    { type: string }
+        eventDate: { type: string, description: "ISO date YYYY-MM-DD" }
 
-  - name: get-document
-    method: GET
-    path: "/api/w/:wid/documents/:id"
-    description: "Get a document with tags"
-    params:
-      path:
-        wid: { type: string, required: true }
-        id: { type: string, required: true }
-
-  - name: update-document
+  - name: documents-update
     method: PUT
     path: "/api/w/:wid/documents/:id"
-    description: "Update a document (creates a new version)"
+    description: "Update document (auto-versions on content change)"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
       body:
-        title: { type: string }
-        content: { type: string }
-        typeId: { type: string, nullable: true }
-        eventDate: { type: string, nullable: true }
+        title:     { type: string }
+        content:   { type: string }
+        typeId:    { type: string }
+        eventDate: { type: string }
 
-  - name: delete-document
+  - name: documents-delete
     method: DELETE
     path: "/api/w/:wid/documents/:id"
-    description: "Delete a document"
+    description: "Delete document"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
 
-  - name: list-document-versions
+  - name: documents-versions
     method: GET
     path: "/api/w/:wid/documents/:id/versions"
-    description: "List version history of a document"
+    description: "List immutable version history"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
 
-  - name: list-document-persons
+  - name: documents-persons-list
     method: GET
     path: "/api/w/:wid/documents/:id/persons"
-    description: "List persons associated with a document"
+    description: "List people on a document"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
 
-  - name: add-document-person
+  - name: documents-persons-add
     method: POST
     path: "/api/w/:wid/documents/:id/persons"
-    description: "Associate a person with a document"
+    description: "Attach a person to a document"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
       body:
         personId: { type: string, required: true }
-        role: { type: string, description: "Defaults to 'subject'" }
+        role:     { type: string }
 
-  - name: remove-document-person
+  - name: documents-persons-remove
     method: DELETE
     path: "/api/w/:wid/documents/:id/persons/:personId"
-    description: "Remove a person from a document"
+    description: "Detach a person from a document"
     params:
       path:
-        wid: { type: string, required: true }
-        id: { type: string, required: true }
+        wid:      { type: string, required: true }
+        id:       { type: string, required: true }
         personId: { type: string, required: true }
 
   # -------------------- Tags --------------------
-  - name: list-tags
+  - name: tags-list
     method: GET
     path: "/api/w/:wid/tags"
-    description: "List tags, optionally filtered by scope"
+    description: "List tags (filterable by scope)"
     params:
-      path:
-        wid: { type: string, required: true }
+      path: { wid: { type: string, required: true } }
       query:
-        scope: { type: string, enum: [document, person] }
-        includeCounts: { type: boolean }
+        scope:         { type: string, description: "document|person" }
+        includeCounts: { type: boolean, description: "Pass --includeCounts true to include counts" }
 
-  - name: get-tag-stats
+  - name: tags-stats
     method: GET
     path: "/api/w/:wid/tags/stats"
-    description: "Get tag distribution stats for a given scope"
+    description: "Tag usage distribution (scope required)"
     params:
-      path:
-        wid: { type: string, required: true }
+      path: { wid: { type: string, required: true } }
       query:
-        scope: { type: string, required: true, enum: [document, person] }
+        scope: { type: string, required: true, description: "document|person" }
 
-  - name: create-tag
+  - name: tags-create
     method: POST
     path: "/api/w/:wid/tags"
     description: "Create a tag"
     params:
-      path:
-        wid: { type: string, required: true }
+      path: { wid: { type: string, required: true } }
       body:
-        name: { type: string, required: true }
-        scope:
-          type: string
-          required: true
-          enum: [document, person]
-        color: { type: string, description: "Hex like #3b82f6", nullable: true }
+        name:      { type: string, required: true }
+        scope:     { type: string, required: true, description: "document|person" }
+        color:     { type: string, description: "Hex #RRGGBB" }
         sortOrder: { type: number }
 
-  - name: update-tag
+  - name: tags-update
     method: PUT
     path: "/api/w/:wid/tags/:id"
     description: "Update a tag"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
       body:
-        name: { type: string }
-        color: { type: string, nullable: true }
+        name:      { type: string }
+        color:     { type: string }
         sortOrder: { type: number }
 
-  - name: delete-tag
+  - name: tags-delete
     method: DELETE
     path: "/api/w/:wid/tags/:id"
-    description: "Delete a tag"
+    description: "Delete a tag (cascades to assignments)"
     params:
       path:
         wid: { type: string, required: true }
-        id: { type: string, required: true }
+        id:  { type: string, required: true }
 
-  - name: assign-tag-to-document
+  - name: tags-documents-add
     method: PUT
     path: "/api/w/:wid/tags/:id/documents/:docId"
-    description: "Assign a document tag to a document"
+    description: "Assign tag to a document"
     params:
       path:
-        wid: { type: string, required: true }
-        id: { type: string, required: true }
+        wid:   { type: string, required: true }
+        id:    { type: string, required: true }
         docId: { type: string, required: true }
 
-  - name: unassign-tag-from-document
+  - name: tags-documents-remove
     method: DELETE
     path: "/api/w/:wid/tags/:id/documents/:docId"
-    description: "Remove a tag from a document"
+    description: "Remove tag from a document"
     params:
       path:
-        wid: { type: string, required: true }
-        id: { type: string, required: true }
+        wid:   { type: string, required: true }
+        id:    { type: string, required: true }
         docId: { type: string, required: true }
 
-  - name: assign-tag-to-person
+  - name: tags-persons-add
     method: PUT
     path: "/api/w/:wid/tags/:id/persons/:personId"
-    description: "Assign a person tag to a person"
+    description: "Assign tag to a person"
     params:
       path:
-        wid: { type: string, required: true }
-        id: { type: string, required: true }
+        wid:      { type: string, required: true }
+        id:       { type: string, required: true }
         personId: { type: string, required: true }
 
-  - name: unassign-tag-from-person
+  - name: tags-persons-remove
     method: DELETE
     path: "/api/w/:wid/tags/:id/persons/:personId"
-    description: "Remove a tag from a person"
+    description: "Remove tag from a person"
     params:
       path:
-        wid: { type: string, required: true }
-        id: { type: string, required: true }
+        wid:      { type: string, required: true }
+        id:       { type: string, required: true }
         personId: { type: string, required: true }
