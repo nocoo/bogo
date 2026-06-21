@@ -7,7 +7,7 @@
 | 编号 | 文档 | 状态 | 一句话概要 |
 |------|------|------|----------|
 | 01 | [tag-system-spec.md](./01-tag-system-spec.md) | 规格 | 标签系统：Tag 实体、N:M 关联、UI 与 API |
-| 02 | [cli-bearer-auth.md](./02-cli-bearer-auth.md) | 规格 | CLI bearer token 鉴权：D1 token 表、`/api/auth/cli` 端点、CF Access bypass，配 clip OAuth login |
+| 02 | [cli-bearer-auth.md](./02-cli-bearer-auth.md) | 规格 | CLI bearer token 鉴权：D1 token 表、`/api/auth/cli` 端点、CF Access bypass。CLI 由 [clip v1.0.0](../../../clip) 从根 `clip.yaml` codegen，对齐 `auth.type: browser-login`
 
 ## 维护约定
 
