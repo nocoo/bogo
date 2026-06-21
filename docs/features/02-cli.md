@@ -951,12 +951,12 @@ bunx wrangler d1 execute bogo --remote --command "UPDATE api_tokens SET revoked_
 - **CLI 真正的 array body** —— v1 用 query CSV 折中(§6.1);后续要么 clip 加 `--repeat` flag 形态、要么 worker 端通用支持 query-as-array
 - **`bogo live` 无凭据调用** —— clip 生成的 CLI 任何子命令都先 `loadConfig()`,无法做"无 token 健康检查"。要 ping 服务直接 `curl /api/live`
 
-## 12. Open Questions(哥确认后开干)
+## 12. Decisions(2026-06-21 哥拍板)
 
-1. **Token 默认是否过期?** 倾向"不过期"(自用 + agent 长期跑),保留 `expires_at` 字段
-2. **`prefix` 长度 12(含 `bogo_`)还是 8?** 倾向 12,便于多 token 区分
-3. **CLI e2e 测试是否进 pre-push?** 它依赖 `clip` 本地存在(`bun link`)。倾向:进 pre-push,但若 `command -v clip` 未命中就跳过并打 warning,避免锁死开发环境
-4. **`bogo` 名字冲突?** `bun link` 后 `bogo` 会成为全局命令;若哥本机已有同名,需要在 clip.yaml 改 `alias`
+1. **Token 不过期** —— `expires_at` 字段保留(Phase 2 token 管理可用),v1 颁发时一律为 NULL。撤销靠手动 D1 `UPDATE api_tokens SET revoked_at = …`(或 Phase 2 的 `DELETE /api/auth/tokens/:id`)
+2. **`prefix` 长度 12 字符** —— `bogo_` + 7 字符 base64url,多 token 下区分度高,`auth show` / 日志可读
+3. **CLI e2e 进 pre-push,本地可跳** —— `BOGO_SKIP_CLI_E2E=1` 跳过,CI 设 `BOGO_REQUIRE_CLI_E2E=1` 强跑;`command -v clip` 未命中时 `test.skip("requires clip in PATH")`
+4. **CLI alias = `bogo`** —— 与仓库名一致,与 `bun link` 后全局命令名一致。若哥本机已有同名,届时再调整
 
 ## References
 
