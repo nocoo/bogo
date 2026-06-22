@@ -18,10 +18,17 @@ Bogo 使用 **单一 Worker 架构**，同时服务 API 和前端：
 │  │                   Worker (Hono)                      │        │
 │  │  ├── /*              → SPA 静态文件 (packages/ui)    │        │
 │  │  ├── /api/live       → 公开路由 (liveness)           │        │
-│  │  └── /api/*          → CF Access JWT 保护            │        │
+│  │  ├── /api/auth/cli   → 浏览器 callback 换 bogo_ token │        │
+│  │  └── /api/*          → CF Access JWT 或 bogo_ Bearer │        │
 │  └─────────────────────────────────────────────────────┘        │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+调用 `/api/*` 有两个识别身份的路径：浏览器 / SPA 走 CF Access JWT，
+clip 生成的 `bogo` CLI 走 `Authorization: Bearer bogo_*`。详见
+[`docs/architecture/03-system-architecture.md`](./docs/architecture/03-system-architecture.md)
+的 Authentication Flow 节与
+[`docs/features/02-cli.md`](./docs/features/02-cli.md)。
 
 ## Local Development
 
@@ -75,6 +82,7 @@ cd packages/worker && bun dev       # wrangler dev 服务静态资源
 | L1    | Unit       | `bun turbo test`                                     | Coverage  |
 | L2    | E2E (API)  | `bun turbo test:e2e --filter=@bogo/worker`           | Route     |
 | L3    | Playwright | `cd packages/ui && bunx playwright test`             | Page      |
+| L4    | CLI E2E    | `bun run test:cli-e2e` (clip-generated `bogo` CLI)   | CLI       |
 | G1    | Static     | `bun turbo typecheck` + `bunx biome check`           | —         |
 | G2    | Security   | `gitleaks` + `osv-scanner`                           | —         |
 | G3    | Coverage   | `bash scripts/check-coverage.sh`                     | Threshold |
@@ -82,8 +90,10 @@ cd packages/worker && bun dev       # wrangler dev 服务静态资源
 ### Pre-commit hook (L1 + G1)
 Runs in parallel: unit_cov, typecheck, lint, gitleaks, routes gate, pages gate
 
-### Pre-push hook (L2 + G2)
-Runs in parallel: l2_e2e, g2_security
+### Pre-push hook (L2 + G2 + CLI E2E)
+Runs in parallel: l2_e2e, g2_security; then runs `test:cli-e2e` (skip locally
+with `BOGO_SKIP_CLI_E2E=1`; CI exports `BOGO_REQUIRE_CLI_E2E=1` so the skip
+toggle is a no-op there).
 
 ## Deployment
 
@@ -103,6 +113,35 @@ Runs in parallel: l2_e2e, g2_security
 3. Worker secrets: `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`
 
 GitHub Secrets 依赖：`CLOUDFLARE_API_TOKEN`
+
+#### CLI bearer bypass policy（生产必需，否则 `bogo` CLI 在生产环境直接被 CF Access 拦在 Worker 外）
+
+Zero Trust → Access → Applications → bogo → Policies 加一条：
+
+| 字段                | 值                  |
+|---------------------|---------------------|
+| Action              | `Bypass`            |
+| Include → Selector  | `Request Header`    |
+| Header name         | `Authorization`     |
+| Operator            | `starts with`       |
+| Value               | `Bearer bogo_`      |
+
+要点：
+- 这条 bypass **不是** trust boundary —— bypass 只决定请求是否到 Worker，
+  Worker 内部 `middleware/access-auth.ts` 的 bearer 分支仍然按
+  `sha256(token)` 在 `api_tokens` 表里查 row + 校验 `revoked_at` /
+  `expires_at`，命中后才放行。
+- `/api/auth/cli` **不能**走这条 bypass：它要求调用方已经是真实 CF Access
+  JWT (或 localhost) 身份，否则 `userEmail` 取不到。这个语义由 `/api/auth/cli`
+  路由内的 `authMethod` 检查兜底，bypass 端 CF 侧无法精确排除单条端点。
+- 详细字段表和威胁模型见
+  [`docs/features/02-cli.md`](./docs/features/02-cli.md) §7。
+
+撤销已发出的 CLI token（v1 是手动）：
+```bash
+npx wrangler d1 execute bogo --remote \
+  --command "UPDATE api_tokens SET revoked_at=datetime('now') WHERE prefix='bogo_xxxxxx'"
+```
 
 ## Package Manager
 
