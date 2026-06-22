@@ -1,4 +1,4 @@
-# pre-push: L2 (E2E) + G2 (Security gate)
+# pre-push: L2 (E2E) + G2 (Security gate) + CLI e2e (conditional)
 # Run independent stages in parallel; fail fast on any non-zero exit.
 set -o pipefail
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -39,4 +39,17 @@ run_bg g2_security bun run gate:security
 wait_stage l2_e2e
 wait_stage g2_security
 
-echo "✔ pre-push passed (L2 + G2)"
+# CLI e2e (login + CRUD + revoke against a clip-generated bogo CLI).
+# Local default: run unless BOGO_SKIP_CLI_E2E is set (clip optional).
+# CI: must export BOGO_REQUIRE_CLI_E2E=1 so the skip toggle does not apply.
+if [ -n "$BOGO_REQUIRE_CLI_E2E" ] || [ -z "$BOGO_SKIP_CLI_E2E" ]; then
+  echo "━━━ cli_e2e ━━━"
+  bun run test:cli-e2e || {
+    echo "❌ pre-push stage 'cli_e2e' failed" >&2
+    exit 1
+  }
+else
+  echo "[pre-push] BOGO_SKIP_CLI_E2E set — skipping CLI e2e"
+fi
+
+echo "✔ pre-push passed (L2 + G2 + CLI e2e)"

@@ -122,3 +122,41 @@ jobs:
           name: playwright-report
           path: packages/ui/playwright-report/
           retention-days: 7
+
+  # ─────────────────────────────────────────────────────
+  # CLI E2E: clip-generated bogo CLI end-to-end (login + CRUD + revoke)
+  # ─────────────────────────────────────────────────────
+  cli-e2e:
+    name: "CLI E2E (clip-generated bogo CLI)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BOGO_REQUIRE_CLI_E2E: "1"
+    steps:
+      - name: Checkout bogo
+        uses: actions/checkout@v4
+        with:
+          path: bogo
+
+      - name: Checkout clip (sibling, fallback runner)
+        uses: actions/checkout@v4
+        with:
+          repository: nocoo/clip
+          path: clip
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.11"
+
+      - name: Install dependencies (bogo)
+        run: cd bogo && bun install --frozen-lockfile
+
+      - name: Install dependencies (clip)
+        run: cd clip && bun install --frozen-lockfile
+
+      - name: Build static (wrangler needs packages/worker/static)
+        run: cd bogo && bun run build
+
+      - name: "CLI E2E: login + CRUD + revoke"
+        run: cd bogo && bun run test:cli-e2e

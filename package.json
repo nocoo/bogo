@@ -21,6 +21,7 @@
 		"gate:pages": "bun run scripts/check-page-coverage.ts",
 		"gate:clip-yaml": "bun run scripts/check-clip-yaml.ts",
 		"gate:security": "bun run scripts/run-security.ts",
+		"test:cli-e2e": "cd tests/cli-e2e && bun test",
 		"prepare": "husky"
 	},
 	"trustedDependencies": [
