@@ -1009,6 +1009,15 @@ const hasClip = (() => {
   try { execSync("command -v clip", { stdio: "ignore" }); return true; }
   catch { return false; }
 })();
+
+// CI must hard-fail when clip is missing — silent skip would defeat
+// BOGO_REQUIRE_CLI_E2E=1 (see §9 Commit 7 pre-push gate).
+if (!hasClip && process.env.BOGO_REQUIRE_CLI_E2E) {
+  throw new Error(
+    "BOGO_REQUIRE_CLI_E2E=1 but `clip` is not on PATH — install clip or unset the flag.",
+  );
+}
+
 const maybeDescribe = hasClip ? describe : describe.skip;
 
 maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
@@ -1021,7 +1030,7 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 });
 ```
 
-`hasClip=false` 时整个 describe 块被 Bun runner 标记为 skipped,**不会进 `beforeAll`**;`hasClip=true` 时正常跑。CI 设 `BOGO_REQUIRE_CLI_E2E=1`,workflow 安装 clip 后再跑测试,所以 `command -v clip` 必命中,跳过分支只在本地有意义。
+`hasClip=false` 且 `BOGO_REQUIRE_CLI_E2E` 未设 → 整个 describe 块被 Bun runner 标记为 skipped,**不会进 `beforeAll`**(开发机友好)。`BOGO_REQUIRE_CLI_E2E=1` 时若 clip 仍缺失,模块顶层 throw 让 runner 直接报错 —— 这才与 §9 Commit 7 pre-push 段的"CI 强跑"语义一致。CI workflow 负责在跑 e2e 前 `bun link` clip,确保命中。
 
 Gate:pre-push(条件性)
 
@@ -1095,7 +1104,7 @@ Gate:pre-push(条件性)
 
 1. **Token 不过期** —— `expires_at` 字段保留(Phase 2 token 管理可用),v1 颁发时一律为 NULL。撤销靠手动 D1 `UPDATE api_tokens SET revoked_at = …`(或 Phase 2 的 `DELETE /api/auth/tokens/:id`)
 2. **`prefix` 长度 12 字符** —— `bogo_` + 7 字符 base64url,多 token 下区分度高,`auth show` / 日志可读
-3. **CLI e2e 进 pre-push,本地可跳** —— `BOGO_SKIP_CLI_E2E=1` 跳过,CI 设 `BOGO_REQUIRE_CLI_E2E=1` 强跑;`command -v clip` 未命中时 `test.skip("requires clip in PATH")`
+3. **CLI e2e 进 pre-push,本地可跳** —— `BOGO_SKIP_CLI_E2E=1` 跳过,CI 设 `BOGO_REQUIRE_CLI_E2E=1` 强跑;`command -v clip` 在模块顶层探测,缺失时 `describe.skip` 整组(本地无 clip 友好);若 `BOGO_REQUIRE_CLI_E2E` 已设且 clip 仍缺,模块顶层 throw 让 CI hard-fail
 4. **CLI alias = `bogo`** —— 与仓库名一致,与 `bun link` 后全局命令名一致。若哥本机已有同名,届时再调整
 
 ## References
