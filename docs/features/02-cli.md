@@ -1000,7 +1000,28 @@ fi
 ```
 CI workflow 显式 `export BOGO_REQUIRE_CLI_E2E=1`,让"跳过"开关在 CI 失效。
 
-依赖:`clip` 在 PATH;`tests/cli-e2e/smoke.test.ts` 在 `beforeAll` 先 `command -v clip` 检测,缺失时 `test.skip("requires clip in PATH")` 而非 hard fail。
+依赖:`clip` 在 PATH。**`clip` 缺失不能 hard fail**(开发机可能没装),但 `beforeAll` 里调 `test.skip(...)` 此时测试已经注册,跳不掉。模块顶层做条件分发:
+
+```ts
+import { describe, test, beforeAll, afterAll, expect } from "bun:test";
+
+const hasClip = (() => {
+  try { execSync("command -v clip", { stdio: "ignore" }); return true; }
+  catch { return false; }
+})();
+const maybeDescribe = hasClip ? describe : describe.skip;
+
+maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
+  beforeAll(/* …spawn wrangler, generate CLI… */);
+  afterAll(/* …kill wrangler, rm -rf tmp… */);
+
+  test("login → credentials.json", async () => { /* … */ });
+  test("CRUD chain", () => { /* … */ });
+  test("revoke → 401", () => { /* … */ });
+});
+```
+
+`hasClip=false` 时整个 describe 块被 Bun runner 标记为 skipped,**不会进 `beforeAll`**;`hasClip=true` 时正常跑。CI 设 `BOGO_REQUIRE_CLI_E2E=1`,workflow 安装 clip 后再跑测试,所以 `command -v clip` 必命中,跳过分支只在本地有意义。
 
 Gate:pre-push(条件性)
 
