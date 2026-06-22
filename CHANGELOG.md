@@ -1,5 +1,100 @@
 # Changelog
 
+## [0.4.0] - 2026-06-22
+
+### Added
+- **`bogo` CLI** — generated from the repo-root `clip.yaml` by
+  [clip](https://github.com/nocoo/clip), covering the full `/api/*` surface
+  (workspaces / persons / fields / doc-types / documents / tags / me).
+  Source code is **not** vendored here; this repo carries the schema and
+  the worker-side auth surface required to make the generated CLI work.
+- **`/api/auth/cli` browser-login endpoint** (`packages/worker/src/routes/auth.ts`)
+  — handles the loopback callback for clip's `browser-login` auth type,
+  mints a `bogo_<base64url(32)>` bearer token, persists only
+  `sha256(plain).hex` plus a 12-char display prefix to D1, and 302s back
+  with `api_key`/`state`/`email`. Refuses requests whose `authMethod ===
+  "bearer"` (403) so a leaked CLI token cannot self-mint another.
+- **`api_tokens` D1 table** (`migrations/0004_api_tokens.sql`) — hash-only
+  token store with `revoked_at` / `expires_at` columns and indexes on
+  `owner_email` and `token_hash`.
+- **Bearer branch in `access-auth.ts` middleware** — runs BEFORE the
+  localhost shortcut so a revoked CLI token on wrangler dev still 401s
+  instead of falling through to `dev@localhost`. Variables now carry an
+  `authMethod` discriminator (`"bearer" | "cf-access-jwt" | "localhost"`).
+  Non-`bogo_` Bearer values fall through to the CF Access JWT path
+  unchanged.
+- **`sha256Hex` utility** (`packages/worker/src/utils/hash.ts`) — Web
+  Crypto–based SHA-256 hex digest used by the bearer branch and
+  `/api/auth/cli`.
+- **Query → body CSV bridge** in `documents.ts` (POST `/`) and `fields.ts`
+  (POST `/`, PUT `/:id`) for `personIds` / `options`. clip codegen
+  cannot send arrays in body, so the CLI sends them as comma-separated
+  query strings; the route splits the CSV into the body field before zod
+  validation. Body always wins over query for non-CLI callers.
+- **CLI bearer auth lifecycle E2E** (`packages/worker/test/e2e/auth.test.ts`):
+  login via `/api/auth/cli`, present bearer to `/api/me`, revoke via D1
+  `UPDATE`, assert same bearer now 401s. Plus the localhost fallback
+  baseline and the bearer-self-mint refusal case.
+- **Generated CLI smoke E2E** (`tests/cli-e2e/smoke.test.ts`) — drives an
+  end-to-end run against a real wrangler dev with a clip-generated CLI:
+  fake `open`/`xdg-open` so cli-base's openBrowser fails and emits the
+  login URL; loopback fetch completes the callback; CRUD chain over
+  generated commands; same `--persist-to` for the revoke UPDATE so the
+  401 assertion is real.
+- **clip.yaml validator gate** (`scripts/check-clip-yaml.ts` + new CI step
+  in `coverage-gates`) — round-trips the repo-root `clip.yaml` through
+  `clip generate` so a future yaml edit that breaks codegen fails the
+  gate. CI checks out `nocoo/clip` as a sibling for the runner fallback;
+  `BOGO_REQUIRE_CLI_E2E=1` makes a missing clip a hard CI failure.
+- **Pre-push CLI E2E stage** — `bun run test:cli-e2e` runs alongside the
+  existing L2 + G2 stages. Locally bypassable via `BOGO_SKIP_CLI_E2E=1`;
+  CI exports `BOGO_REQUIRE_CLI_E2E=1` so the skip toggle is a no-op there.
+- **New `cli-e2e` CI job** that checks out bogo + `nocoo/clip` siblings,
+  builds the static UI, and runs the smoke E2E under
+  `BOGO_REQUIRE_CLI_E2E=1`.
+
+### Changed
+- **Worker access-auth middleware** now resolves identity through three
+  ordered branches (bearer → localhost → CF Access JWT). Order is
+  load-bearing: any other order lets revoked CLI tokens fall through to a
+  shortcut. The localhost dev shortcut and the CF Access JWT path retain
+  their existing behaviour and `userEmail` semantics; the only addition
+  is the `c.set("authMethod", …)` calls so `/api/auth/cli` can refuse
+  bearer-driven self-minting.
+- **Endpoints documentation** (`docs/architecture/03-system-architecture.md`)
+  now records the dual identity model, the loopback callback flow, the
+  bearer self-mint refusal, and the production CF Access Bypass policy
+  requirement (`Authorization starts with "Bearer bogo_"`).
+- **Documents POST and Fields POST/PUT route signatures** keep the same
+  zod schemas; the new CSV query → body bridging happens before zod
+  validation and is transparent to existing callers.
+- **README** gains a top-level CLI section pointing at `clip.yaml`, the
+  minimum workflow, the production CF Access requirement, and the
+  manual v1 revoke flow.
+- **CLAUDE.md**: architecture diagram updated to show `/api/auth/cli` and
+  the dual-identity `/api/*`; new "CLI bearer bypass policy" subsection
+  under Cloudflare Access 配置; Testing table adds L4 CLI E2E; pre-push
+  description updated.
+
+### Security
+- CLI plaintext tokens cross the wire exactly once (in the `api_key`
+  query parameter on the loopback redirect) and are never persisted in
+  D1. The `prefix` column stores the first 12 chars for display in logs
+  / `auth show`; full reverse lookup is not possible from D1 alone.
+- `credentials.json` written by the generated CLI is `chmod 0600`.
+- The route-coverage gate regex (`scripts/check-route-coverage.ts`) was
+  tightened so `c.get("authMethod")` / `c.set("userEmail")` Hono
+  Variables accessors are no longer mis-parsed as `GET /api/...` routes.
+
+### Notes
+- v1 revocation is **manual** — `UPDATE api_tokens SET revoked_at=…`
+  against the live D1. The token-management UI and `/api/auth/tokens*`
+  endpoints (list / create / DELETE) are Phase 2 scope and explicitly
+  not in this release.
+- The CLI source itself is generated; nothing in this repo runs
+  `bun link` of the generated CLI into the developer environment to keep
+  dev envs clean.
+
 ## [0.3.0] - 2026-06-08
 
 ### Added
