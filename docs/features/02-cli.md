@@ -832,14 +832,16 @@ bunx wrangler d1 execute bogo --remote --command "UPDATE api_tokens SET revoked_
 
 ### Commit 5 — `test(e2e): bearer auth lifecycle`
 
+> **D1 准备 = `--persist-to .wrangler/e2e` 全程一致**(参 `packages/worker/test/e2e/global-setup.ts:57-66`):先 `wrangler d1 migrations apply bogo --local --persist-to .wrangler/e2e`,再 `wrangler dev --persist-to .wrangler/e2e`。所有 D1 操作(撤销 token 的 `UPDATE`)也必须带相同 `--persist-to`,否则会打到默认本地库,断言失效。
+
 - 新增 `packages/worker/test/e2e/auth.test.ts`,参照 `test/e2e/api.test.ts`:
-  1. 起 wrangler dev(localhost 模式)
+  1. 起 wrangler dev(localhost 模式) on PORT 17036,持久化到 `.wrangler/e2e`(global-setup 已就位)
   2. `GET /api/auth/cli?callback=http://127.0.0.1:9999/callback&state=abc`
   3. 解析 302 Location,提 `api_key`
-  4. 用 `Authorization: Bearer <api_key>` 调 `/api/me`,断言 `{email: "dev@localhost"}`
-  5. **关键:Bearer 分支优先于 localhost,所以本地 wrangler 上的 bearer 调用走的是 DB 查表分支**——直接 D1 `UPDATE api_tokens SET revoked_at = ...`,再调 `/api/me` 用同一 bearer 应得 401
+  4. 用 `Authorization: Bearer <api_key>` 调 `/api/me`,断言 `{email: "dev@localhost"}`(走 bearer 分支,因为 §5.3 bearer 优先于 localhost)
+  5. **撤销**:`execSync("npx wrangler d1 execute bogo --local --persist-to .wrangler/e2e --command \"UPDATE api_tokens SET revoked_at=datetime('now') WHERE prefix=?\"", { ... })`(关键:同 `--persist-to`),再用同一 bearer 调 `/api/me` 应 401
   6. 不带 Authorization 调 `/api/me`(本地 host) → 走 localhost 分支返回 `dev@localhost`(确认 localhost 后备未被破坏)
-  7. 带 bearer 调 `/api/auth/cli` 应 403(防换 token 路径)
+  7. 带 bearer 调 `/api/auth/cli` 应 403(防自助换 token)
 - 验证:`bun turbo test:e2e --filter=@bogo/worker`
 - Gate:pre-push
 
@@ -853,38 +855,108 @@ bunx wrangler d1 execute bogo --remote --command "UPDATE api_tokens SET revoked_
 - 不入 worker bundle(确认 `wrangler.toml` 的 `[assets].directory` 是 `./static` 不会扫到根目录的 yaml)
 - Gate:pre-commit(validate 步骤可作为 CI-only 任务)
 
-### Commit 7 — `test(cli-e2e): generated CLI smoke test`
+### Commit 7 — `test(cli-e2e): generated CLI smoke test (login + CRUD + revoke)`
 
-- 新增 `tests/cli-e2e/smoke.test.ts`(Bun runner,仓库根新 `tests/cli-e2e/`):
-  1. `beforeAll`:起 wrangler dev on 临时端口 `<PORT>`;临时 `CLIP_HOME=<tmpdir>`;**`CLIP_BASE_URL=http://127.0.0.1:<PORT>` 注入到所有 bogo 子进程**(否则生成的 CLI 默认调 `https://bogo.hexly.ai`,见 `templates.ts:100`)
-  2. spawn `clip generate ../../clip.yaml --output <tmpdir>/bogo-cli` 并 `cd <tmpdir>/bogo-cli && bun install`
-  3. **跳过 `bogo login` 弹浏览器**;直接 fetch `http://127.0.0.1:<PORT>/api/auth/cli?callback=http://127.0.0.1:9999/callback` 取 token,手写入 `<tmpdir>/bogo/credentials.json`(格式见 §2.4)。这是 e2e 标准做法,等价于 `bogo login` 之后的状态
-  4. spawn 生成的 CLI 的子命令:
-     - `bogo me` → JSON 含 `email: "dev@localhost"`
-     - `bogo workspaces-list` → 数组
-     - `bogo workspaces-create --name "Test"` → JSON 含 `id`,记下为 `<wid>`
-     - `bogo persons-list <wid>` → 至少包含 root person
-     - `bogo persons-create <wid> --name "Eng" --managerId <root>` → 含新 id
-     - `bogo documents-create <wid> --title "Doc" --personIds <root>` → 含 id
-     - `bogo documents-versions <wid> <doc-id>` → 1 个 version
-     - `bogo tags-create <wid> --name "P0" --scope document` → 含 id
-     - `bogo tags-documents-add <wid> <tag-id> <doc-id>` → 成功
-     - `bogo workspaces-delete <wid>` → 成功
-  5. 撤销:直接 wrangler d1 execute(或 fetch worker 提供的私有撤销端点;v1 没有 → 用 D1 SQL)`UPDATE api_tokens SET revoked_at=...`;再 spawn `bogo me`,断言**进程退出码非 0** 且 stderr 含 `HTTP 401`
-  6. **不**测 `bogo live`(它也要登录才能调,只是路由本身公开;`bogo live` 在登录前因 `loadConfig()` 失败 exit 1)
-  7. `afterAll`:kill wrangler,清 tmpdir
-- 加根 `package.json` script:`"test:cli-e2e": "cd tests/cli-e2e && bun test"`
-- 加 `.husky/pre-push` 一段(语义:CI 严格、本地可跳过):
-  ```bash
-  if [ -n "$BOGO_REQUIRE_CLI_E2E" ] || [ -z "$BOGO_SKIP_CLI_E2E" ]; then
-    bun run test:cli-e2e
-  else
-    echo "[pre-push] BOGO_SKIP_CLI_E2E set — skipping CLI e2e"
-  fi
-  ```
-  CI workflow 显式 `export BOGO_REQUIRE_CLI_E2E=1` 让"跳过"开关在 CI 上失效。
-- 不依赖远程 prod;依赖 `clip` CLI 在 PATH。`tests/cli-e2e/smoke.test.ts` 在 `beforeAll` 里先 `command -v clip` 检测,缺失时 `test.skip("requires clip in PATH")` 而非 hard fail(避免锁死没装 clip 的开发环境)
-- Gate:pre-push(条件性)
+> **关键事实**(决定 e2e 怎么写,违反就是"通过却失效"):
+>
+> - **`_login.ts` 把 `apiUrl` / `loginPath` / `tokenParam` 全部硬编码进生成的文件**(`../clip/packages/cli/src/codegen/templates.ts:306-332`)。`CLIP_BASE_URL` 只覆盖**普通业务请求**的 baseUrl(`templates.ts:100`),**不影响 `bogo login`**。要让 `bogo login` 打本地 wrangler,必须**生成时就给一份临时 schema**,把 `baseUrl` 改成 `http://127.0.0.1:<PORT>`,然后从这份 schema generate
+> - **e2e 不能真弹浏览器**——需要替换 `openBrowser`。clip 生成的 `_login.ts` 直接 import `@nocoo/cli-base.openBrowser`,e2e 走 fake `clip` 二进制 / 环境变量都太曲折。**最干净的做法是写一份"fake browser"小进程**:`bogo login` 启动后,e2e 主进程把生成的 login URL 解析出来(`bogo login` 会 stdout print "🔐 Opening browser..." 之后就 await callback;主进程直接 `fetch(loginUrl)` 跟随 302 → callback URL → 完成 loopback,等价于浏览器行为)
+> - **D1 准备 = 生成 schema 同一目录的 `--persist-to`**(同 Commit 5),否则撤销 SQL 打不到 wrangler dev 看到的库
+>
+> 这三点全部落实,才能真的覆盖 §1 承诺的"e2e 包含 `bogo login`"。
+
+新增 `tests/cli-e2e/smoke.test.ts`(Bun runner,仓库根新 `tests/cli-e2e/`):
+
+```
+beforeAll:
+  1. 分配空闲端口 <PORT> (e.g. 27036)
+  2. 临时 dir: TMP=$(mktemp -d -t bogo-cli-e2e); CLIP_HOME=<TMP>/clip-home
+  3. 准备隔离 D1 持久化:PERSIST=<TMP>/wrangler;
+     execSync("npx wrangler d1 migrations apply bogo --local --persist-to <PERSIST>",
+              { cwd: packages/worker })
+  4. spawn 临时 wrangler dev:
+     spawn("npx", ["wrangler","dev","--port",PORT,"--local","--persist-to",PERSIST],
+           { cwd: packages/worker, env: {...process.env, CF_ACCESS_TEAM_DOMAIN/AUD = dummy} })
+     await waitForServer(`http://127.0.0.1:${PORT}/api/live`)
+  5. 生成测试 schema(关键步骤——绕开 _login.ts 硬编码 baseUrl):
+     const yaml = readFileSync(REPO_ROOT/clip.yaml).replace(
+       "baseUrl: \"https://bogo.hexly.ai\"",
+       `baseUrl: "http://127.0.0.1:${PORT}"`)
+     writeFileSync(<TMP>/clip.yaml, yaml)
+  6. 跑 clip generate:
+     execSync(`clip generate <TMP>/clip.yaml --output <TMP>/bogo-cli`)
+     execSync("bun install", { cwd: <TMP>/bogo-cli })
+
+测试主体:
+  - test("login → credentials.json"):
+     // 启动 `bun src/index.ts login`,主进程同步充当 fake browser
+     const cli = spawn("bun", ["src/index.ts","login"],
+                       { cwd: <TMP>/bogo-cli, env: {...env, CLIP_HOME, BROWSER:"true"} })
+     // _login.ts 会先 print "🔐 Opening browser to log in to "bogo"..." 然后调
+     // performLogin,后者会 console.log 出 "Open this URL in your browser: ..."
+     // (见 cli-base/src/login.ts log 调用)。
+     // ↓ 主进程从 cli.stdout 解析这个 URL
+     const loginUrl = await readLineMatching(cli.stdout, /https?:\/\/[^\s]+/)
+     // fetch 跟随 302,完成 loopback 回调
+     await fetch(loginUrl, { redirect: "follow" })
+     // 等 cli 进程退出
+     await waitFor(cli, "✅ Logged in")
+     // 验 credentials.json
+     expect(JSON.parse(readFileSync(`${CLIP_HOME}/bogo/credentials.json`)))
+       .toMatchObject({ type: "browser-login", token: stringMatching(/^bogo_/), email: "dev@localhost" })
+     expect(statSync(...).mode & 0o777).toBe(0o600)
+
+  - test("CRUD chain"):
+     // 之后所有 spawn 都 cwd=<TMP>/bogo-cli + env.CLIP_HOME=<TMP>/clip-home
+     run("bun src/index.ts me")  // {email:"dev@localhost"}
+     run("bun src/index.ts workspaces-list")  // []
+     const { id: wid } = run("bun src/index.ts workspaces-create --name Test")
+     const persons = run(`bun src/index.ts persons-list ${wid}`)
+     const root = persons.data.find(p => p.isRoot)
+     run(`bun src/index.ts persons-create ${wid} --name Eng --managerId ${root.id}`)
+     const { id: docId } = run(`bun src/index.ts documents-create ${wid} --title Doc --personIds ${root.id}`)
+     run(`bun src/index.ts documents-versions ${wid} ${docId}`)  // [{version:1}]
+     const tag = run(`bun src/index.ts tags-create ${wid} --name P0 --scope document`)
+     run(`bun src/index.ts tags-documents-add ${wid} ${tag.id} ${docId}`)
+     run(`bun src/index.ts workspaces-delete ${wid}`)
+
+  - test("revoke → 401"):
+     const creds = JSON.parse(readFileSync(`${CLIP_HOME}/bogo/credentials.json`))
+     const prefix = creds.token.slice(0, 12)
+     execSync(`npx wrangler d1 execute bogo --local --persist-to ${PERSIST} \\
+               --command "UPDATE api_tokens SET revoked_at=datetime('now') WHERE prefix='${prefix}'"`,
+              { cwd: packages/worker })
+     const result = spawnSync("bun", ["src/index.ts","me"],
+                              { cwd: <TMP>/bogo-cli, env: {...env, CLIP_HOME} })
+     expect(result.status).not.toBe(0)
+     expect(result.stderr.toString()).toMatch(/HTTP 401/)
+
+afterAll:
+  - kill wrangler proc;rm -rf <TMP>
+```
+
+**实现细节**:
+- 端口分配:`getPort()` 或固定 `27036`(与 worker e2e 的 17036 错开)
+- `readLineMatching` 用 readline 包 stdin/stdout 直至匹配
+- 测试 schema 替换可以用更稳的 `yaml.parse` + `yaml.stringify`,避免字符串替换出错
+- 不**`bun link`** 全局,避免污染开发环境;全程 `bun src/index.ts <cmd>` 调用
+- **不**测 `bogo live`(生成 CLI 任何子命令都先 `loadConfig()`,无法做"无凭据健康检查",见 §3.1)
+
+加根 `package.json` script:`"test:cli-e2e": "cd tests/cli-e2e && bun test"`
+
+加 `.husky/pre-push` 一段(语义:CI 严格、本地可跳过):
+```bash
+if [ -n "$BOGO_REQUIRE_CLI_E2E" ] || [ -z "$BOGO_SKIP_CLI_E2E" ]; then
+  bun run test:cli-e2e
+else
+  echo "[pre-push] BOGO_SKIP_CLI_E2E set — skipping CLI e2e"
+fi
+```
+CI workflow 显式 `export BOGO_REQUIRE_CLI_E2E=1`,让"跳过"开关在 CI 失效。
+
+依赖:`clip` 在 PATH;`tests/cli-e2e/smoke.test.ts` 在 `beforeAll` 先 `command -v clip` 检测,缺失时 `test.skip("requires clip in PATH")` 而非 hard fail。
+
+Gate:pre-push(条件性)
 
 ### Commit 8 — `docs(architecture): record bearer auth flow`
 
@@ -950,6 +1022,7 @@ bunx wrangler d1 execute bogo --remote --command "UPDATE api_tokens SET revoked_
 - **CLI 传 `null`** —— commander 把 flag 值视为 string,`--managerId null` 会成字符串 `"null"`。`persons-move` 提升为根、`documents-update` 清空 typeId 等场景 CLI 不支持,走 UI
 - **CLI 真正的 array body** —— v1 用 query CSV 折中(§6.1);后续要么 clip 加 `--repeat` flag 形态、要么 worker 端通用支持 query-as-array
 - **`bogo live` 无凭据调用** —— clip 生成的 CLI 任何子命令都先 `loadConfig()`,无法做"无 token 健康检查"。要 ping 服务直接 `curl /api/live`
+- **`tagMode` 标志** —— worker 当前 `persons-list` / `documents-list` 只支持 OR(任一 tag 命中),没消费 `tagMode` query。所以 yaml 不暴露此 flag;若以后加 AND 模式,同时更新 worker + 重启在 yaml 加入
 
 ## 12. Decisions(2026-06-21 哥拍板)
 

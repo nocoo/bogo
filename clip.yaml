@@ -60,7 +60,6 @@ endpoints:
       path: { wid: { type: string, required: true } }
       query:
         tagIds: { type: string, description: "Comma-separated tag IDs" }
-        tagMode: { type: string, description: "any" }
 
   - name: persons-get
     method: GET
@@ -245,7 +244,6 @@ endpoints:
       path: { wid: { type: string, required: true } }
       query:
         tagIds: { type: string, description: "Comma-separated tag IDs" }
-        tagMode: { type: string, description: "any" }
 
   - name: documents-get
     method: GET
