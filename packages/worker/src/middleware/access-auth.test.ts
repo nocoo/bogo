@@ -230,4 +230,55 @@ describe("accessAuth — Bearer branch", () => {
 		expect(captured.authMethod).toBe("localhost");
 		expect(calls).toEqual([NEXT_CALLED]);
 	});
+
+	it("on /api/live with a revoked bogo_ bearer, still 401s (bearer branch precedes the live shortcut)", async () => {
+		// Locks in the spec §3.1 footnote: even on the public /api/live route,
+		// a CLI call carrying a revoked bearer must 401 instead of falling
+		// through to the public exemption. This holds because the bearer
+		// branch runs at the top of accessAuth, before path-based shortcuts.
+		const d1 = createMockD1();
+		d1.mockFirst.mockResolvedValueOnce({
+			owner_email: "alice@example.com",
+			revoked_at: "2026-06-22T00:00:00Z",
+			expires_at: null,
+		});
+
+		const { c, jsonMock } = makeCtx({
+			authorization: "Bearer bogo_revoked",
+			host: "localhost:8787",
+			path: "/api/live",
+			d1,
+		});
+		const { next, calls } = makeNext();
+
+		await accessAuth(c, next);
+
+		expect(jsonMock).toHaveBeenCalledWith({ error: "Invalid or revoked bearer token" }, 401);
+		expect(calls).toEqual([]);
+	});
+
+	it("treats an empty-string revoked_at as revoked (strict !== null check)", async () => {
+		// Defense against a future migration / hand-edit that stores "" instead
+		// of NULL: the previous truthy/falsy check would have silently
+		// re-authorized empty-string rows. Now any non-null revoked_at value —
+		// including the empty string — is treated as revoked.
+		const d1 = createMockD1();
+		d1.mockFirst.mockResolvedValueOnce({
+			owner_email: "alice@example.com",
+			revoked_at: "" as unknown as string | null,
+			expires_at: null,
+		});
+
+		const { c, jsonMock } = makeCtx({
+			authorization: "Bearer bogo_emptyrevoked",
+			host: "bogo.hexly.ai",
+			d1,
+		});
+		const { next, calls } = makeNext();
+
+		await accessAuth(c, next);
+
+		expect(jsonMock).toHaveBeenCalledWith({ error: "Invalid or revoked bearer token" }, 401);
+		expect(calls).toEqual([]);
+	});
 });

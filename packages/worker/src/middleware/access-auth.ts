@@ -39,7 +39,11 @@ export async function accessAuth(c: Context<AppEnv>, next: Next) {
 				revoked_at: string | null;
 				expires_at: string | null;
 			}>();
-		if (!row || row.revoked_at || (row.expires_at && row.expires_at < new Date().toISOString())) {
+		if (
+			!row ||
+			row.revoked_at !== null ||
+			(row.expires_at !== null && row.expires_at < new Date().toISOString())
+		) {
 			return c.json({ error: "Invalid or revoked bearer token" }, 401);
 		}
 		c.executionCtx.waitUntil(
@@ -88,7 +92,7 @@ export async function accessAuth(c: Context<AppEnv>, next: Next) {
 			issuer: `https://${teamDomain}`,
 			audience: aud,
 		});
-		c.set("userEmail", (payload.email as string) || null);
+		c.set("userEmail", (payload.email as string) || (payload.common_name as string) || null);
 		c.set("authMethod", "cf-access-jwt");
 	} catch {
 		return c.json({ error: "Invalid Access JWT" }, 403);
