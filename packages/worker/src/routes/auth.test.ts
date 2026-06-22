@@ -88,7 +88,7 @@ describe("GET /api/auth/cli", () => {
 	});
 
 	it("(b) request with bearer authMethod is rejected with 403 (prevents bearer self-minting another token)", async () => {
-		const { db, mockFirst } = createMockD1();
+		const { db, mockFirst, mockPrepare } = createMockD1();
 		// Make the bearer branch in access-auth succeed so authMethod=="bearer".
 		mockFirst.mockResolvedValue({
 			owner_email: "alice@example.com",
@@ -107,6 +107,10 @@ describe("GET /api/auth/cli", () => {
 		expect(res.status).toBe(403);
 		const json = await res.json();
 		expect(json.error).toBe("CLI login requires browser session");
+		// Negative assertion: no token was minted. Defends against a future
+		// refactor that reorders mint-before-authMethod-check, which would
+		// silently leak a token despite still returning 403.
+		expect(mockPrepare).not.toHaveBeenCalledWith(expect.stringContaining("INSERT INTO api_tokens"));
 	});
 
 	it("(c) callback that is not loopback (public hostname) → 400", async () => {
