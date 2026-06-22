@@ -8,6 +8,7 @@ export type Bindings = {
 export type Variables = {
 	accessAuthenticated?: boolean;
 	userEmail?: string | null;
+	authMethod?: "bearer" | "cf-access-jwt" | "localhost";
 };
 
 export type AppEnv = { Bindings: Bindings; Variables: Variables };

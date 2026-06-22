@@ -1,6 +1,7 @@
 import type { Context, Next } from "hono";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import type { AppEnv } from "../types.js";
+import { sha256Hex } from "../utils/hash.js";
 
 let jwksCache: ReturnType<typeof createRemoteJWKSet> | null = null;
 let jwksCacheTeamDomain: string | null = null;
@@ -21,10 +22,42 @@ export function isLocalhost(host: string): boolean {
 }
 
 export async function accessAuth(c: Context<AppEnv>, next: Next) {
+	// Bearer branch must run BEFORE the localhost shortcut so a revoked bogo_*
+	// token on wrangler dev still 401s instead of falling through to
+	// dev@localhost. Non-bogo_ Bearer values (e.g. CF Access service token
+	// JWTs) skip this branch and fall through to the CF Access path.
+	const auth = c.req.header("Authorization") ?? "";
+	if (auth.startsWith("Bearer bogo_")) {
+		const plain = auth.slice("Bearer ".length);
+		const hash = await sha256Hex(plain);
+		const row = await c.env.DB.prepare(
+			"SELECT owner_email, revoked_at, expires_at FROM api_tokens WHERE token_hash = ?",
+		)
+			.bind(hash)
+			.first<{
+				owner_email: string;
+				revoked_at: string | null;
+				expires_at: string | null;
+			}>();
+		if (!row || row.revoked_at || (row.expires_at && row.expires_at < new Date().toISOString())) {
+			return c.json({ error: "Invalid or revoked bearer token" }, 401);
+		}
+		c.executionCtx.waitUntil(
+			c.env.DB.prepare("UPDATE api_tokens SET last_used_at = ? WHERE token_hash = ?")
+				.bind(new Date().toISOString(), hash)
+				.run(),
+		);
+		c.set("userEmail", row.owner_email);
+		c.set("authMethod", "bearer");
+		c.set("accessAuthenticated", true);
+		return next();
+	}
+
 	const host = c.req.header("host") || "";
 
 	if (isLocalhost(host)) {
 		c.set("userEmail", "dev@localhost");
+		c.set("authMethod", "localhost");
 		return next();
 	}
 
@@ -56,6 +89,7 @@ export async function accessAuth(c: Context<AppEnv>, next: Next) {
 			audience: aud,
 		});
 		c.set("userEmail", (payload.email as string) || null);
+		c.set("authMethod", "cf-access-jwt");
 	} catch {
 		return c.json({ error: "Invalid Access JWT" }, 403);
 	}
