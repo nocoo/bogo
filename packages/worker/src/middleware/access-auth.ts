@@ -49,7 +49,13 @@ export async function accessAuth(c: Context<AppEnv>, next: Next) {
 		c.executionCtx.waitUntil(
 			c.env.DB.prepare("UPDATE api_tokens SET last_used_at = ? WHERE token_hash = ?")
 				.bind(new Date().toISOString(), hash)
-				.run(),
+				.run()
+				.catch((err) => {
+					// Best-effort timestamp update; never block the request.
+					// Surface failures so a stuck last_used_at — the only forensic
+					// signal for "is this token alive?" — does not go unnoticed.
+					console.error("[access-auth] last_used_at update failed:", err);
+				}),
 		);
 		c.set("userEmail", row.owner_email);
 		c.set("authMethod", "bearer");
