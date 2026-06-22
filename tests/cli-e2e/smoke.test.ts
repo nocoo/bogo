@@ -295,8 +295,22 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 		}>;
 		expect(versions[0]?.version).toBe(1);
 
+		// Tags coverage (spec §9 Commit 7): exercise the document-tag join so a
+		// regression in tags-create / tags-documents-add is caught here.
+		const tag = runCli(["tags-create", ws.id, "--name", "P0", "--scope", "document"]) as {
+			id: string;
+		};
+		expect(tag.id).toMatch(/[0-9a-f-]{36}/);
+
+		runCli(["tags-documents-add", ws.id, tag.id, doc.id]);
+		const taggedDocs = runCli(["documents-list", ws.id, "--tagIds", tag.id]) as Array<{
+			id: string;
+		}>;
+		expect(taggedDocs.some((d) => d.id === doc.id)).toBe(true);
+
 		// Tear down children before the workspace; the worker's workspaces
 		// DELETE refuses (HTTP 500 from FK) if persons/documents remain.
+		runCli(["tags-delete", ws.id, tag.id]);
 		runCli(["documents-delete", ws.id, doc.id]);
 		runCli(["persons-delete", ws.id, eng.id]);
 		runCli(["workspaces-delete", ws.id]);
