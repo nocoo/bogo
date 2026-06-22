@@ -54,6 +54,13 @@ export function isLoopbackCallback(raw: string): boolean {
 	try {
 		const u = new URL(raw);
 		if (u.protocol !== "http:") return false;
+		// Reject any userinfo (`http://evil.com@127.0.0.1/callback`). The URL
+		// still resolves to loopback so it is not an exfiltration risk on its
+		// own, but address-bar phishing combines well with userinfo so we
+		// refuse on principle. The URL parser also normalises IPv4 aliases
+		// (127.1, 0x7f000001, 2130706433) to "127.0.0.1", which is fine — they
+		// genuinely point at loopback.
+		if (u.username !== "" || u.password !== "") return false;
 		if (!["127.0.0.1", "localhost", "[::1]"].includes(u.hostname)) return false;
 		if (u.pathname !== "/callback") return false;
 		return true;

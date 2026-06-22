@@ -43,6 +43,24 @@ describe("isLoopbackCallback", () => {
 		expect(isLoopbackCallback("not-a-url")).toBe(false);
 		expect(isLoopbackCallback("")).toBe(false);
 	});
+
+	it("rejects userinfo in the URL even when host resolves to loopback", () => {
+		// `evil.com` here is the userinfo, not the host — URL parses this as
+		// host=127.0.0.1. The flow is not exploitable on its own (the request
+		// still goes to loopback) but we reject on principle because
+		// address-bar phishing combines well with userinfo.
+		expect(isLoopbackCallback("http://evil.com@127.0.0.1:9999/callback")).toBe(false);
+		expect(isLoopbackCallback("http://user:pass@localhost:9999/callback")).toBe(false);
+	});
+
+	it("accepts IPv4 alias forms (127.1, 0x7f000001, 2130706433) — URL normalises to 127.0.0.1", () => {
+		// These are legitimately loopback addresses; the URL parser normalises
+		// hostname to "127.0.0.1" so they pass the allowlist. Documented as a
+		// non-exploit per security review.
+		expect(isLoopbackCallback("http://127.1:9999/callback")).toBe(true);
+		expect(isLoopbackCallback("http://0x7f000001:9999/callback")).toBe(true);
+		expect(isLoopbackCallback("http://2130706433:9999/callback")).toBe(true);
+	});
 });
 
 describe("GET /api/auth/cli", () => {
