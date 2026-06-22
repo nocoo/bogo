@@ -80,7 +80,15 @@ documentRoutes.get("/", async (c) => {
 
 documentRoutes.post("/", async (c) => {
 	const wid = c.req.param("wid") as string;
-	const body = await c.req.json();
+	const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+	// CLI bridge: clip codegen cannot send arrays via body, so the CLI sends
+	// `personIds` as a query CSV (docs/features/02-cli.md §3.4 / §6.1). Split
+	// it back into a string[] body field so the existing zod schema validates
+	// unchanged. Body-supplied `personIds` (UI / programmatic callers) wins.
+	const personIdsCsv = c.req.query("personIds");
+	if (personIdsCsv && body.personIds === undefined) {
+		body.personIds = personIdsCsv.split(",").filter(Boolean);
+	}
 	const parsed = createDocumentSchema.safeParse(body);
 	if (!parsed.success) {
 		return c.json({ error: { code: "VALIDATION_ERROR", issues: parsed.error.issues } }, 400);

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { accessAuth } from "./middleware/access-auth.js";
+import { authRoutes } from "./routes/auth.js";
 import { docTypeRoutes } from "./routes/doc-types.js";
 import { documentRoutes } from "./routes/documents.js";
 import { fieldRoutes } from "./routes/fields.js";
@@ -16,6 +17,7 @@ app.use("/api/*", accessAuth);
 
 app.get("/api/live", liveRoute);
 app.get("/api/me", meRoute);
+app.route("/api/auth", authRoutes);
 app.route("/api/workspaces", workspaceRoutes);
 app.route("/api/w/:wid/persons", personRoutes);
 app.route("/api/w/:wid/fields", fieldRoutes);

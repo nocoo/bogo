@@ -1,0 +1,73 @@
+import { generateId } from "@bogo/shared";
+import { Hono } from "hono";
+import type { AppEnv } from "../types.js";
+import { sha256Hex } from "../utils/hash.js";
+
+export const authRoutes = new Hono<AppEnv>();
+
+// GET /api/auth/cli — browser-login callback exchange for the bogo CLI.
+//
+// Must reject `authMethod === "bearer"`: a CLI token must never be able to
+// mint another CLI token, or a leaked token would extend its own lifetime
+// indefinitely and bypass CF Access revocation. Only a real human browser
+// session (CF Access JWT) or a localhost dev session is allowed to land here.
+//
+// The `callback` query parameter must be a loopback URL with pathname
+// `/callback` over HTTP — this matches the `cli-base` performLogin client
+// which always binds 127.0.0.1 and listens on `/callback`. Anything else is
+// rejected with 400 before any token is minted.
+authRoutes.get("/cli", async (c) => {
+	const method = c.get("authMethod");
+	if (method !== "cf-access-jwt" && method !== "localhost") {
+		return c.json({ error: "CLI login requires browser session" }, 403);
+	}
+
+	const email = c.get("userEmail");
+	if (!email) {
+		return c.json({ error: "No authenticated user" }, 401);
+	}
+
+	const callback = c.req.query("callback") ?? "";
+	const state = c.req.query("state") ?? "";
+	if (!isLoopbackCallback(callback)) {
+		return c.text("Invalid callback URL", 400);
+	}
+
+	const plain = generateToken();
+	const hash = await sha256Hex(plain);
+	const prefix = plain.slice(0, 12);
+
+	await c.env.DB.prepare(
+		"INSERT INTO api_tokens (id, owner_email, token_hash, prefix, label) VALUES (?, ?, ?, ?, ?)",
+	)
+		.bind(generateId(), email, hash, prefix, "cli-login")
+		.run();
+
+	const redirect = new URL(callback);
+	redirect.searchParams.set("api_key", plain);
+	if (state) redirect.searchParams.set("state", state);
+	redirect.searchParams.set("email", email);
+	return c.redirect(redirect.toString(), 302);
+});
+
+export function isLoopbackCallback(raw: string): boolean {
+	try {
+		const u = new URL(raw);
+		if (u.protocol !== "http:") return false;
+		if (!["127.0.0.1", "localhost", "[::1]"].includes(u.hostname)) return false;
+		if (u.pathname !== "/callback") return false;
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+function generateToken(): string {
+	const bytes = new Uint8Array(32);
+	crypto.getRandomValues(bytes);
+	const b64 = btoa(String.fromCharCode(...bytes))
+		.replace(/\+/g, "-")
+		.replace(/\//g, "_")
+		.replace(/=+$/, "");
+	return `bogo_${b64}`;
+}

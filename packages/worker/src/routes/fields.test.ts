@@ -124,6 +124,57 @@ describe("field routes", () => {
 			});
 			expect(res.status).toBe(400);
 		});
+
+		describe("CLI query → body bridge for options", () => {
+			it("accepts options as a query CSV when body omits it", async () => {
+				const { db } = createSequenceD1([
+					{ type: "run", value: { success: true, meta: { changes: 1 } } },
+				]);
+
+				const res = await app.fetch(
+					makeRequest("POST", `${BASE}?options=NYC,SF,LON`, {
+						name: "Location",
+						fieldType: "select",
+					}),
+					{ DB: db, ENVIRONMENT: "test" },
+				);
+				expect(res.status).toBe(201);
+				const json = await res.json();
+				expect(json.data.options).toEqual(["NYC", "SF", "LON"]);
+			});
+
+			it("does not invent options when neither body nor query provides it", async () => {
+				const { db } = createSequenceD1([
+					{ type: "run", value: { success: true, meta: { changes: 1 } } },
+				]);
+
+				const res = await app.fetch(
+					makeRequest("POST", BASE, { name: "Notes", fieldType: "text" }),
+					{ DB: db, ENVIRONMENT: "test" },
+				);
+				expect(res.status).toBe(201);
+				const json = await res.json();
+				expect(json.data.options).toBeNull();
+			});
+
+			it("prefers body options over query CSV when both are present", async () => {
+				const { db } = createSequenceD1([
+					{ type: "run", value: { success: true, meta: { changes: 1 } } },
+				]);
+
+				const res = await app.fetch(
+					makeRequest("POST", `${BASE}?options=FROM_QUERY`, {
+						name: "Region",
+						fieldType: "select",
+						options: ["FROM_BODY"],
+					}),
+					{ DB: db, ENVIRONMENT: "test" },
+				);
+				expect(res.status).toBe(201);
+				const json = await res.json();
+				expect(json.data.options).toEqual(["FROM_BODY"]);
+			});
+		});
 	});
 
 	describe("PUT /api/w/:wid/fields/:id", () => {
@@ -181,6 +232,50 @@ describe("field routes", () => {
 			expect(res.status).toBe(200);
 			const json = await res.json();
 			expect(json.data.updated).toBe(false);
+		});
+
+		describe("CLI query → body bridge for options", () => {
+			it("accepts options as a query CSV when body omits it", async () => {
+				const { db } = createSequenceD1([
+					{ type: "run", value: { success: true, meta: { changes: 1 } } },
+				]);
+
+				const res = await app.fetch(makeRequest("PUT", `${BASE}/f-1?options=A,B,C`, {}), {
+					DB: db,
+					ENVIRONMENT: "test",
+				});
+				expect(res.status).toBe(200);
+				const json = await res.json();
+				expect(json.data.updated).toBe(true);
+			});
+
+			it("does not invent options when neither body nor query provides it", async () => {
+				const { db } = createMockD1();
+				const res = await app.fetch(makeRequest("PUT", `${BASE}/f-1`, {}), {
+					DB: db,
+					ENVIRONMENT: "test",
+				});
+				expect(res.status).toBe(200);
+				const json = await res.json();
+				// No options query, no body options → no update column → updated:false
+				expect(json.data.updated).toBe(false);
+			});
+
+			it("prefers body options over query CSV when both are present", async () => {
+				const { db } = createSequenceD1([
+					{ type: "run", value: { success: true, meta: { changes: 1 } } },
+				]);
+
+				const res = await app.fetch(
+					makeRequest("PUT", `${BASE}/f-1?options=FROM_QUERY`, {
+						options: ["FROM_BODY"],
+					}),
+					{ DB: db, ENVIRONMENT: "test" },
+				);
+				expect(res.status).toBe(200);
+				const json = await res.json();
+				expect(json.data.updated).toBe(true);
+			});
 		});
 	});
 

@@ -24,7 +24,15 @@ fieldRoutes.get("/", async (c) => {
 
 fieldRoutes.post("/", async (c) => {
 	const wid = c.req.param("wid") as string;
-	const body = await c.req.json();
+	const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+	// CLI bridge: clip codegen cannot send arrays via body, so the CLI sends
+	// `options` as a query CSV (docs/features/02-cli.md §3.4 / §6.1). Split it
+	// back into a string[] body field so the existing zod schema validates
+	// unchanged. Body-supplied `options` (UI / programmatic callers) wins.
+	const optionsCsv = c.req.query("options");
+	if (optionsCsv && body.options === undefined) {
+		body.options = optionsCsv.split(",").filter(Boolean);
+	}
 	const parsed = createFieldDefSchema.safeParse(body);
 	if (!parsed.success) {
 		return c.json({ error: { code: "VALIDATION_ERROR", issues: parsed.error.issues } }, 400);
@@ -67,7 +75,12 @@ fieldRoutes.post("/", async (c) => {
 fieldRoutes.put("/:id", async (c) => {
 	const wid = c.req.param("wid") as string;
 	const { id } = c.req.param();
-	const body = await c.req.json();
+	const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+	// CLI bridge: same options-as-CSV treatment as POST /. See note above.
+	const optionsCsv = c.req.query("options");
+	if (optionsCsv && body.options === undefined) {
+		body.options = optionsCsv.split(",").filter(Boolean);
+	}
 	const parsed = updateFieldDefSchema.safeParse(body);
 	if (!parsed.success) {
 		return c.json({ error: { code: "VALIDATION_ERROR", issues: parsed.error.issues } }, 400);

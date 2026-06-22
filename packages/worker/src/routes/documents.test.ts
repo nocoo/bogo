@@ -248,6 +248,60 @@ describe("document routes", () => {
 			});
 			expect(res.status).toBe(400);
 		});
+
+		describe("CLI query → body bridge for personIds", () => {
+			it("accepts personIds as a query CSV when body omits it", async () => {
+				const { db } = createSequenceD1([
+					{ type: "first", value: { id: "550e8400-e29b-41d4-a716-446655440000" } },
+					{ type: "first", value: { id: "550e8400-e29b-41d4-a716-446655440001" } },
+				]);
+				(db as unknown as { batch: () => Promise<unknown[]> }).batch = async () => [];
+
+				const res = await app.fetch(
+					makeRequest(
+						"POST",
+						`${BASE}?personIds=550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001`,
+						{ title: "From CLI" },
+					),
+					{ DB: db, ENVIRONMENT: "test" },
+				);
+				expect(res.status).toBe(201);
+				const json = await res.json();
+				expect(json.data.title).toBe("From CLI");
+			});
+
+			it("does not touch the query CSV when neither body nor query provides personIds", async () => {
+				const { db, mockBatch } = createMockD1();
+				mockBatch.mockResolvedValue([]);
+
+				const res = await app.fetch(makeRequest("POST", BASE, { title: "Plain" }), {
+					DB: db,
+					ENVIRONMENT: "test",
+				});
+				expect(res.status).toBe(201);
+				const json = await res.json();
+				expect(json.data.title).toBe("Plain");
+			});
+
+			it("prefers body personIds over query CSV when both are present (UI / programmatic wins)", async () => {
+				// Body declares an empty array; query CSV would have added 1 person.
+				// Body must win, so the route never resolves the query-CSV person and
+				// thus never errors on INVALID_PERSON.
+				const { db, mockBatch } = createMockD1();
+				mockBatch.mockResolvedValue([]);
+
+				const res = await app.fetch(
+					makeRequest("POST", `${BASE}?personIds=550e8400-e29b-41d4-a716-446655440000`, {
+						title: "Body wins",
+						personIds: [],
+					}),
+					{ DB: db, ENVIRONMENT: "test" },
+				);
+				expect(res.status).toBe(201);
+				const json = await res.json();
+				expect(json.data.title).toBe("Body wins");
+			});
+		});
 	});
 
 	describe("GET /api/w/:wid/documents/:id", () => {

@@ -78,7 +78,10 @@ function extractSubRoutes(filePath: string): Route[] {
 	const src = readFileSync(filePath, "utf-8");
 	const routes: Route[] = [];
 
-	const re = /\b\w+\.(get|post|put|delete|patch|head)\(\s*["']([^"']+)["']/g;
+	// Require the path to start with `/` so unrelated `c.get("authMethod")` /
+	// `c.set("userEmail")` calls (Hono Variables accessors that share method
+	// names) do not get mistaken for route registrations.
+	const re = /\b\w+\.(get|post|put|delete|patch|head)\(\s*["'](\/[^"']*)["']/g;
 	for (const m of src.matchAll(re)) {
 		const method = m[1];
 		const path = m[2];
