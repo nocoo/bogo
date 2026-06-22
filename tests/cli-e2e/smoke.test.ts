@@ -352,7 +352,7 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 		runCli(["workspaces-delete", ws.id]);
 	}, 60_000);
 
-	test("revoke → /api/me returns 401 with the same token", () => {
+	test("revoke → /api/me returns 401 with the same token", async () => {
 		const creds = JSON.parse(readFileSync(join(clipHome, "bogo", "credentials.json"), "utf-8")) as {
 			token: string;
 		};
@@ -366,12 +366,23 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 			{ cwd: WORKER_ROOT, stdio: "ignore" },
 		);
 
+		// Assert directly against /api/me rather than the CLI's stderr — this
+		// keeps the test honest about what is being verified (token
+		// revocation), and immune to upstream cli-base error-formatting
+		// changes that could otherwise flip "passing-on-revoke" to
+		// "passing-on-any-non-zero-exit".
+		const direct = await fetch(`${BASE}/api/me`, {
+			headers: { Authorization: `Bearer ${creds.token}` },
+		});
+		expect(direct.status).toBe(401);
+
+		// Secondary sanity check: the generated CLI does surface the
+		// failure as a non-zero exit. We do not pin the exact wording.
 		const r = spawnSync("bun", ["src/index.ts", "me"], {
 			cwd: cliDir,
 			env: subEnv,
 			encoding: "utf-8",
 		});
 		expect(r.status).not.toBe(0);
-		expect(r.stderr + r.stdout).toMatch(/401/);
 	}, 30_000);
 });

@@ -84,10 +84,16 @@ try {
 		process.exit(1);
 	}
 
+	// The yaml currently declares 42 endpoints (live, me, workspaces x5,
+	// persons x7, documents x9, fields x6, doc-types x4, tags x9). clip's
+	// browser-login codegen also emits `_login.ts`, so the expected file
+	// count is exactly 43. Tightened from a loose < 40 so a regression that
+	// drops a couple of endpoints is not silently accepted.
+	const EXPECTED_COMMAND_FILES = 43;
 	const cmdFiles = readdirSync(join(out, "src", "commands")).filter((f) => f.endsWith(".ts"));
-	if (cmdFiles.length < 40) {
+	if (cmdFiles.length !== EXPECTED_COMMAND_FILES) {
 		console.error(
-			`❌ Generated CLI has only ${cmdFiles.length} command files; the spec's command matrix lists 43+ endpoints. The yaml may have lost endpoints.`,
+			`❌ Generated CLI has ${cmdFiles.length} command files; expected ${EXPECTED_COMMAND_FILES}. The yaml may have lost or gained endpoints — update EXPECTED_COMMAND_FILES if the change is intentional.`,
 		);
 		process.exit(1);
 	}
