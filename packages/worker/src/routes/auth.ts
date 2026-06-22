@@ -37,11 +37,20 @@ authRoutes.get("/cli", async (c) => {
 	const hash = await sha256Hex(plain);
 	const prefix = plain.slice(0, 12);
 
-	await c.env.DB.prepare(
-		"INSERT INTO api_tokens (id, owner_email, token_hash, prefix, label) VALUES (?, ?, ?, ?, ?)",
-	)
-		.bind(generateId(), email, hash, prefix, "cli-login")
-		.run();
+	// One active CLI token per identity. Revoke any prior cli-login token
+	// for this owner before minting. This caps the blast radius of CSRF /
+	// loop bugs / accidental re-runs of `bogo login`: the old token is
+	// dead the instant a new one is issued, so a leaked token cannot
+	// outlive its replacement, and the api_tokens table cannot grow
+	// unboundedly for a single user.
+	await c.env.DB.batch([
+		c.env.DB.prepare(
+			"UPDATE api_tokens SET revoked_at = ? WHERE owner_email = ? AND label = 'cli-login' AND revoked_at IS NULL",
+		).bind(new Date().toISOString(), email),
+		c.env.DB.prepare(
+			"INSERT INTO api_tokens (id, owner_email, token_hash, prefix, label) VALUES (?, ?, ?, ?, ?)",
+		).bind(generateId(), email, hash, prefix, "cli-login"),
+	]);
 
 	const redirect = new URL(callback);
 	redirect.searchParams.set("api_key", plain);

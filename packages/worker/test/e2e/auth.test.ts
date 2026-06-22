@@ -116,4 +116,38 @@ describe("bearer auth lifecycle (login → use → revoke → reject)", () => {
 		});
 		expect(replay.status).toBe(403);
 	});
+
+	it("issuing a new CLI token revokes the prior cli-login token for the same owner", async () => {
+		// Mint token A.
+		const callback = encodeURIComponent("http://127.0.0.1:9999/callback");
+		const a = await fetch(`${BASE}/api/auth/cli?callback=${callback}`, { redirect: "manual" });
+		expect(a.status).toBe(302);
+		const tokenA = new URL(a.headers.get("location") as string).searchParams.get("api_key");
+		expect(tokenA).toBeTruthy();
+
+		// A is alive immediately after issue.
+		const meA = await fetch(`${BASE}/api/me`, {
+			headers: { Authorization: `Bearer ${tokenA}` },
+		});
+		expect(meA.status).toBe(200);
+
+		// Mint token B via the same localhost dev session.
+		const b = await fetch(`${BASE}/api/auth/cli?callback=${callback}`, { redirect: "manual" });
+		expect(b.status).toBe(302);
+		const tokenB = new URL(b.headers.get("location") as string).searchParams.get("api_key");
+		expect(tokenB).toBeTruthy();
+		expect(tokenB).not.toBe(tokenA);
+
+		// A must now be revoked (one-active-per-identity).
+		const meAAgain = await fetch(`${BASE}/api/me`, {
+			headers: { Authorization: `Bearer ${tokenA}` },
+		});
+		expect(meAAgain.status).toBe(401);
+
+		// B is alive.
+		const meB = await fetch(`${BASE}/api/me`, {
+			headers: { Authorization: `Bearer ${tokenB}` },
+		});
+		expect(meB.status).toBe(200);
+	});
 });

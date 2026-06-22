@@ -155,9 +155,9 @@ describe("GET /api/auth/cli", () => {
 		expect(res.status).toBe(400);
 	});
 
-	it("(g) DB INSERT receives sha256(api_key from redirect) — only the hash is persisted, never the plaintext", async () => {
-		const { db, mockPrepare, mockBind, mockRun } = createMockD1();
-		mockRun.mockResolvedValue({ success: true, meta: { changes: 1 } });
+	it("(g) DB batch INSERTs sha256(api_key) — only the hash is persisted, never the plaintext", async () => {
+		const { db, mockPrepare, mockBind, mockBatch } = createMockD1();
+		mockBatch.mockResolvedValue([]);
 
 		const res = await app.fetch(
 			makeRequest("/api/auth/cli?callback=http%3A%2F%2F127.0.0.1%3A9999%2Fcallback", {
@@ -167,26 +167,67 @@ describe("GET /api/auth/cli", () => {
 		);
 		expect(res.status).toBe(302);
 		const url = new URL(res.headers.get("location") as string);
-		const plain = url.searchParams.get("api_key");
+		const plain = url.searchParams.get("api_key") as string;
 		expect(plain).toMatch(/^bogo_[A-Za-z0-9_-]+$/);
 
-		expect(mockPrepare).toHaveBeenCalledWith(
+		// Two prepares per issue: revoke same-owner cli-login rows, then INSERT.
+		const prepareCalls = mockPrepare.mock.calls.map((c) => c[0] as string);
+		expect(prepareCalls).toContain(
+			"UPDATE api_tokens SET revoked_at = ? WHERE owner_email = ? AND label = 'cli-login' AND revoked_at IS NULL",
+		);
+		expect(prepareCalls).toContain(
 			"INSERT INTO api_tokens (id, owner_email, token_hash, prefix, label) VALUES (?, ?, ?, ?, ?)",
 		);
-		const bindArgs = mockBind.mock.calls[0] as unknown[];
-		expect(bindArgs).toHaveLength(5);
-		// args: [id, owner_email, token_hash, prefix, label]
-		const ownerEmail = bindArgs[1] as string;
-		const tokenHash = bindArgs[2] as string;
-		const prefix = bindArgs[3] as string;
-		const label = bindArgs[4] as string;
+		// Both statements go through a single batch (atomic revoke+issue).
+		expect(mockBatch).toHaveBeenCalledTimes(1);
+
+		// The INSERT's bind args are the 5-arg call: [id, owner_email,
+		// token_hash, prefix, label]. The UPDATE bind is the 2-arg call:
+		// [iso_now, owner_email]. Find the 5-arg call and verify hashing.
+		const insertBind = mockBind.mock.calls.find((c) => c.length === 5) as unknown[] | undefined;
+		expect(insertBind).toBeTruthy();
+		if (!insertBind) throw new Error("expected INSERT bind args");
+		const [, ownerEmail, tokenHash, prefix, label] = insertBind as [
+			string,
+			string,
+			string,
+			string,
+			string,
+		];
 		expect(ownerEmail).toBe("dev@localhost");
-		expect(tokenHash).toBe(await sha256Hex(plain as string));
-		// Plaintext token must NEVER be stored anywhere on the insert.
-		for (const a of bindArgs) {
-			expect(typeof a === "string" ? a : "").not.toBe(plain);
-		}
-		expect(prefix).toBe((plain as string).slice(0, 12));
+		expect(tokenHash).toBe(await sha256Hex(plain));
+		expect(prefix).toBe(plain.slice(0, 12));
 		expect(label).toBe("cli-login");
+		// Plaintext token must NEVER appear in any bind() arg, anywhere.
+		for (const call of mockBind.mock.calls) {
+			for (const a of call) {
+				expect(typeof a === "string" ? a : "").not.toBe(plain);
+			}
+		}
+	});
+
+	it("(h) issuing a new token revokes prior cli-login rows for the same owner (one active per identity)", async () => {
+		const { db, mockPrepare, mockBatch } = createMockD1();
+		mockBatch.mockResolvedValue([]);
+
+		const res = await app.fetch(
+			makeRequest("/api/auth/cli?callback=http%3A%2F%2F127.0.0.1%3A9999%2Fcallback", {
+				host: "localhost:8787",
+			}),
+			{ DB: db, ENVIRONMENT: "test" },
+		);
+		expect(res.status).toBe(302);
+
+		const prepareCalls = mockPrepare.mock.calls.map((c) => c[0] as string);
+		const updateIdx = prepareCalls.indexOf(
+			"UPDATE api_tokens SET revoked_at = ? WHERE owner_email = ? AND label = 'cli-login' AND revoked_at IS NULL",
+		);
+		const insertIdx = prepareCalls.indexOf(
+			"INSERT INTO api_tokens (id, owner_email, token_hash, prefix, label) VALUES (?, ?, ?, ?, ?)",
+		);
+		expect(updateIdx).toBeGreaterThanOrEqual(0);
+		expect(insertIdx).toBeGreaterThanOrEqual(0);
+		// UPDATE prepares before INSERT so the batch revokes-then-issues.
+		expect(updateIdx).toBeLessThan(insertIdx);
 	});
 });
