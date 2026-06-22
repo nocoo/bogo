@@ -839,7 +839,16 @@ bunx wrangler d1 execute bogo --remote --command "UPDATE api_tokens SET revoked_
   2. `GET /api/auth/cli?callback=http://127.0.0.1:9999/callback&state=abc`
   3. 解析 302 Location,提 `api_key`
   4. 用 `Authorization: Bearer <api_key>` 调 `/api/me`,断言 `{email: "dev@localhost"}`(走 bearer 分支,因为 §5.3 bearer 优先于 localhost)
-  5. **撤销**:`execSync("npx wrangler d1 execute bogo --local --persist-to .wrangler/e2e --command \"UPDATE api_tokens SET revoked_at=datetime('now') WHERE prefix=?\"", { ... })`(关键:同 `--persist-to`),再用同一 bearer 调 `/api/me` 应 401
+  5. **撤销**:`wrangler d1 execute --command` 不支持 `?` 参数绑定,只能字符串拼接;`prefix` 字符集受控(`bogo_` + base64url) 直接拼安全:
+     ```ts
+     const prefix = plain.slice(0, 12);  // e.g. "bogo_a3F2x9-"
+     execSync(
+       `npx wrangler d1 execute bogo --local --persist-to .wrangler/e2e ` +
+       `--command "UPDATE api_tokens SET revoked_at=datetime('now') WHERE prefix='${prefix}'"`,
+       { cwd: WORKER_ROOT }
+     );
+     ```
+     再用同一 bearer 调 `/api/me` 应 401
   6. 不带 Authorization 调 `/api/me`(本地 host) → 走 localhost 分支返回 `dev@localhost`(确认 localhost 后备未被破坏)
   7. 带 bearer 调 `/api/auth/cli` 应 403(防自助换 token)
 - 验证:`bun turbo test:e2e --filter=@bogo/worker`
@@ -860,16 +869,17 @@ bunx wrangler d1 execute bogo --remote --command "UPDATE api_tokens SET revoked_
 > **关键事实**(决定 e2e 怎么写,违反就是"通过却失效"):
 >
 > - **`_login.ts` 把 `apiUrl` / `loginPath` / `tokenParam` 全部硬编码进生成的文件**(`../clip/packages/cli/src/codegen/templates.ts:306-332`)。`CLIP_BASE_URL` 只覆盖**普通业务请求**的 baseUrl(`templates.ts:100`),**不影响 `bogo login`**。要让 `bogo login` 打本地 wrangler,必须**生成时就给一份临时 schema**,把 `baseUrl` 改成 `http://127.0.0.1:<PORT>`,然后从这份 schema generate
-> - **e2e 不能真弹浏览器**——需要替换 `openBrowser`。clip 生成的 `_login.ts` 直接 import `@nocoo/cli-base.openBrowser`,e2e 走 fake `clip` 二进制 / 环境变量都太曲折。**最干净的做法是写一份"fake browser"小进程**:`bogo login` 启动后,e2e 主进程把生成的 login URL 解析出来(`bogo login` 会 stdout print "🔐 Opening browser..." 之后就 await callback;主进程直接 `fetch(loginUrl)` 跟随 302 → callback URL → 完成 loopback,等价于浏览器行为)
+> - **e2e 必须把 login URL 从 cli-base 里逼出来才能拿到**。`cli-base/src/login.ts:225-231` 的逻辑是先 `openBrowser(loginUrl)`,**只在 `openBrowser` 抛错时** `log("Could not open browser. Open this URL manually:\n  <url>")`。`_login.ts` 直接 import `@nocoo/cli-base.openBrowser`,而该函数(`cli-base/src/browser.ts:32-47`)直接 `exec("open <url>")`,**不读 `BROWSER` 环境变量**。所以要拿到 URL,得**把系统 `open` 替换成会失败的 fake**——在 e2e tmpdir 写一个 `fake-open` 脚本(`#!/usr/bin/env bash\nexit 1`),`chmod +x`,然后 spawn `bogo login` 时 `env.PATH=<tmpdir>:$PATH`。fake 失败 → cli-base fallback log → 主进程从 stdout 解析 URL → `fetch(loginUrl)` 完成 loopback
 > - **D1 准备 = 生成 schema 同一目录的 `--persist-to`**(同 Commit 5),否则撤销 SQL 打不到 wrangler dev 看到的库
+> - **生成 CLI 直接打印整个 worker 响应,包括 `{data: …}` 包装层**(`templates.ts:261`:`console.log(JSON.stringify(response, null, 2))`)。所有断言要走 `JSON.parse(stdout).data.<field>`,不能直接 `.id`
 >
-> 这三点全部落实,才能真的覆盖 §1 承诺的"e2e 包含 `bogo login`"。
+> 这四点全部落实,才能真的覆盖 §1 承诺的"e2e 包含 `bogo login`"且断言可靠。
 
 新增 `tests/cli-e2e/smoke.test.ts`(Bun runner,仓库根新 `tests/cli-e2e/`):
 
 ```
 beforeAll:
-  1. 分配空闲端口 <PORT> (e.g. 27036)
+  1. 分配端口 <PORT> (e.g. 27036,与 worker e2e 17036 错开)
   2. 临时 dir: TMP=$(mktemp -d -t bogo-cli-e2e); CLIP_HOME=<TMP>/clip-home
   3. 准备隔离 D1 持久化:PERSIST=<TMP>/wrangler;
      execSync("npx wrangler d1 migrations apply bogo --local --persist-to <PERSIST>",
@@ -878,58 +888,93 @@ beforeAll:
      spawn("npx", ["wrangler","dev","--port",PORT,"--local","--persist-to",PERSIST],
            { cwd: packages/worker, env: {...process.env, CF_ACCESS_TEAM_DOMAIN/AUD = dummy} })
      await waitForServer(`http://127.0.0.1:${PORT}/api/live`)
-  5. 生成测试 schema(关键步骤——绕开 _login.ts 硬编码 baseUrl):
-     const yaml = readFileSync(REPO_ROOT/clip.yaml).replace(
-       "baseUrl: \"https://bogo.hexly.ai\"",
-       `baseUrl: "http://127.0.0.1:${PORT}"`)
-     writeFileSync(<TMP>/clip.yaml, yaml)
-  6. 跑 clip generate:
-     execSync(`clip generate <TMP>/clip.yaml --output <TMP>/bogo-cli`)
-     execSync("bun install", { cwd: <TMP>/bogo-cli })
+  5. 写 fake browser 脚本(故意 exit 1,触发 cli-base fallback log):
+     const FAKE_BIN = `${TMP}/fake-bin`;
+     mkdirSync(FAKE_BIN);
+     writeFileSync(`${FAKE_BIN}/open`, "#!/usr/bin/env bash\nexit 1\n");
+     writeFileSync(`${FAKE_BIN}/xdg-open`, "#!/usr/bin/env bash\nexit 1\n");
+     chmodSync(`${FAKE_BIN}/open`, 0o755);
+     chmodSync(`${FAKE_BIN}/xdg-open`, 0o755);
+     // 之后所有 spawn 都用 env.PATH = `${FAKE_BIN}:${process.env.PATH}`
+  6. 生成测试 schema(关键步骤——绕开 _login.ts 硬编码 baseUrl):
+     const yaml = readFileSync(REPO_ROOT/clip.yaml, "utf-8").replace(
+       /baseUrl:.*$/m,
+       `baseUrl: "http://127.0.0.1:${PORT}"`);
+     writeFileSync(`${TMP}/clip.yaml`, yaml);
+  7. 跑 clip generate:
+     execSync(`clip generate ${TMP}/clip.yaml --output ${TMP}/bogo-cli`);
+     execSync("bun install", { cwd: `${TMP}/bogo-cli` });
+
+helper:
+  const SUB_ENV = { ...process.env, CLIP_HOME, PATH: `${FAKE_BIN}:${process.env.PATH}` };
+  const run = (args: string[]) => {
+    const r = spawnSync("bun", ["src/index.ts", ...args],
+                        { cwd: `${TMP}/bogo-cli`, env: SUB_ENV, encoding: "utf-8" });
+    if (r.status !== 0) throw new Error(`${args.join(" ")} failed:\n${r.stderr}`);
+    return JSON.parse(r.stdout).data;   // 注意:解 .data 包装
+  };
 
 测试主体:
-  - test("login → credentials.json"):
-     // 启动 `bun src/index.ts login`,主进程同步充当 fake browser
-     const cli = spawn("bun", ["src/index.ts","login"],
-                       { cwd: <TMP>/bogo-cli, env: {...env, CLIP_HOME, BROWSER:"true"} })
-     // _login.ts 会先 print "🔐 Opening browser to log in to "bogo"..." 然后调
-     // performLogin,后者会 console.log 出 "Open this URL in your browser: ..."
-     // (见 cli-base/src/login.ts log 调用)。
-     // ↓ 主进程从 cli.stdout 解析这个 URL
-     const loginUrl = await readLineMatching(cli.stdout, /https?:\/\/[^\s]+/)
-     // fetch 跟随 302,完成 loopback 回调
-     await fetch(loginUrl, { redirect: "follow" })
-     // 等 cli 进程退出
-     await waitFor(cli, "✅ Logged in")
-     // 验 credentials.json
-     expect(JSON.parse(readFileSync(`${CLIP_HOME}/bogo/credentials.json`)))
-       .toMatchObject({ type: "browser-login", token: stringMatching(/^bogo_/), email: "dev@localhost" })
-     expect(statSync(...).mode & 0o777).toBe(0o600)
+  test("login → credentials.json", async () => {
+    // bogo login 会 print "🔐 Opening browser...",随后 openBrowser 因 fake 失败,
+    // cli-base 打印 "Could not open browser. Open this URL manually:\n  <URL>"
+    const cli = spawn("bun", ["src/index.ts","login"],
+                      { cwd: `${TMP}/bogo-cli`, env: SUB_ENV });
+    const loginUrl = await readLineMatching(cli.stdout, /https?:\/\/127\.0\.0\.1:\d+\/api\/auth\/cli\?\S+/);
+    // fetch 跟随 302,完成 loopback 回调
+    await fetch(loginUrl, { redirect: "follow" });
+    // 等 cli 进程退出(打印 "✅ Logged in")
+    await waitForExit(cli);
+    expect(cli.exitCode).toBe(0);
+    const creds = JSON.parse(readFileSync(`${CLIP_HOME}/bogo/credentials.json`, "utf-8"));
+    expect(creds).toMatchObject({
+      type: "browser-login",
+      token: expect.stringMatching(/^bogo_/),
+      email: "dev@localhost",
+    });
+    expect(statSync(`${CLIP_HOME}/bogo/credentials.json`).mode & 0o777).toBe(0o600);
+  });
 
-  - test("CRUD chain"):
-     // 之后所有 spawn 都 cwd=<TMP>/bogo-cli + env.CLIP_HOME=<TMP>/clip-home
-     run("bun src/index.ts me")  // {email:"dev@localhost"}
-     run("bun src/index.ts workspaces-list")  // []
-     const { id: wid } = run("bun src/index.ts workspaces-create --name Test")
-     const persons = run(`bun src/index.ts persons-list ${wid}`)
-     const root = persons.data.find(p => p.isRoot)
-     run(`bun src/index.ts persons-create ${wid} --name Eng --managerId ${root.id}`)
-     const { id: docId } = run(`bun src/index.ts documents-create ${wid} --title Doc --personIds ${root.id}`)
-     run(`bun src/index.ts documents-versions ${wid} ${docId}`)  // [{version:1}]
-     const tag = run(`bun src/index.ts tags-create ${wid} --name P0 --scope document`)
-     run(`bun src/index.ts tags-documents-add ${wid} ${tag.id} ${docId}`)
-     run(`bun src/index.ts workspaces-delete ${wid}`)
+  test("CRUD chain", () => {
+    const me = run(["me"]);
+    expect(me.email).toBe("dev@localhost");
 
-  - test("revoke → 401"):
-     const creds = JSON.parse(readFileSync(`${CLIP_HOME}/bogo/credentials.json`))
-     const prefix = creds.token.slice(0, 12)
-     execSync(`npx wrangler d1 execute bogo --local --persist-to ${PERSIST} \\
-               --command "UPDATE api_tokens SET revoked_at=datetime('now') WHERE prefix='${prefix}'"`,
-              { cwd: packages/worker })
-     const result = spawnSync("bun", ["src/index.ts","me"],
-                              { cwd: <TMP>/bogo-cli, env: {...env, CLIP_HOME} })
-     expect(result.status).not.toBe(0)
-     expect(result.stderr.toString()).toMatch(/HTTP 401/)
+    expect(run(["workspaces-list"])).toEqual([]);
+    const ws = run(["workspaces-create", "--name", "Test"]);
+    const wid = ws.id;
+
+    const persons = run(["persons-list", wid]);
+    const root = persons.find((p: any) => p.isRoot);
+    expect(root).toBeTruthy();
+
+    const eng = run(["persons-create", wid, "--name", "Eng", "--managerId", root.id]);
+    expect(eng.name).toBe("Eng");
+
+    const doc = run(["documents-create", wid, "--title", "Doc", "--personIds", root.id]);
+    const docId = doc.id;
+
+    const versions = run(["documents-versions", wid, docId]);
+    expect(versions[0].version).toBe(1);
+
+    const tag = run(["tags-create", wid, "--name", "P0", "--scope", "document"]);
+    run(["tags-documents-add", wid, tag.id, docId]);
+
+    run(["workspaces-delete", wid]);
+  });
+
+  test("revoke → 401", () => {
+    const creds = JSON.parse(readFileSync(`${CLIP_HOME}/bogo/credentials.json`, "utf-8"));
+    const prefix = creds.token.slice(0, 12);   // 字符集受控:bogo_ + base64url
+    execSync(
+      `npx wrangler d1 execute bogo --local --persist-to ${PERSIST} ` +
+      `--command "UPDATE api_tokens SET revoked_at=datetime('now') WHERE prefix='${prefix}'"`,
+      { cwd: WORKER_ROOT }
+    );
+    const r = spawnSync("bun", ["src/index.ts","me"],
+                        { cwd: `${TMP}/bogo-cli`, env: SUB_ENV, encoding: "utf-8" });
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toMatch(/HTTP 401/);
+  });
 
 afterAll:
   - kill wrangler proc;rm -rf <TMP>
@@ -937,10 +982,11 @@ afterAll:
 
 **实现细节**:
 - 端口分配:`getPort()` 或固定 `27036`(与 worker e2e 的 17036 错开)
-- `readLineMatching` 用 readline 包 stdin/stdout 直至匹配
-- 测试 schema 替换可以用更稳的 `yaml.parse` + `yaml.stringify`,避免字符串替换出错
+- `readLineMatching` 用 readline 包 stdout 直至匹配并 return 第一个捕获组之外的整行 URL;5s 超时,超时则 dump stdout 给报错信息
+- 测试 schema 替换用正则 `/baseUrl:.*$/m` 比硬字符串替换稳
 - 不**`bun link`** 全局,避免污染开发环境;全程 `bun src/index.ts <cmd>` 调用
 - **不**测 `bogo live`(生成 CLI 任何子命令都先 `loadConfig()`,无法做"无凭据健康检查",见 §3.1)
+- **所有 spawn 必须** `env.PATH = <FAKE_BIN>:...`(login 用到 fake open;其他子命令不调 open 但保持一致便于 review)
 
 加根 `package.json` script:`"test:cli-e2e": "cd tests/cli-e2e && bun test"`
 
