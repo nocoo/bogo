@@ -115,6 +115,10 @@ async function readLineMatching(
 }
 
 function waitForExit(proc: ChildProcess, timeoutMs = 15_000): Promise<number | null> {
+	// proc.exitCode is non-null when the process has already terminated.
+	// We must check before attaching the listener — otherwise a process that
+	// exits between spawn and listener-attach hangs the test until timeout.
+	if (proc.exitCode !== null) return Promise.resolve(proc.exitCode);
 	return new Promise<number | null>((resolveP, rejectP) => {
 		const t = setTimeout(() => rejectP(new Error("CLI did not exit in time")), timeoutMs);
 		proc.on("exit", (code) => {
@@ -122,6 +126,21 @@ function waitForExit(proc: ChildProcess, timeoutMs = 15_000): Promise<number | n
 			resolveP(code);
 		});
 	});
+}
+
+function killWranglerGroup(proc: ChildProcess | null): void {
+	if (!proc?.pid) return;
+	try {
+		// Negative PID = process group. Wrangler spawns workerd as a child;
+		// killing only `npx` leaves workerd holding the port.
+		process.kill(-proc.pid, "SIGTERM");
+	} catch {
+		try {
+			proc.kill("SIGTERM");
+		} catch {
+			/* already gone */
+		}
+	}
 }
 
 maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
@@ -168,12 +187,17 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 			stdio: "ignore",
 		});
 
+		// Spawn wrangler in its own process group so we can SIGTERM the whole
+		// tree on cleanup. Without detached+group-kill, npm/npx parent receives
+		// the signal but miniflare/workerd children survive and hold port 27036,
+		// breaking the next CI run.
 		wrangler = spawn(
 			"npx",
 			["wrangler", "dev", "--port", String(PORT), "--local", "--persist-to", persist],
 			{
 				cwd: WORKER_ROOT,
 				stdio: "ignore",
+				detached: true,
 				env: {
 					...process.env,
 					CF_ACCESS_TEAM_DOMAIN: "e2e-cli.cloudflareaccess.com",
@@ -182,34 +206,40 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 			},
 		);
 
-		await waitForServer(`${BASE}/api/live`);
+		// Always tear down the wrangler tree if anything below throws —
+		// otherwise a generate/install failure leaks the port for the next run.
+		try {
+			await waitForServer(`${BASE}/api/live`);
 
-		// Generate a CLI from a temporary schema with baseUrl pointed at our
-		// wrangler dev port. clip's generator hard-codes the api/login URL
-		// into the generated CLI at codegen time; CLIP_BASE_URL only
-		// overrides business request URLs, not login.
-		const yaml = readFileSync(CLIP_YAML, "utf-8").replace(/baseUrl:.*$/m, `baseUrl: "${BASE}"`);
-		const tmpYaml = join(tmpDir, "clip.yaml");
-		writeFileSync(tmpYaml, yaml);
+			// Generate a CLI from a temporary schema with baseUrl pointed at our
+			// wrangler dev port. clip's generator hard-codes the api/login URL
+			// into the generated CLI at codegen time; CLIP_BASE_URL only
+			// overrides business request URLs, not login.
+			const yaml = readFileSync(CLIP_YAML, "utf-8").replace(/^baseUrl:.*$/m, `baseUrl: "${BASE}"`);
+			const tmpYaml = join(tmpDir, "clip.yaml");
+			writeFileSync(tmpYaml, yaml);
 
-		const generateCmd = [
-			clipRunner.cmd,
-			...clipRunner.args,
-			"generate",
-			tmpYaml,
-			"--output",
-			cliDir,
-		].join(" ");
-		execSync(generateCmd, { stdio: "ignore" });
+			const generateCmd = [
+				clipRunner.cmd,
+				...clipRunner.args,
+				"generate",
+				tmpYaml,
+				"--output",
+				cliDir,
+			].join(" ");
+			execSync(generateCmd, { stdio: "ignore" });
 
-		execSync("bun install", { cwd: cliDir, stdio: "ignore" });
+			execSync("bun install", { cwd: cliDir, stdio: "ignore" });
+		} catch (err) {
+			killWranglerGroup(wrangler);
+			wrangler = null;
+			throw err;
+		}
 	}, 120_000);
 
 	afterAll(() => {
-		if (wrangler) {
-			wrangler.kill();
-			wrangler = null;
-		}
+		killWranglerGroup(wrangler);
+		wrangler = null;
 		if (tmpDir) rmSync(tmpDir, { recursive: true, force: true });
 	});
 
@@ -235,6 +265,12 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 			stdio: ["ignore", "pipe", "pipe"],
 		});
 
+		// Register the exit listener BEFORE doing async work; otherwise the
+		// process can exit between fetch() and waitForExit() and the test
+		// hangs until timeout. waitForExit's internal exitCode check is the
+		// belt; this is the suspenders.
+		const exitP = waitForExit(cli, 20_000);
+
 		const loginUrl = await readLineMatching(
 			cli.stdout as NodeJS.ReadableStream,
 			/https?:\/\/127\.0\.0\.1:\d+\/api\/auth\/cli\?\S+/,
@@ -244,7 +280,7 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 		// performLogin's loopback server captures the token from the redirect.
 		await fetch(loginUrl, { redirect: "follow" });
 
-		const exitCode = await waitForExit(cli, 20_000);
+		const exitCode = await exitP;
 		expect(exitCode).toBe(0);
 
 		const credPath = join(clipHome, "bogo", "credentials.json");
