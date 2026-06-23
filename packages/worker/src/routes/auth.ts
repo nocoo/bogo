@@ -60,11 +60,14 @@ authRoutes.get("/cli", async (c) => {
 		// Anti-clickjacking: the CSRF cookie defeats blind cross-site form
 		// submission, but a third-party page could still iframe this consent
 		// page and trick the user into clicking the (real) Authorize button.
-		// Refuse all framing and pin form submission to this origin.
-		c.header(
-			"Content-Security-Policy",
-			"frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
-		);
+		// `frame-ancestors 'none'` + the legacy XFO header refuse all
+		// embedding; that is sufficient for the clickjacking threat. We do
+		// NOT include `form-action 'self'` here because the consent flow
+		// rides through Cloudflare Access, whose 302 chain trips up strict
+		// form-action validation in some browsers and breaks the legitimate
+		// submission. The CSRF cookie (HttpOnly + SameSite=Strict) is the
+		// authoritative defense against forged submits.
+		c.header("Content-Security-Policy", "frame-ancestors 'none'; base-uri 'none'");
 		c.header("X-Frame-Options", "DENY");
 		return c.html(renderConsentHtml({ email, callback, state, csrfToken }));
 	}

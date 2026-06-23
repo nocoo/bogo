@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.2] - 2026-06-23
+
+### Fixed
+- Consent page CSP `form-action 'self'` blocked the legitimate
+  Authorize submit on production. The CF Access 302 chain trips
+  strict form-action validation in some browsers, so the
+  directive is dropped. Anti-clickjacking still rests on
+  `frame-ancestors 'none'` + `X-Frame-Options: DENY`; CSRF still
+  rests on the HttpOnly + SameSite=Strict cookie. No change to
+  the threat model.
+
 ## [0.4.1] - 2026-06-23
 
 ### Fixed

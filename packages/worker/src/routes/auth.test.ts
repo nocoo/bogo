@@ -92,12 +92,15 @@ describe("GET /api/auth/cli", () => {
 		expect(setCookie.toLowerCase()).toContain("httponly");
 		expect(setCookie.toLowerCase()).toContain("samesite=strict");
 		expect(setCookie).toContain("Path=/api/auth/cli");
-		// Anti-clickjacking headers — defeat iframe-and-overlay attacks
-		// where a third-party page hides the consent under a benign UI.
+		// Anti-clickjacking headers — frame-ancestors + XFO defeat
+		// iframe-and-overlay attacks. form-action is intentionally NOT
+		// included because the CF Access 302 chain trips strict validators
+		// in some browsers; the CSRF cookie remains the authoritative
+		// defense against forged submits.
 		const csp = res.headers.get("content-security-policy") ?? "";
 		expect(csp).toContain("frame-ancestors 'none'");
 		expect(csp).toContain("base-uri 'none'");
-		expect(csp).toContain("form-action 'self'");
+		expect(csp).not.toContain("form-action");
 		expect(res.headers.get("x-frame-options")).toBe("DENY");
 	});
 
