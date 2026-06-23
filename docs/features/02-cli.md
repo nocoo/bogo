@@ -51,7 +51,7 @@ bogo persons-list <wid>          # GET /api/w/:wid/persons (wid 是位置参数)
 
 **不是** `clip auth login bogo`。**endpoint name 不能叫 `login` 或 `logout`**(`validator.ts:171-181` 校验保留字)。
 
-### 2.3 worker 必须实现的 callback 协议
+### 2.3 worker 必须实现的 callback 协议(两阶段 consent)
 
 `../cli-base/src/login.ts` 的 `performLogin`:
 
@@ -61,7 +61,20 @@ bogo persons-list <wid>          # GET /api/w/:wid/persons (wid 是位置参数)
 4. 等回调 `GET /callback?<tokenParam>=<token>&state=<nonce>&email=<email>&...`
 5. 校验 `state` → `onSaveToken(token)` → 落 `credentials.json`
 
-worker `/api/auth/cli` 必须接 `callback` 和 `state` query 参数,验完 loopback 合法性后 302 到 `callback`,追加 `<tokenParam>=<明文 token>` 和原样 `state`,附 `email`。`callback pathname` performLogin 写死 `/callback`(`cli-base/src/login.ts:115`)。
+worker `/api/auth/cli` 必须接 `callback` 和 `state` query 参数。**为防 drive-by CSRF**(任何已登 CF Access 的用户若被诱导 `<img src=…/api/auth/cli?callback=attacker_loopback>`,worker 会把 token 302 给攻击者控制的 loopback 进程):端点拆**两阶段 consent**——
+
+- **Stage 1** (无 `confirm` query):
+  - 不写 DB,不签 token
+  - 设 HttpOnly + SameSite=Strict cookie `bogo_cli_csrf=<64-hex>`,Path=`/api/auth/cli`,maxAge=600s
+  - 返回 HTML consent 页:显示 callback URL + 用户 email,form `method=GET action=/api/auth/cli`,hidden 字段 `callback` / `state` / **`confirm=<同一 csrf token>`**
+- **Stage 2** (`confirm=<csrf>` 命中 cookie):
+  - 常数时间比对 cookie 与 query 中的 `confirm`,不等 → 403,无 DB 写
+  - 通过后 mint token + 撤销同 owner 旧 token(§5.4)+ 302 `<callback>?<tokenParam>=…&state=…&email=…`
+  - 同时把 cookie maxAge 设 0 一次性消费
+
+为什么这套防 drive-by:cross-site `<img src>` / `<script src>` / `window.open` 都**无法读到 cookie**,也无法构造匹配的 `confirm`,所以最坏只触发 stage 1 返回 HTML 的 no-op。哥要正常 `bogo login`,浏览器从 CF Access SSO 回来后**必须手动点 Authorize 按钮**才能完成。
+
+`callback pathname` performLogin 写死 `/callback`(`cli-base/src/login.ts:115`)。
 
 ### 2.4 凭据落盘格式(worker 不关心,但要清楚)
 
@@ -289,78 +302,23 @@ export async function accessAuth(c, next) {
 
 注意:非 `bogo_` 前缀的 Bearer header(如 CF Access service token JWT)会跳过这个分支,落到 CF Access 路径正常处理。
 
-### 5.4 `packages/worker/src/routes/auth.ts`(新文件)
+### 5.4 `packages/worker/src/routes/auth.ts`(实际实现摘要)
 
-`/api/auth/cli` 必须**拒绝 bearer 自助换 token**——否则一个泄漏的 token 可以无限延展生命周期,绕过 CF Access 撤销。中间件已把鉴权方式写到 `authMethod`,这里直接断言:
+`/api/auth/cli` 同时承担三个职责,按短路顺序:
 
-```ts
-import { Hono } from "hono";
-import { generateId } from "@bogo/shared";
-import type { AppEnv } from "../types.js";
-import { sha256Hex } from "../utils/hash.js";
+1. **拒 bearer 自助换 token**:`authMethod === "bearer"` → 403,无 DB 写。leak 的 token 不能延展自己的生命周期。
+2. **校验 callback**:`isLoopbackCallback(callback)` 过滤非 loopback / 非 http / 非 `/callback` / 含 userinfo,失败 → 400。
+3. **两阶段 consent** (anti-CSRF,见 §2.3):
+   - 无 `confirm` query → 设 `Set-Cookie: bogo_cli_csrf=<64-hex>; Path=/api/auth/cli; HttpOnly; SameSite=Strict; Max-Age=600`,返回 HTML consent 页(form `method=GET action=/api/auth/cli`,hidden `confirm=<同 csrf>`)。无 DB 写。
+   - 有 `confirm` → 常数时间比对 cookie,失败 → 403。通过 → atomic batch 撤销同 owner 旧 cli-login + INSERT 新 row,302 到 `<callback>?api_key=<plain>&state=<state>&email=<email>`,并置 cookie maxAge=0 单次消费。
 
-export const authRoutes = new Hono<AppEnv>();
+token 生成: `bogo_<base64url(32 字节)>`,`crypto.getRandomValues`。`prefix = plain.slice(0, 12)`,`hash = sha256Hex(plain)`,**plaintext 不入库**。
 
-authRoutes.get("/cli", async (c) => {
-  // 必须由真人浏览器(CF Access 已验)或本地 dev 触发;
-  // 拒绝从 bearer 调用进入这里二次签发。
-  const method = c.get("authMethod");
-  if (method !== "cf-access-jwt" && method !== "localhost") {
-    return c.json({ error: "CLI login requires browser session" }, 403);
-  }
+D1 操作走 `c.env.DB.batch()`:UPDATE 先于 INSERT,二者原子,杜绝"发新 token 失败但旧 token 已撤销"。
 
-  const email = c.get("userEmail");
-  if (!email) return c.json({ error: "No authenticated user" }, 401);
+完整代码以 `packages/worker/src/routes/auth.ts` 为准。
 
-  const callback = c.req.query("callback") ?? "";
-  const state = c.req.query("state") ?? "";
-  if (!isLoopbackCallback(callback)) {
-    return c.text("Invalid callback URL", 400);
-  }
-
-  const plain = generateToken();
-  const hash = await sha256Hex(plain);
-  const prefix = plain.slice(0, 12);
-
-  await c.env.DB.prepare(
-    "INSERT INTO api_tokens (id, owner_email, token_hash, prefix, label) VALUES (?, ?, ?, ?, ?)"
-  ).bind(generateId(), email, hash, prefix, "cli-login").run();
-
-  const redirect = new URL(callback);
-  redirect.searchParams.set("api_key", plain);   // == clip.yaml tokenParam
-  if (state) redirect.searchParams.set("state", state);
-  redirect.searchParams.set("email", email);
-  return c.redirect(redirect.toString(), 302);
-});
-
-export function isLoopbackCallback(raw: string): boolean {
-  try {
-    const u = new URL(raw);
-    if (u.protocol !== "http:") return false;
-    if (!["127.0.0.1", "localhost", "[::1]"].includes(u.hostname)) return false;
-    if (u.pathname !== "/callback") return false;
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function generateToken(): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  const b64 = btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  return `bogo_${b64}`;
-}
-```
-
-`packages/worker/src/index.ts` 加挂载:
-
-```ts
-import { authRoutes } from "./routes/auth.js";
-// …
-app.route("/api/auth", authRoutes);
-```
+`packages/worker/src/index.ts` 已挂载:`app.route("/api/auth", authRoutes)`。
 
 ### 5.5 Phase 2(独立 PR,不在本 spec 覆盖)
 
@@ -1071,15 +1029,20 @@ Gate:pre-push(条件性)
 
 **手测 checklist**(PR 描述里勾):
 
-- [ ] 本地 dev:`bun dev` 后 `curl 'http://localhost:8787/api/auth/cli?callback=http://127.0.0.1:9999/callback'` → 302 含 api_key
+- [ ] 本地 dev:`bun dev` 后 `curl -i 'http://localhost:8787/api/auth/cli?callback=http://127.0.0.1:9999/callback'` → **200 HTML consent 页 + Set-Cookie: bogo_cli_csrf=…; HttpOnly; SameSite=Strict**(不再是 302)
+- [ ] consent 页表单 hidden `confirm=<csrf>` 与 Set-Cookie 的 token 一致;手动 follow form → 302 含 api_key
+- [ ] **drive-by 模拟**:用 stage 1 拿到的 cookie 但传**不同** `confirm=…` → 403,DB 无新 row
+- [ ] **drive-by 模拟**:不带 cookie,传任意 `confirm=…` → 403
 - [ ] 用拿到的 token 调 `Authorization: Bearer <token>` `/api/me` → `{email: "dev@localhost"}`
 - [ ] **本地 host + bearer 已撤销 → 401**(bearer 分支在 localhost 之前,无法被兜底)
-- [ ] **bearer 调用 `/api/auth/cli` → 403**(防自助换 token)
+- [ ] **bearer 调用 `/api/auth/cli` → 403**(防自助换 token,在 stage 1 之前 reject)
 - [ ] 篡改 token 任意一字符 → 401
 - [ ] `callback=https://evil.com/callback` → 400(open redirect 防护)
 - [ ] `callback=http://127.0.0.1:9999/admin` → 400(path 校验)
+- [ ] `callback=http://evil@127.0.0.1/callback` → 400(userinfo 拒绝)
 - [ ] 无 callback query → 400
-- [ ] 端到端:`bogo login` 弹浏览器、token 落 `~/.clip/bogo/credentials.json`、0600 权限
+- [ ] 端到端:`bogo login` 弹浏览器 → 出现 "Authorize bogo CLI" 页 → 点 Authorize → token 落 `~/.clip/bogo/credentials.json`、0600 权限
+- [ ] 端到端:第二次 `bogo login` 后,第一次的 token 调 `/api/me` → 401(one-active-per-identity)
 - [ ] 端到端:`bogo workspaces-create --name X` → `bogo workspaces-list` 能看到
 - [ ] 端到端:`bogo persons-create <wid> --name "Eng" --managerId <root>` 成功
 - [ ] 端到端:`bogo documents-create <wid> --title "Test" --personIds <id1>,<id2>` 成功(query CSV);`bogo documents-versions <wid> <id>` 返回 v1

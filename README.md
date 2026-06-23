@@ -49,8 +49,9 @@ source itself.
 clip generate ./clip.yaml --output ./bogo-cli
 cd bogo-cli && bun install
 
-# Authenticate against bogo (opens browser → CF Access):
+# Authenticate against bogo (opens browser → CF Access → consent page):
 bun src/index.ts login
+# → browser shows "Authorize bogo CLI" page; click Authorize to issue the token
 # → credentials written to $CLIP_HOME/bogo/credentials.json (0o600)
 
 # Hit the API:

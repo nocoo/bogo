@@ -276,9 +276,20 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 			/https?:\/\/127\.0\.0\.1:\d+\/api\/auth\/cli\?\S+/,
 		);
 
-		// Complete the loopback by following the 302 the worker returns.
+		// /api/auth/cli is a two-stage consent flow (anti-CSRF). Drive it
+		// like a real browser would: GET stage 1, grab the CSRF token from
+		// the rendered form, replay with the cookie + confirm=<token>.
+		const stage1 = await fetch(loginUrl, { redirect: "manual" });
+		expect(stage1.status).toBe(200);
+		const consentHtml = await stage1.text();
+		const csrf = consentHtml.match(/name="confirm" value="([0-9a-f]{64})"/)?.[1];
+		expect(csrf).toBeTruthy();
+		const cookie = (stage1.headers.get("set-cookie") ?? "").split(";")[0];
+		const stage2Url = `${loginUrl}&confirm=${csrf}`;
+
+		// Now follow the 302 the worker returns to complete the loopback.
 		// performLogin's loopback server captures the token from the redirect.
-		await fetch(loginUrl, { redirect: "follow" });
+		await fetch(stage2Url, { redirect: "follow", headers: { cookie } });
 
 		const exitCode = await exitP;
 		expect(exitCode).toBe(0);

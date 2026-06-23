@@ -4,12 +4,18 @@ import { createMockD1 } from "../test-utils/mock-d1.js";
 import { sha256Hex } from "../utils/hash.js";
 import { isLoopbackCallback } from "./auth.js";
 
-function makeRequest(path: string, init?: { host?: string; authorization?: string }) {
+function makeRequest(
+	path: string,
+	init?: { host?: string; authorization?: string; cookie?: string },
+) {
 	const headers: Record<string, string> = {
 		host: init?.host ?? "localhost:8787",
 	};
 	if (init?.authorization !== undefined) {
 		headers.authorization = init.authorization;
+	}
+	if (init?.cookie !== undefined) {
+		headers.cookie = init.cookie;
 	}
 	return new Request(`http://${headers.host}${path}`, { method: "GET", headers });
 }
@@ -64,27 +70,90 @@ describe("isLoopbackCallback", () => {
 });
 
 describe("GET /api/auth/cli", () => {
-	it("(a) localhost dev: 302 redirect with api_key / state / email in query", async () => {
-		const { db, mockRun } = createMockD1();
-		mockRun.mockResolvedValue({ success: true, meta: { changes: 1 } });
-
+	it("(a) stage 1: no confirm → renders consent HTML and sets a SameSite=Strict CSRF cookie", async () => {
+		const { db } = createMockD1();
 		const res = await app.fetch(
 			makeRequest("/api/auth/cli?callback=http%3A%2F%2F127.0.0.1%3A9999%2Fcallback&state=abc123", {
 				host: "localhost:8787",
 			}),
 			{ DB: db, ENVIRONMENT: "test" },
 		);
+		expect(res.status).toBe(200);
+		expect(res.headers.get("content-type")).toContain("text/html");
+		const body = await res.text();
+		expect(body).toContain("Authorize bogo CLI");
+		// Form GETs back to /api/auth/cli with the CSRF token in `confirm`.
+		expect(body).toMatch(/<form method="GET" action="\/api\/auth\/cli">/);
+		expect(body).toMatch(/name="confirm" value="[0-9a-f]{64}"/);
+		// Cookie is HttpOnly + SameSite=Strict so cross-site requests cannot
+		// read or replay it.
+		const setCookie = res.headers.get("set-cookie") ?? "";
+		expect(setCookie).toMatch(/bogo_cli_csrf=/);
+		expect(setCookie.toLowerCase()).toContain("httponly");
+		expect(setCookie.toLowerCase()).toContain("samesite=strict");
+		expect(setCookie).toContain("Path=/api/auth/cli");
+	});
+
+	it("(a2) stage 2: confirm matches cookie → 302 redirect with api_key / state / email", async () => {
+		const { db, mockBatch } = createMockD1();
+		mockBatch.mockResolvedValue([]);
+
+		// Pull a CSRF token + cookie from stage 1 first.
+		const stage1 = await app.fetch(
+			makeRequest("/api/auth/cli?callback=http%3A%2F%2F127.0.0.1%3A9999%2Fcallback&state=abc123", {
+				host: "localhost:8787",
+			}),
+			{ DB: db, ENVIRONMENT: "test" },
+		);
+		const body = await stage1.text();
+		const csrf = body.match(/name="confirm" value="([0-9a-f]{64})"/)?.[1];
+		expect(csrf).toBeTruthy();
+		const cookieHeader = (stage1.headers.get("set-cookie") ?? "").split(";")[0];
+
+		const res = await app.fetch(
+			makeRequest(
+				`/api/auth/cli?callback=http%3A%2F%2F127.0.0.1%3A9999%2Fcallback&state=abc123&confirm=${csrf}`,
+				{
+					host: "localhost:8787",
+					cookie: cookieHeader,
+				},
+			),
+			{ DB: db, ENVIRONMENT: "test" },
+		);
 		expect(res.status).toBe(302);
-		const location = res.headers.get("location");
-		expect(location).toBeTruthy();
-		const url = new URL(location as string);
-		expect(url.protocol).toBe("http:");
+		const url = new URL(res.headers.get("location") as string);
 		expect(url.hostname).toBe("127.0.0.1");
 		expect(url.pathname).toBe("/callback");
-		const apiKey = url.searchParams.get("api_key");
-		expect(apiKey).toMatch(/^bogo_[A-Za-z0-9_-]+$/);
+		expect(url.searchParams.get("api_key")).toMatch(/^bogo_[A-Za-z0-9_-]+$/);
 		expect(url.searchParams.get("state")).toBe("abc123");
 		expect(url.searchParams.get("email")).toBe("dev@localhost");
+	});
+
+	it("(a3) stage 2 with confirm mismatching cookie → 403 and no token minted", async () => {
+		const { db, mockPrepare } = createMockD1();
+		const cookieHeader = `bogo_cli_csrf=${"a".repeat(64)}`;
+		const res = await app.fetch(
+			makeRequest(
+				`/api/auth/cli?callback=http%3A%2F%2F127.0.0.1%3A9999%2Fcallback&confirm=${"b".repeat(64)}`,
+				{ host: "localhost:8787", cookie: cookieHeader },
+			),
+			{ DB: db, ENVIRONMENT: "test" },
+		);
+		expect(res.status).toBe(403);
+		expect(mockPrepare).not.toHaveBeenCalledWith(expect.stringContaining("INSERT INTO api_tokens"));
+	});
+
+	it("(a4) stage 2 with confirm but no cookie → 403 and no token minted (drive-by attacker without cookie)", async () => {
+		const { db, mockPrepare } = createMockD1();
+		const res = await app.fetch(
+			makeRequest(
+				`/api/auth/cli?callback=http%3A%2F%2F127.0.0.1%3A9999%2Fcallback&confirm=${"c".repeat(64)}`,
+				{ host: "localhost:8787" },
+			),
+			{ DB: db, ENVIRONMENT: "test" },
+		);
+		expect(res.status).toBe(403);
+		expect(mockPrepare).not.toHaveBeenCalledWith(expect.stringContaining("INSERT INTO api_tokens"));
 	});
 
 	it("(b) request with bearer authMethod is rejected with 403 (prevents bearer self-minting another token)", async () => {
@@ -155,16 +224,40 @@ describe("GET /api/auth/cli", () => {
 		expect(res.status).toBe(400);
 	});
 
+	async function getStage2Request(
+		db: ReturnType<typeof createMockD1>["db"],
+		opts: {
+			callback?: string;
+			state?: string;
+			host?: string;
+			authorization?: string;
+		} = {},
+	) {
+		const callback = opts.callback ?? "http%3A%2F%2F127.0.0.1%3A9999%2Fcallback";
+		const stateQ = opts.state ? `&state=${encodeURIComponent(opts.state)}` : "";
+		const stage1 = await app.fetch(
+			makeRequest(`/api/auth/cli?callback=${callback}${stateQ}`, {
+				host: opts.host ?? "localhost:8787",
+				authorization: opts.authorization,
+			}),
+			{ DB: db, ENVIRONMENT: "test" },
+		);
+		const body = await stage1.text();
+		const csrf = body.match(/name="confirm" value="([0-9a-f]{64})"/)?.[1];
+		if (!csrf) throw new Error(`stage 1 did not render a CSRF token; body was: ${body}`);
+		const cookieHeader = (stage1.headers.get("set-cookie") ?? "").split(";")[0];
+		return makeRequest(`/api/auth/cli?callback=${callback}${stateQ}&confirm=${csrf}`, {
+			host: opts.host ?? "localhost:8787",
+			cookie: cookieHeader,
+		});
+	}
+
 	it("(g) DB batch INSERTs sha256(api_key) — only the hash is persisted, never the plaintext", async () => {
 		const { db, mockPrepare, mockBind, mockBatch } = createMockD1();
 		mockBatch.mockResolvedValue([]);
 
-		const res = await app.fetch(
-			makeRequest("/api/auth/cli?callback=http%3A%2F%2F127.0.0.1%3A9999%2Fcallback", {
-				host: "localhost:8787",
-			}),
-			{ DB: db, ENVIRONMENT: "test" },
-		);
+		const req = await getStage2Request(db);
+		const res = await app.fetch(req, { DB: db, ENVIRONMENT: "test" });
 		expect(res.status).toBe(302);
 		const url = new URL(res.headers.get("location") as string);
 		const plain = url.searchParams.get("api_key") as string;
@@ -210,12 +303,8 @@ describe("GET /api/auth/cli", () => {
 		const { db, mockPrepare, mockBatch } = createMockD1();
 		mockBatch.mockResolvedValue([]);
 
-		const res = await app.fetch(
-			makeRequest("/api/auth/cli?callback=http%3A%2F%2F127.0.0.1%3A9999%2Fcallback", {
-				host: "localhost:8787",
-			}),
-			{ DB: db, ENVIRONMENT: "test" },
-		);
+		const req = await getStage2Request(db);
+		const res = await app.fetch(req, { DB: db, ENVIRONMENT: "test" });
 		expect(res.status).toBe(302);
 
 		const prepareCalls = mockPrepare.mock.calls.map((c) => c[0] as string);
