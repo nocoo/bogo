@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.1] - 2026-06-23
+
+### Fixed
+- `@nocoo/bogo` published with a missing `bin` entry — npm silently
+  rejected `"./dist/index.js"` (the leading `./` is invalid) so 0.4.0
+  installs cleanly but exposes no `bogo` command. Drop the `./`
+  prefix and normalise the repository URL to `git+https://…` to
+  silence the related publish warning.
+
+### Added
+- `CLIP_BASE_URL` now overrides `bogo login` too (clip v1.1.0
+  upstream). Self-hosted deployments can redirect every CLI call —
+  login included — with one env var. Docs: `docs/features/03-self-hosting.md`.
+
 ## [0.4.0] - 2026-06-22
 
 ### Added
