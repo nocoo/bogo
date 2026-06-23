@@ -42,6 +42,14 @@ export interface Document {
 	personIds?: string[];
 }
 
+/**
+ * Stripped-down Document used by list endpoints. The full `content` field
+ * is **deliberately absent** — list responses should stay small and fast.
+ * Fetch a single `Document` via `GET /api/w/:wid/documents/:id` to read
+ * the body. Same field shape as `Document` minus `content`.
+ */
+export type DocumentSummary = Omit<Document, "content">;
+
 export interface DocumentVersion {
 	id: string;
 	documentId: string;
@@ -50,3 +58,11 @@ export interface DocumentVersion {
 	content: string;
 	createdAt: string;
 }
+
+/**
+ * Stripped-down version row returned by the versions list endpoint. The
+ * full `content` is omitted; fetch a single version via
+ * `GET /api/w/:wid/documents/:id/versions/:version` to read it (and use
+ * that to drive diff UI).
+ */
+export type DocumentVersionSummary = Omit<DocumentVersion, "content">;

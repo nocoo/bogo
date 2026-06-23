@@ -271,6 +271,16 @@ describe("workspace CRUD (real D1)", () => {
 			expect(res.status).toBe(200);
 			const json = await res.json();
 			expect(json.data.length).toBe(2);
+			// List of versions omits `content` — fetch a single version below.
+			expect(json.data[0]).not.toHaveProperty("content");
+		});
+
+		it("GET /api/w/:wid/documents/:id/versions/:version returns one version with content", async () => {
+			const res = await api(`/api/w/${wsId}/documents/${docId}/versions/1`);
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.version).toBe(1);
+			expect(typeof json.data.content).toBe("string");
 		});
 
 		it("POST /api/w/:wid/documents/:id/persons adds person", async () => {

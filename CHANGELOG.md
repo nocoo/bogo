@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.5.0] - 2026-06-23
+
+### Changed (breaking on responses)
+- **List endpoints no longer return `content`.** Three endpoints
+  previously inlined the full Markdown body of every document
+  they listed, defeating the point of a list view; payloads got
+  unbounded as documents grew. Affected:
+  - `GET /api/w/:wid/documents`
+  - `GET /api/w/:wid/persons/:id/documents`
+  - `GET /api/w/:wid/documents/:id/versions`
+  Fetch the body via the single-resource endpoints instead
+  (`GET /:id` for a document, see next bullet for versions).
+- New type `DocumentSummary` / `DocumentVersionSummary` published
+  from `@bogo/shared` so clients can type-check the shrunk shape.
+
+### Added
+- **`GET /api/w/:wid/documents/:id/versions/:version`** — fetch a
+  single version with full content. The UI's VersionDiff component
+  now uses this on demand instead of receiving every body up front;
+  CLI users can call `bogo documents-version <wid> <id> <version>`.
+
+### Internal
+- Worker: split `mapDocRow` / `mapDocSummaryRow` so "list omits
+  content" is enforced by types, not convention. Added/updated
+  worker unit cases pinning `not.toHaveProperty("content")` on
+  the three list endpoints + four cases for the new single-version
+  GET.
+- UI: `documentApi.list` / `listVersions` typed as `DocumentSummary[]`
+  / `DocumentVersionSummary[]`; `VersionDiff` rewritten to fetch
+  two version bodies on demand via a new `documentApi.getVersion`.
+
 ## [0.4.3] - 2026-06-23
 
 ### Changed (production wiring)

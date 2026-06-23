@@ -1,4 +1,9 @@
-import type { DocumentType, DocumentVersion, Person, UpdateDocumentInput } from "@bogo/shared";
+import type {
+	DocumentType,
+	DocumentVersionSummary,
+	Person,
+	UpdateDocumentInput,
+} from "@bogo/shared";
 import { ArrowLeft, GitCompareArrows, Loader2, Pencil, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { renderMarkdown } from "../../lib/markdown.js";
@@ -34,7 +39,7 @@ export function DocumentEditor({
 			setContent(vm.document.content);
 			setEventDate(vm.document.eventDate ?? "");
 		}
-	}, [vm.document]);
+	}, [vm.document, dirty]);
 
 	const handleTitleChange = useCallback((value: string) => {
 		setTitle(value);
@@ -206,7 +211,12 @@ export function DocumentEditor({
 
 				{vm.versions.length > 0 && (
 					<SidebarSection label="History">
-						<VersionList versions={vm.versions} currentVersion={vm.document.version} />
+						<VersionList
+							wid={vm.document.workspaceId}
+							documentId={vm.document.id}
+							versions={vm.versions}
+							currentVersion={vm.document.version}
+						/>
 					</SidebarSection>
 				)}
 			</aside>
@@ -298,10 +308,14 @@ function formatRelative(iso: string): string {
 }
 
 function VersionList({
+	wid,
+	documentId,
 	versions,
 	currentVersion,
 }: {
-	versions: DocumentVersion[];
+	wid: string;
+	documentId: string;
+	versions: DocumentVersionSummary[];
 	currentVersion: number;
 }) {
 	const [diffIndex, setDiffIndex] = useState<number | null>(null);
@@ -340,7 +354,12 @@ function VersionList({
 				))}
 			</div>
 			{diffIndex !== null && diffIndex < sorted.length - 1 && (
-				<VersionDiff oldVersion={sorted[diffIndex + 1]} newVersion={sorted[diffIndex]} />
+				<VersionDiff
+					wid={wid}
+					documentId={documentId}
+					oldVersion={sorted[diffIndex + 1].version}
+					newVersion={sorted[diffIndex].version}
+				/>
 			)}
 		</div>
 	);

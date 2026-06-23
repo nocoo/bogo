@@ -1,7 +1,7 @@
 import {
 	type CreatePersonInput,
 	createPersonSchema,
-	type Document,
+	type DocumentSummary,
 	generateId,
 	movePersonSchema,
 	type Person,
@@ -356,7 +356,7 @@ personRoutes.get("/:id/documents", async (c) => {
 	}
 
 	const rows = await c.env.DB.prepare(
-		`SELECT d.id, d.workspace_id, d.type_id, d.title, d.content, d.event_date, d.version, d.created_at, d.updated_at
+		`SELECT d.id, d.workspace_id, d.type_id, d.title, d.event_date, d.version, d.created_at, d.updated_at
 		FROM documents d
 		JOIN document_persons dp ON dp.document_id = d.id AND dp.workspace_id = d.workspace_id
 		WHERE dp.person_id = ? AND dp.workspace_id = ?
@@ -365,7 +365,7 @@ personRoutes.get("/:id/documents", async (c) => {
 		.bind(id, wid)
 		.all();
 
-	const docs = rows.results.map(mapDocRow);
+	const docs = rows.results.map(mapDocSummaryRow);
 
 	if (docs.length === 0) {
 		return c.json({ data: docs });
@@ -508,13 +508,12 @@ function mapRow(row: Record<string, unknown>): Person {
 	};
 }
 
-function mapDocRow(row: Record<string, unknown>): Document {
+function mapDocSummaryRow(row: Record<string, unknown>): DocumentSummary {
 	return {
 		id: row.id as string,
 		workspaceId: row.workspace_id as string,
 		typeId: (row.type_id as string) || null,
 		title: row.title as string,
-		content: row.content as string,
 		eventDate: (row.event_date as string) || null,
 		version: row.version as number,
 		createdAt: row.created_at as string,

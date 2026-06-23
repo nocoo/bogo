@@ -1,4 +1,9 @@
-import type { Document, DocumentPerson, DocumentVersion, UpdateDocumentInput } from "@bogo/shared";
+import type {
+	Document,
+	DocumentPerson,
+	DocumentVersionSummary,
+	UpdateDocumentInput,
+} from "@bogo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -12,7 +17,7 @@ export interface AddPersonInput {
 
 export interface DocumentVM {
 	document: Document | null;
-	versions: DocumentVersion[];
+	versions: DocumentVersionSummary[];
 	persons: DocumentPerson[];
 	isLoading: boolean;
 	isLoadingVersions: boolean;

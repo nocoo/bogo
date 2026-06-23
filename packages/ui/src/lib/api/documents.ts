@@ -3,7 +3,9 @@ import type {
 	CreateDocumentInput,
 	Document,
 	DocumentPerson,
+	DocumentSummary,
 	DocumentVersion,
+	DocumentVersionSummary,
 	UpdateDocumentInput,
 } from "@bogo/shared";
 import type { Client } from "./client.js";
@@ -12,12 +14,12 @@ export function documentApi(client: Client) {
 	const base = (wid: string) => `/api/w/${wid}/documents`;
 
 	return {
-		list(wid: string, tagIds?: string[]): Promise<Document[]> {
+		list(wid: string, tagIds?: string[]): Promise<DocumentSummary[]> {
 			const url =
 				tagIds && tagIds.length > 0
 					? `${base(wid)}?tagIds=${tagIds.join(",")}&tagMode=any`
 					: base(wid);
-			return client.request<Document[]>(url);
+			return client.request<DocumentSummary[]>(url);
 		},
 		get(wid: string, id: string): Promise<Document> {
 			return client.request<Document>(`${base(wid)}/${id}`);
@@ -39,8 +41,11 @@ export function documentApi(client: Client) {
 				method: "DELETE",
 			});
 		},
-		listVersions(wid: string, id: string): Promise<DocumentVersion[]> {
-			return client.request<DocumentVersion[]>(`${base(wid)}/${id}/versions`);
+		listVersions(wid: string, id: string): Promise<DocumentVersionSummary[]> {
+			return client.request<DocumentVersionSummary[]>(`${base(wid)}/${id}/versions`);
+		},
+		getVersion(wid: string, id: string, version: number): Promise<DocumentVersion> {
+			return client.request<DocumentVersion>(`${base(wid)}/${id}/versions/${version}`);
 		},
 		listPersons(wid: string, id: string): Promise<DocumentPerson[]> {
 			return client.request<DocumentPerson[]>(`${base(wid)}/${id}/persons`);

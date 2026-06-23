@@ -1,4 +1,4 @@
-import type { Document, Tag } from "@bogo/shared";
+import type { DocumentSummary, Tag } from "@bogo/shared";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -116,7 +116,7 @@ export function DocumentsPage() {
  * carries everything we need (title, eventDate, typeId, tags, personIds);
  * this avoids a server round-trip for each filter change.
  */
-export function applyFilters(docs: Document[], f: typeof EMPTY_FILTERS): Document[] {
+export function applyFilters(docs: DocumentSummary[], f: typeof EMPTY_FILTERS): DocumentSummary[] {
 	const kw = f.keyword.trim().toLowerCase();
 	return docs.filter((d) => {
 		if (kw && !d.title.toLowerCase().includes(kw)) return false;
@@ -247,7 +247,7 @@ function DocumentRow({
 	onRemove,
 	isRemoving,
 }: {
-	doc: Document;
+	doc: DocumentSummary;
 	typeName: string | null;
 	typeColor: string | null;
 	onRemove: (id: string) => void;

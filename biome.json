@@ -65,6 +65,8 @@
 			"!**/blob-report",
 			"!**/.clip-output",
 			"!**/packages/cli/build",
+			"!**/designs",
+			"!**/.superset",
 			"!**/packages/ui/src/index.css"
 		]
 	}

@@ -680,6 +680,9 @@ describe("person routes", () => {
 			expect(json.data[0].title).toBe("Review");
 			expect(json.data[0].eventDate).toBeNull();
 			expect(json.data[0].tags).toEqual([{ id: "tag-1", name: "review", color: "#3b82f6" }]);
+			// List responses omit `content` — the per-person documents view
+			// is a summary, callers fetch the full body via GET /:docId.
+			expect(json.data[0]).not.toHaveProperty("content");
 		});
 
 		it("skips the tag fan-out when the person has no documents", async () => {

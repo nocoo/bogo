@@ -9,6 +9,8 @@ export const documentKeys = {
 			: (["documents", wid] as const),
 	detail: (wid: string, id: string) => ["documents", wid, id] as const,
 	versions: (wid: string, id: string) => ["documents", wid, id, "versions"] as const,
+	version: (wid: string, id: string, version: number) =>
+		["documents", wid, id, "versions", version] as const,
 	persons: (wid: string, id: string) => ["documents", wid, id, "persons"] as const,
 };
 

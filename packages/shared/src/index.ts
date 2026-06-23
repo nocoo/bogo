@@ -1,4 +1,4 @@
-export const BOGO_VERSION = "0.4.3";
+export const BOGO_VERSION = "0.5.0";
 
 export interface LiveResponse {
 	status: "ok" | "error";
@@ -29,8 +29,10 @@ export {
 	createWorkspaceSchema,
 	type Document,
 	type DocumentPerson,
+	type DocumentSummary,
 	type DocumentType,
 	type DocumentVersion,
+	type DocumentVersionSummary,
 	type EmbeddedTag,
 	type FieldType,
 	fieldTypes,

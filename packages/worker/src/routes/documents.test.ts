@@ -44,6 +44,9 @@ describe("document routes", () => {
 			expect(json.data[0].typeId).toBe("t-1");
 			expect(json.data[0].version).toBe(2);
 			expect(json.data[0].tags).toEqual([]);
+			// List responses intentionally omit `content` so the payload stays
+			// small and fast; fetch GET /:id to read the body.
+			expect(json.data[0]).not.toHaveProperty("content");
 		});
 
 		it("filters by tagIds", async () => {
@@ -518,12 +521,75 @@ describe("document routes", () => {
 			const json = await res.json();
 			expect(json.data).toHaveLength(2);
 			expect(json.data[0].version).toBe(2);
+			// Versions list is a summary too — fetch a single version via
+			// GET /:id/versions/:version to read the body.
+			expect(json.data[0]).not.toHaveProperty("content");
+			expect(json.data[1]).not.toHaveProperty("content");
 		});
 
 		it("returns 404 when document not in workspace", async () => {
 			const { db } = createSequenceD1([{ type: "first", value: null }]);
 
 			const res = await app.fetch(makeRequest("GET", `${BASE}/other-doc/versions`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(404);
+		});
+	});
+
+	describe("GET /api/w/:wid/documents/:id/versions/:version", () => {
+		it("returns a single version with content", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "d-1" } },
+				{
+					type: "first",
+					value: {
+						id: "v-2",
+						document_id: "d-1",
+						version: 2,
+						title: "Updated",
+						content: "# Full body",
+						created_at: "2026-05-21T00:00:00Z",
+					},
+				},
+			]);
+
+			const res = await app.fetch(makeRequest("GET", `${BASE}/d-1/versions/2`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.version).toBe(2);
+			expect(json.data.title).toBe("Updated");
+			expect(json.data.content).toBe("# Full body");
+		});
+
+		it("returns 400 on a non-integer version", async () => {
+			const { db } = createMockD1();
+			const res = await app.fetch(makeRequest("GET", `${BASE}/d-1/versions/abc`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(400);
+		});
+
+		it("returns 404 when document not in workspace", async () => {
+			const { db } = createSequenceD1([{ type: "first", value: null }]);
+			const res = await app.fetch(makeRequest("GET", `${BASE}/other-doc/versions/1`), {
+				DB: db,
+				ENVIRONMENT: "test",
+			});
+			expect(res.status).toBe(404);
+		});
+
+		it("returns 404 when the version row doesn't exist", async () => {
+			const { db } = createSequenceD1([
+				{ type: "first", value: { id: "d-1" } },
+				{ type: "first", value: null },
+			]);
+			const res = await app.fetch(makeRequest("GET", `${BASE}/d-1/versions/99`), {
 				DB: db,
 				ENVIRONMENT: "test",
 			});

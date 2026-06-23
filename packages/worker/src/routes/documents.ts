@@ -2,7 +2,9 @@ import {
 	addDocPersonSchema,
 	createDocumentSchema,
 	type Document,
+	type DocumentSummary,
 	type DocumentVersion,
+	type DocumentVersionSummary,
 	generateId,
 	updateDocumentSchema,
 } from "@bogo/shared";
@@ -17,23 +19,26 @@ documentRoutes.get("/", async (c) => {
 
 	const ids = tagIds ? tagIds.split(",").filter(Boolean) : [];
 
+	// List response intentionally omits `content` — see
+	// docs/features/04-list-payload-trim.md. Fetch a single document via
+	// GET /:id to read the body.
 	let sql: string;
 	const params: unknown[] = [wid];
 
 	if (ids.length > 0) {
 		const placeholders = ids.map(() => "?").join(",");
-		sql = `SELECT DISTINCT d.id, d.workspace_id, d.type_id, d.title, d.content, d.event_date, d.version, d.created_at, d.updated_at FROM documents d INNER JOIN tag_documents td ON td.workspace_id = d.workspace_id AND td.document_id = d.id WHERE d.workspace_id = ? AND td.tag_id IN (${placeholders}) ORDER BY d.event_date DESC, d.created_at DESC`;
+		sql = `SELECT DISTINCT d.id, d.workspace_id, d.type_id, d.title, d.event_date, d.version, d.created_at, d.updated_at FROM documents d INNER JOIN tag_documents td ON td.workspace_id = d.workspace_id AND td.document_id = d.id WHERE d.workspace_id = ? AND td.tag_id IN (${placeholders}) ORDER BY d.event_date DESC, d.created_at DESC`;
 		params.push(...ids);
 	} else {
 		sql =
-			"SELECT id, workspace_id, type_id, title, content, event_date, version, created_at, updated_at FROM documents WHERE workspace_id = ? ORDER BY event_date DESC NULLS LAST, created_at DESC";
+			"SELECT id, workspace_id, type_id, title, event_date, version, created_at, updated_at FROM documents WHERE workspace_id = ? ORDER BY event_date DESC NULLS LAST, created_at DESC";
 	}
 
 	const rows = await c.env.DB.prepare(sql)
 		.bind(...params)
 		.all();
 
-	const docs = rows.results.map(mapDocRow);
+	const docs = rows.results.map(mapDocSummaryRow);
 
 	const tagRows = await c.env.DB.prepare(
 		"SELECT td.document_id, t.id, t.name, t.color FROM tag_documents td INNER JOIN tags t ON t.id = td.tag_id AND t.workspace_id = td.workspace_id WHERE td.workspace_id = ?",
@@ -295,7 +300,8 @@ documentRoutes.delete("/:id", async (c) => {
 	return c.json({ data: { deleted: true } });
 });
 
-// Document versions
+// Document versions — list (summary, no `content`). For diff or raw read,
+// fetch a single version via GET /:id/versions/:version below.
 documentRoutes.get("/:id/versions", async (c) => {
 	const wid = c.req.param("wid") as string;
 	const { id } = c.req.param();
@@ -308,21 +314,63 @@ documentRoutes.get("/:id/versions", async (c) => {
 	}
 
 	const rows = await c.env.DB.prepare(
-		"SELECT id, document_id, version, title, content, created_at FROM document_versions WHERE document_id = ? ORDER BY version DESC",
+		"SELECT id, document_id, version, title, created_at FROM document_versions WHERE document_id = ? ORDER BY version DESC",
 	)
 		.bind(id)
 		.all();
 
-	const versions: DocumentVersion[] = rows.results.map((row) => ({
+	const versions: DocumentVersionSummary[] = rows.results.map((row) => ({
+		id: row.id as string,
+		documentId: row.document_id as string,
+		version: row.version as number,
+		title: row.title as string,
+		createdAt: row.created_at as string,
+	}));
+
+	return c.json({ data: versions });
+});
+
+// Single version — used for diff UI / API consumers that need the body.
+documentRoutes.get("/:id/versions/:version", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const { id } = c.req.param();
+	const versionStr = c.req.param("version");
+	const version = Number(versionStr);
+	if (!Number.isInteger(version) || version < 1) {
+		return c.json(
+			{ error: { code: "VALIDATION_ERROR", message: "version must be a positive integer" } },
+			400,
+		);
+	}
+
+	// Workspace-scope guard: confirm the parent document belongs to this
+	// workspace before exposing any version row (defense in depth — the
+	// version row only links to document_id, not workspace_id).
+	const doc = await c.env.DB.prepare("SELECT id FROM documents WHERE id = ? AND workspace_id = ?")
+		.bind(id, wid)
+		.first();
+	if (!doc) {
+		return c.json({ error: { code: "NOT_FOUND", message: "Document not found" } }, 404);
+	}
+
+	const row = await c.env.DB.prepare(
+		"SELECT id, document_id, version, title, content, created_at FROM document_versions WHERE document_id = ? AND version = ?",
+	)
+		.bind(id, version)
+		.first();
+	if (!row) {
+		return c.json({ error: { code: "NOT_FOUND", message: "Version not found" } }, 404);
+	}
+
+	const data: DocumentVersion = {
 		id: row.id as string,
 		documentId: row.document_id as string,
 		version: row.version as number,
 		title: row.title as string,
 		content: row.content as string,
 		createdAt: row.created_at as string,
-	}));
-
-	return c.json({ data: versions });
+	};
+	return c.json({ data });
 });
 
 // Document-person associations
@@ -415,6 +463,27 @@ function mapDocRow(row: Record<string, unknown>): Document {
 		typeId: (row.type_id as string) || null,
 		title: row.title as string,
 		content: row.content as string,
+		eventDate: (row.event_date as string) || null,
+		version: row.version as number,
+		createdAt: row.created_at as string,
+		updatedAt: row.updated_at as string,
+		tags: [],
+	};
+}
+
+/**
+ * Same shape as `mapDocRow` but drops `content`. Used by list endpoints
+ * where the row was selected without the body column. Keeping the two
+ * mappers separate makes "list omits content" enforced by types, not
+ * just convention — a row missing content can't be coerced into
+ * a full Document.
+ */
+function mapDocSummaryRow(row: Record<string, unknown>): DocumentSummary {
+	return {
+		id: row.id as string,
+		workspaceId: row.workspace_id as string,
+		typeId: (row.type_id as string) || null,
+		title: row.title as string,
 		eventDate: (row.event_date as string) || null,
 		version: row.version as number,
 		createdAt: row.created_at as string,

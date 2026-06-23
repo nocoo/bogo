@@ -1,4 +1,4 @@
-import type { CreateDocumentInput, Document, UpdateDocumentInput } from "@bogo/shared";
+import type { CreateDocumentInput, DocumentSummary, UpdateDocumentInput } from "@bogo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -6,7 +6,7 @@ import { useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { documentKeys, documentModel } from "../../models/document.model.js";
 
 export interface DocumentsVM {
-	documents: Document[];
+	documents: DocumentSummary[];
 	isLoading: boolean;
 	error: Error | null;
 
@@ -29,7 +29,7 @@ export function useDocuments(tagIds?: string[]): DocumentsVM {
 	const createMutation = useMutation({
 		...documentModel.createMutationOptions(wid),
 		onSuccess: (created) => {
-			queryClient.setQueryData(documentKeys.all(wid), (old: Document[] | undefined) => [
+			queryClient.setQueryData(documentKeys.all(wid), (old: DocumentSummary[] | undefined) => [
 				...(old ?? []),
 				created,
 			]);
@@ -42,14 +42,14 @@ export function useDocuments(tagIds?: string[]): DocumentsVM {
 		...documentModel.updateMutationOptions(wid),
 		onMutate: async ({ id, input }) => {
 			await queryClient.cancelQueries({ queryKey: documentKeys.all(wid) });
-			const previous = queryClient.getQueryData<Document[]>(documentKeys.all(wid));
-			queryClient.setQueryData(documentKeys.all(wid), (old: Document[] | undefined) =>
+			const previous = queryClient.getQueryData<DocumentSummary[]>(documentKeys.all(wid));
+			queryClient.setQueryData(documentKeys.all(wid), (old: DocumentSummary[] | undefined) =>
 				(old ?? []).map((d) => (d.id === id ? { ...d, ...input } : d)),
 			);
 			return { previous };
 		},
 		onSuccess: (result, { id }) => {
-			queryClient.setQueryData(documentKeys.all(wid), (old: Document[] | undefined) =>
+			queryClient.setQueryData(documentKeys.all(wid), (old: DocumentSummary[] | undefined) =>
 				(old ?? []).map((d) => (d.id === id ? { ...d, version: result.version } : d)),
 			);
 		},
@@ -66,8 +66,8 @@ export function useDocuments(tagIds?: string[]): DocumentsVM {
 		...documentModel.deleteMutationOptions(wid),
 		onMutate: async (id) => {
 			await queryClient.cancelQueries({ queryKey: documentKeys.all(wid) });
-			const previous = queryClient.getQueryData<Document[]>(documentKeys.all(wid));
-			queryClient.setQueryData(documentKeys.all(wid), (old: Document[] | undefined) =>
+			const previous = queryClient.getQueryData<DocumentSummary[]>(documentKeys.all(wid));
+			queryClient.setQueryData(documentKeys.all(wid), (old: DocumentSummary[] | undefined) =>
 				(old ?? []).filter((d) => d.id !== id),
 			);
 			return { previous };

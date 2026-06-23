@@ -7,6 +7,14 @@ vi.mock("@pierre/diffs/react", () => ({
 	MultiFileDiff: vi.fn(() => <div data-testid="multi-file-diff" />),
 }));
 
+// VersionDiff fetches version content via react-query; tests in this file
+// don't go through QueryClientProvider. Stub it to a stand-in renderer so
+// the "compare button" interaction still asserts that the diff surface is
+// shown, without needing the data fetch infrastructure.
+vi.mock("./VersionDiff.js", () => ({
+	VersionDiff: vi.fn(() => <div data-testid="multi-file-diff" />),
+}));
+
 vi.mock("../TagPicker.js", () => ({
 	TagPicker: () => <div data-testid="tag-picker" />,
 }));
@@ -158,7 +166,6 @@ describe("DocumentEditor", () => {
 					documentId: "doc-1",
 					version: 1,
 					title: "Q1 Report",
-					content: "# Summary",
 					createdAt: "2026-01-01",
 				},
 				{
@@ -166,7 +173,6 @@ describe("DocumentEditor", () => {
 					documentId: "doc-1",
 					version: 2,
 					title: "Q1 Final",
-					content: "# Final",
 					createdAt: "2026-01-02",
 				},
 			],
@@ -185,7 +191,6 @@ describe("DocumentEditor", () => {
 					documentId: "doc-1",
 					version: 1,
 					title: "Q1 Report",
-					content: "# Summary",
 					createdAt: "2026-01-01",
 				},
 			],
@@ -204,7 +209,6 @@ describe("DocumentEditor", () => {
 					documentId: "doc-1",
 					version: 1,
 					title: "Q1 Report",
-					content: "# Summary",
 					createdAt: "2026-01-01",
 				},
 				{
@@ -212,7 +216,6 @@ describe("DocumentEditor", () => {
 					documentId: "doc-1",
 					version: 2,
 					title: "Q1 Final",
-					content: "# Final",
 					createdAt: "2026-01-02",
 				},
 			],
@@ -222,7 +225,9 @@ describe("DocumentEditor", () => {
 		expect(compareBtns.length).toBeGreaterThan(0);
 
 		fireEvent.click(compareBtns[0]);
-		expect(await screen.findByText(/Comparing v1 → v2/)).toBeTruthy();
+		// VersionDiff is mocked above to a `multi-file-diff` stub so we don't
+		// need to spin up a QueryClient here. Asserting the stub renders is
+		// enough to prove the compare button wires through.
 		await screen.findByTestId("multi-file-diff");
 	});
 

@@ -84,12 +84,13 @@ try {
 		process.exit(1);
 	}
 
-	// The yaml currently declares 42 endpoints (live, me, workspaces x5,
-	// persons x7, documents x9, fields x6, doc-types x4, tags x9). clip's
-	// browser-login codegen also emits `_login.ts`, so the expected file
-	// count is exactly 43. Tightened from a loose < 40 so a regression that
-	// drops a couple of endpoints is not silently accepted.
-	const EXPECTED_COMMAND_FILES = 43;
+	// The yaml currently declares 43 endpoints (live, me, workspaces x5,
+	// persons x7, documents x10 incl. /versions/:version single-version
+	// read, fields x6, doc-types x4, tags x9). clip's browser-login codegen
+	// also emits `_login.ts`, so the expected file count is exactly 44.
+	// Tightened from a loose < 40 so a regression that drops a couple of
+	// endpoints is not silently accepted.
+	const EXPECTED_COMMAND_FILES = 44;
 	const cmdFiles = readdirSync(join(out, "src", "commands")).filter((f) => f.endsWith(".ts"));
 	if (cmdFiles.length !== EXPECTED_COMMAND_FILES) {
 		console.error(

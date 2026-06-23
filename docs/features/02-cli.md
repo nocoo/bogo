@@ -133,7 +133,7 @@ worker `/api/auth/cli` 必须接 `callback` 和 `state` query 参数。**为防 
 | `bogo persons-update <wid> <id> [--name --title --dottedManagerId --avatarUrl]` | PUT | `/api/w/:wid/persons/:id` |
 | `bogo persons-move <wid> <id> --managerId <uuid>` | PUT | `/api/w/:wid/persons/:id/move` |
 | `bogo persons-delete <wid> <id>` | DELETE | `/api/w/:wid/persons/:id` |
-| `bogo persons-documents <wid> <id>` | GET | `/api/w/:wid/persons/:id/documents` |
+| `bogo persons-documents <wid> <id>` | GET | `/api/w/:wid/persons/:id/documents` — **summary; no content** |
 
 > `persons-move --managerId null`(提升为根)v1 不在 CLI 暴露 —— commander 把 `"null"` 当字符串传 worker,zod 会 400。哥要用就 `curl` 或 UI。
 
@@ -143,12 +143,13 @@ worker `/api/auth/cli` 必须接 `callback` 和 `state` query 参数。**为防 
 
 | 子命令 | HTTP | Path |
 |--------|------|------|
-| `bogo documents-list <wid> [--tagIds <a,b>]` | GET | `/api/w/:wid/documents` |
-| `bogo documents-get <wid> <id>` | GET | `/api/w/:wid/documents/:id` |
+| `bogo documents-list <wid> [--tagIds <a,b>]` | GET | `/api/w/:wid/documents` — **summary; no content** |
+| `bogo documents-get <wid> <id>` | GET | `/api/w/:wid/documents/:id` (full content) |
 | `bogo documents-create <wid> --title <…> [--content --typeId --eventDate] [--personIds <a,b>]` | POST | `/api/w/:wid/documents` |
 | `bogo documents-update <wid> <id> [--title --content --typeId --eventDate]` | PUT | `/api/w/:wid/documents/:id` |
 | `bogo documents-delete <wid> <id>` | DELETE | `/api/w/:wid/documents/:id` |
-| `bogo documents-versions <wid> <id>` | GET | `/api/w/:wid/documents/:id/versions` |
+| `bogo documents-versions <wid> <id>` | GET | `/api/w/:wid/documents/:id/versions` — **summary; no content** |
+| `bogo documents-version <wid> <id> <version>` | GET | `/api/w/:wid/documents/:id/versions/:version` (full content; for diff) |
 | `bogo documents-persons-list <wid> <id>` | GET | `/api/w/:wid/documents/:id/persons` |
 | `bogo documents-persons-add <wid> <id> --personId <…> [--role]` | POST | `/api/w/:wid/documents/:id/persons` |
 | `bogo documents-persons-remove <wid> <id> <personId>` | DELETE | `/api/w/:wid/documents/:id/persons/:personId` |
