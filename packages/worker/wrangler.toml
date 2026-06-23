@@ -44,3 +44,12 @@ ENVIRONMENT = "production"
 [[env.production.routes]]
 pattern = "bogo.hexly.ai"
 custom_domain = true
+
+# Second hostname for the CLI. CF Access protects `bogo.hexly.ai` (browser
+# SPA + the /api/auth/cli consent page); `api.bogo.hexly.ai` is NOT covered
+# by any Access application so CLI requests carrying a `Bearer bogo_*` token
+# can reach the worker. Auth is still enforced by access-auth.ts inside the
+# worker — bearer prefix check + sha256 lookup in api_tokens.
+[[env.production.routes]]
+pattern = "api.bogo.hexly.ai"
+custom_domain = true

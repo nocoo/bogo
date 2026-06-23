@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.4.3] - 2026-06-23
+
+### Changed (production wiring)
+- **Split-hostname production deployment.** Cloudflare removed
+  Request Header selectors from Zero Trust Access policies in 2026,
+  so the previous CLI bearer Bypass policy is no longer available.
+  Worker now serves both `bogo.hexly.ai` (CF Access — browser SPA +
+  `/api/auth/cli` consent) and `api.bogo.hexly.ai` (no CF Access —
+  CLI business calls, worker's bearer middleware as trust boundary).
+- `clip.yaml` splits accordingly:
+  `baseUrl: https://api.bogo.hexly.ai` for business calls,
+  `auth.loginUrl: https://bogo.hexly.ai/api/auth/cli` for consent.
+- `@nocoo/bogo@0.4.3` republished off the new yaml so the default
+  install hits both hosts correctly.
+
+### Docs
+- `docs/features/02-cli.md` §7 rewritten around split-hostname; CF
+  Access Bypass section deleted with a historical note.
+- `docs/features/03-self-hosting.md` updated: §3 walks the operator
+  through configuring the two hostnames + one Access app; §4 / §5
+  note that `loginUrl` is what lets path B redirect the consent
+  flow.
+- `docs/architecture/03-system-architecture.md` Authentication Flow
+  notes match the new wiring.
+- `CLAUDE.md` CF Access section replaced.
+
 ## [0.4.2] - 2026-06-23
 
 ### Fixed

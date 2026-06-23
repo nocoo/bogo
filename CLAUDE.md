@@ -114,26 +114,31 @@ toggle is a no-op there).
 
 GitHub Secrets 依赖：`CLOUDFLARE_API_TOKEN`
 
-#### CLI bearer bypass policy（生产必需，否则 `bogo` CLI 在生产环境直接被 CF Access 拦在 Worker 外）
+#### CLI 域名分离（生产必需，否则 `bogo` CLI 在生产环境被 CF Access 拦在 Worker 外）
 
-Zero Trust → Access → Applications → bogo → Policies 加一条：
+Worker 同时挂在两个 hostname：
 
-| 字段                | 值                  |
-|---------------------|---------------------|
-| Action              | `Bypass`            |
-| Include → Selector  | `Request Header`    |
-| Header name         | `Authorization`     |
-| Operator            | `starts with`       |
-| Value               | `Bearer bogo_`      |
+| Hostname | CF Access | 用途 |
+|----------|-----------|------|
+| `bogo.hexly.ai` | ✅ 保护 | 浏览器 SPA + `/api/auth/cli` consent 页 |
+| `api.bogo.hexly.ai` | ❌ 不挂 | CLI 业务请求；worker 内 `access-auth.ts` 用 bearer token 鉴权 |
+
+**历史**：2026-06 之前 spec 写的是 CF Access "Bypass" policy on `Request Header`。
+Cloudflare 已下架 Request Header selector，无法继续。改用域名分离 —
+GitHub / Linear / Vercel 都这么做。
 
 要点：
-- 这条 bypass **不是** trust boundary —— bypass 只决定请求是否到 Worker，
-  Worker 内部 `middleware/access-auth.ts` 的 bearer 分支仍然按
-  `sha256(token)` 在 `api_tokens` 表里查 row + 校验 `revoked_at` /
+- `api.bogo.hexly.ai` 全公网可达，但 worker 中间件
+  `middleware/access-auth.ts` 严格校验 `Authorization: Bearer bogo_*`
+  前缀 + `sha256(token)` 在 `api_tokens` 表里查 row + 校验 `revoked_at` /
   `expires_at`，命中后才放行。
-- `/api/auth/cli` **不能**走这条 bypass：它要求调用方已经是真实 CF Access
-  JWT (或 localhost) 身份，否则 `userEmail` 取不到。这个语义由 `/api/auth/cli`
-  路由内的 `authMethod` 检查兜底，bypass 端 CF 侧无法精确排除单条端点。
+- `/api/auth/cli` 必须打 `bogo.hexly.ai`（受 CF Access 保护，consent
+  需要 CF Access JWT 识别用户身份才能签 token）。clip.yaml 通过
+  `auth.loginUrl: "https://bogo.hexly.ai/api/auth/cli"` 强制 login 走
+  这个域；其他业务请求走 `baseUrl: "https://api.bogo.hexly.ai"`。
+- wrangler.toml 的 `[[env.production.routes]]` 已配两个 custom_domain；
+  `wrangler deploy --env production` 会让 Cloudflare 自动签 cert + 挂
+  DNS（首次 deploy 等几十秒）。
 - 详细字段表和威胁模型见
   [`docs/features/02-cli.md`](./docs/features/02-cli.md) §7。
 

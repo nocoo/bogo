@@ -1,10 +1,15 @@
 name: "Bogo API"
 alias: bogo
-version: "0.4.2"
-baseUrl: "https://bogo.hexly.ai"
+version: "0.4.3"
+baseUrl: "https://api.bogo.hexly.ai"
 auth:
   type: browser-login
-  loginPath: /api/auth/cli
+  # loginUrl points at the CF-Access-protected host so the consent flow
+  # works (the worker reads userEmail from a real CF Access JWT). All
+  # other CLI requests go to api.bogo.hexly.ai via baseUrl, which is NOT
+  # behind CF Access — the worker's bearer middleware is authoritative
+  # there. See docs/features/02-cli.md §7 and docs/features/03-self-hosting.md.
+  loginUrl: "https://bogo.hexly.ai/api/auth/cli"
   tokenParam: api_key
   headerName: Authorization
   headerPrefix: Bearer

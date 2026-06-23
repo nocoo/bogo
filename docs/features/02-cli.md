@@ -692,23 +692,59 @@ documentRoutes.post("/", async (c) => {
 
 > 这是为 CLI 体验加的"小妥协",对 UI / API 调用方完全向后兼容(它们继续传 `body.personIds: string[]`)。> 实施时再 `clip generate clip.yaml` 验证 schema 合法、文件能编译、命令能跑。
 
-## 7. Cloudflare Access 部署
+## 7. Cloudflare 部署 — 域名分离
 
-**改动**:Zero Trust → Access → Applications → bogo → Policies 加一条 **Bypass policy**:
+> **历史注 (2026-06-23)**:本节最初描述 CF Access "Bypass" policy 走 `Request Header` selector 让 bearer 请求绕过 Access。**Cloudflare 在 2026 年从 Zero Trust UI 移除了 Request Header selector**,只剩 identity-based selector(Email/Service Token/Common Name/Login Methods 等)。Header bypass 不再可用,改用域名分离。
 
-| 字段 | 值 |
-|------|---|
-| Action | `Bypass` |
-| Include → Selector | `Request Header` |
-| Header name | `Authorization` |
-| Operator | `starts with` |
-| Value | `Bearer bogo_` |
+**两个 hostname 同一个 worker**:
 
-效果:带此 header 的请求直达 worker;浏览器请求继续走 CF Access JWT。**`/api/auth/cli` 不能加入 bypass**——这个端点要求 CF Access 已识别用户,`c.get("userEmail")` 才有值。
+| Hostname | CF Access | 用途 |
+|---------|----------|-----|
+| `bogo.hexly.ai` | ✅ 保护 | 浏览器 SPA + `/api/auth/cli` consent 页(需 CF Access JWT 识别用户身份才能签 token) |
+| `api.bogo.hexly.ai` | ❌ 不挂 | CLI 业务请求(`bogo me` / `bogo workspaces-list` 等),worker 内 `access-auth.ts` 校验 `Authorization: Bearer bogo_*` |
 
-> **bearer 自助换新 token 的兜底**:Access bypass 是基于 header 前缀的全局规则,工艺上无法让 CF Access "把 bypass 排除掉一个端点"。所以**防御做在 worker 内**:`/api/auth/cli` 通过 `authMethod` 强制只接 `cf-access-jwt` 或 `localhost`(§5.3),拒绝来自 `bearer` 的二次签发。Phase 2 的 `/api/auth/tokens*` 同样这么做。
+clip.yaml 把 `loginUrl` 单独写,只有 login 走 CF Access 域,业务全走未保护域:
 
-**风险**:误配 bypass 会让 `/api/*` 暴露 → worker 中间件必须校验 `bogo_` 前缀 + DB 命中,不命中一律 401。D1 泄漏只暴露 hash,明文无法反推。
+```yaml
+auth:
+  type: browser-login
+  loginUrl: "https://bogo.hexly.ai/api/auth/cli"
+  tokenParam: api_key
+  headerName: Authorization
+  headerPrefix: Bearer
+baseUrl: "https://api.bogo.hexly.ai"
+```
+
+### wrangler.toml
+
+```toml
+[[env.production.routes]]
+pattern = "bogo.hexly.ai"
+custom_domain = true
+
+[[env.production.routes]]
+pattern = "api.bogo.hexly.ai"
+custom_domain = true
+```
+
+`wrangler deploy --env production` 会在 Cloudflare 上自动为新域签 cert + 建 DNS(custom_domain mode)。
+
+### CF Access 控制台
+
+`bogo.hexly.ai` 已有的 Access Application 不变(Email allowlist 等 Allow policy 保留)。**不要**为 `api.bogo.hexly.ai` 创建新 Application —— "Access 不挂 = 直达 worker"。
+
+### Worker 端责任
+
+`api.bogo.hexly.ai` 全公网可达,所有鉴权由 `packages/worker/src/middleware/access-auth.ts` 完成(§5.3):
+
+- `Authorization: Bearer bogo_*` 前缀必匹配 → DB hash 查 row + 校验 `revoked_at`/`expires_at`,不命中 401
+- 非 bearer 请求(包括健康检查) → `/api/live` 公开,其余按 CF Access JWT 校验(理论上 `api.*` 不会带 CF Access JWT,所以业务 endpoint 直接 401)
+
+### 风险与缓解
+
+- **API 域全公网可达**:worker 中间件必须严丝合缝,不能有"忘了挂中间件"的端点。`scripts/check-route-coverage.ts` 现有 gate 已覆盖。
+- **DDoS**:CF free tier L7 rate-limit 默认开;可加 WAF custom rule(如 `cf.ip.country eq "XX"` 拦低质量国家或 `http.request.uri.path matches "/api/.*" and rate(1m) > 60` 等)
+- **bearer 自助换新 token**:`/api/auth/cli` 由 `authMethod === "cf-access-jwt" | "localhost"` 守护(§5.4),且这个端点只在 `bogo.hexly.ai` 域上有意义(`api.*` 也接,但 caller 没 CF Access JWT → 403)。
 
 ## 8. 用户上手流程(README/CLAUDE.md 中要写)
 

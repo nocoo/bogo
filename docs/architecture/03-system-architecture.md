@@ -190,21 +190,21 @@ against the live D1 (see `docs/features/02-cli.md` §775-779). A phase 2
 `/api/auth/tokens/*` surface is planned but explicitly out of scope here.
 
 **Key points:**
-- CF Access protects the production domain with a Bypass policy for
-  `/api/live` (health check must be reachable by uptime monitors without
-  auth).
-- **CF Access also needs a Bypass policy for CLI bearer traffic**, otherwise
-  `Authorization: Bearer bogo_*` requests are blocked at the edge before
-  they reach the Worker. Configure Zero Trust → Access → Applications →
-  bogo → Policies with Action `Bypass`, Selector `Request Header`,
-  Header name `Authorization`, Operator `starts with`, Value
-  `Bearer bogo_`. See `docs/features/02-cli.md` §7 for the full table and
-  the rationale (the bypass is a CF-side admission gate; the Worker still
-  performs the real authorisation by hashing the token and checking
-  `revoked_at` / `expires_at` against D1 — the bypass is **not** a trust
-  boundary). `/api/auth/cli` itself must **not** be added to the bypass:
-  it requires the caller to already be a real CF Access JWT (or localhost)
-  identity so `userEmail` can be set.
+- **Two production hostnames, one worker** — `bogo.hexly.ai` is fronted
+  by CF Access (browser SPA + `/api/auth/cli` consent page need a real
+  CF Access JWT), and `api.bogo.hexly.ai` is **not** behind any Access
+  application (CLI business traffic relies on the worker's bearer
+  middleware as the trust boundary). Both hostnames map to the same
+  worker via `[[env.production.routes]]` in `wrangler.toml`; the
+  worker's `access-auth.ts` routes auth by header, not by host.
+  Historical note: an earlier design tried "CF Access Bypass policy on
+  Request Header" to put the CLI on a single host, but Cloudflare
+  removed the Request Header selector from Zero Trust policies in
+  2026; split-hostname is now the only viable production wiring. See
+  `docs/features/02-cli.md` §7.
+- `clip.yaml` reflects the split: `baseUrl: https://api.bogo.hexly.ai`
+  for business calls and `auth.loginUrl: https://bogo.hexly.ai/api/auth/cli`
+  for the consent flow.
 - `/api/live` middleware bypass only applies to non-bearer, non-localhost
   hosts — a present `Bearer bogo_*` still goes through the bearer branch
   and is validated/rejected normally, so a revoked CLI token cannot quietly

@@ -46,17 +46,47 @@ bunx wrangler deploy --env production
 expects. The `[env.production]` block in upstream points at
 `bogo.hexly.ai` — change `routes` / `vars` to your domain before deploy.
 
-## 3. Cloudflare Access setup
+## 3. Cloudflare Access setup (split-hostname model)
 
-The worker assumes CF Access fronts the browser flow and a Bypass policy
-lets bearer tokens through. Two policies needed:
+Cloudflare moved off Header-based Bypass in 2026 — the only viable
+production wiring is **two hostnames, one worker**:
 
-| Policy | Purpose |
-|--------|---------|
-| **Allow** (Service Auth disabled) on email allowlist | Gates browser sessions and `bogo login` consent |
-| **Bypass** on `Authorization starts with "Bearer bogo_"` | Lets the CLI bearer token reach the worker without being challenged again |
+| Hostname                  | CF Access | Purpose                                   |
+|---------------------------|-----------|-------------------------------------------|
+| `your-bogo.example.com`   | ✅ Allow on email allowlist | Browser SPA + `/api/auth/cli` consent page |
+| `api.your-bogo.example.com` | ❌ Not covered by any Access app | All other CLI requests; bearer auth in worker |
 
-Set the two secrets the worker reads:
+Two `wrangler.toml` routes:
+
+```toml
+[[env.production.routes]]
+pattern = "your-bogo.example.com"
+custom_domain = true
+
+[[env.production.routes]]
+pattern = "api.your-bogo.example.com"
+custom_domain = true
+```
+
+`wrangler deploy --env production` auto-provisions the cert and DNS
+record for both (custom_domain mode). Verify with
+`curl https://api.your-bogo.example.com/api/live`.
+
+Add **only one** CF Access Application (on `your-bogo.example.com`):
+
+```
+Zero Trust → Access → Applications → Add an application → Self-hosted
+  Domain: your-bogo.example.com
+  Policies:
+    Allow:
+      Include → Emails (or Emails ending in @yourdomain)
+```
+
+Do NOT create an Access app for `api.your-bogo.example.com`. The CLI
+side relies on it being publicly reachable so the worker can do bearer
+auth itself.
+
+Set the worker secrets so it can verify the Access JWT on the SPA host:
 
 ```bash
 cd packages/worker
@@ -67,32 +97,49 @@ bunx wrangler secret put CF_ACCESS_AUD --env production
 # value: the AUD tag from the Application's Settings tab
 ```
 
-See `docs/features/02-cli.md` §7 for the threat model behind the bypass
-policy and why `/api/auth/cli` is still safe under it (two-stage consent
-inside the worker, not at the Access layer).
+See `docs/features/02-cli.md` §7 for the threat model and why the
+public `api.*` host is safe under it (worker's bearer middleware is
+the trust boundary, not CF Access).
 
 ## 4. Path A — point @nocoo/bogo at your worker
 
-This needs no fork. Requires the `@nocoo/bogo` build that was generated
-from clip ≥1.1 (which is what every npm release will be from `1.1.0`
-onward).
+Use the published CLI, redirect with env vars. Two URLs to override
+(one for login, one for business calls — see §3 split-hostname model).
 
 ```bash
 npm i -g @nocoo/bogo
-export CLIP_BASE_URL=https://your-bogo.example.com
-bogo login                 # opens YOUR worker's consent page
-bogo me                    # routed at your worker too
+export CLIP_BASE_URL=https://api.your-bogo.example.com
+# CLIP_BASE_URL covers business calls AND login, but for the split-
+# hostname model the published @nocoo/bogo defaults to api.bogo.hexly.ai
+# for business and bogo.hexly.ai for login. To redirect login to a
+# different SPA host, you currently need path B (loginUrl is locked at
+# codegen time). If your worker happens to be a single host (no
+# split), CLIP_BASE_URL alone is enough.
+
+bogo login         # opens YOUR worker's consent page
+bogo me            # routed at your worker too
 ```
 
-`CLIP_BASE_URL` overrides **both** business calls and the login flow
-(clip 1.1 change). The maintainer's `https://bogo.hexly.ai` is just the
-fallback when the env var is unset.
+### When path A is enough
 
-Persistence options:
+- You can put `/api/auth/cli` behind a CF Access app that lets you in
+  *and* expose the rest of the API publicly under the same hostname —
+  but that requires CF Access Bypass on header (no longer supported,
+  see §3 historical note) or a different reverse-proxy setup.
+- You're OK with the published `bogo.hexly.ai` login redirect (e.g.,
+  you have an account on the maintainer's deployment too) and only
+  want business calls to hit your own data store.
 
-- Export `CLIP_BASE_URL` in your shell init (`~/.zshrc`, etc.) for
-  permanent redirect.
-- Wrap the binary: `alias bogo='CLIP_BASE_URL=https://your-bogo … bogo'`.
+### When you need path B instead
+
+- You want `bogo login` to open *your* SPA hostname's consent page
+- You want a different command alias (not `bogo`)
+- You're publishing a branded CLI to your team's npm scope
+
+Persistence options for the env var:
+
+- Export `CLIP_BASE_URL` in `~/.zshrc` for permanent redirect.
+- Wrap the binary: `alias bogo='CLIP_BASE_URL=https://api.your-bogo … bogo'`.
 - Per-team: ship the env var via your dotfiles / nix / homebrew formula.
 
 ### Limitations of path A
@@ -103,6 +150,8 @@ Persistence options:
   CLI with your own branding, go to path B.
 - You can't change the *alias* from `bogo` without regenerating. If you
   already have another CLI named `bogo`, also see path B.
+- You can't redirect `bogo login` to a non-`bogo.hexly.ai` SPA host
+  without path B.
 
 ## 5. Path B — fork and regenerate
 
@@ -113,15 +162,24 @@ git clone https://github.com/nocoo/bogo your-bogo
 cd your-bogo
 ```
 
-Edit `clip.yaml`:
+Edit `clip.yaml` (split-hostname model — see §3):
 
 ```yaml
 name: "Your Bogo"
-alias: yourbogo            # → ~/.clip/yourbogo/ + global command "yourbogo"
+alias: yourbogo                                  # → ~/.clip/yourbogo/ + global command "yourbogo"
 version: "0.4.0"
-baseUrl: "https://your-bogo.example.com"   # your worker URL
+baseUrl: "https://api.your-bogo.example.com"     # CLI business host (not behind CF Access)
+auth:
+  type: browser-login
+  loginUrl: "https://your-bogo.example.com/api/auth/cli"   # SPA host, CF Access protected
+  tokenParam: api_key
+  headerName: Authorization
+  headerPrefix: Bearer
 # ... endpoints unchanged ...
 ```
+
+`loginUrl` (clip v1.0+) lets login target a different origin than
+`baseUrl`. This is the whole point of the split-hostname model.
 
 Regenerate locally:
 
