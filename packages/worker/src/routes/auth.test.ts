@@ -92,6 +92,13 @@ describe("GET /api/auth/cli", () => {
 		expect(setCookie.toLowerCase()).toContain("httponly");
 		expect(setCookie.toLowerCase()).toContain("samesite=strict");
 		expect(setCookie).toContain("Path=/api/auth/cli");
+		// Anti-clickjacking headers — defeat iframe-and-overlay attacks
+		// where a third-party page hides the consent under a benign UI.
+		const csp = res.headers.get("content-security-policy") ?? "";
+		expect(csp).toContain("frame-ancestors 'none'");
+		expect(csp).toContain("base-uri 'none'");
+		expect(csp).toContain("form-action 'self'");
+		expect(res.headers.get("x-frame-options")).toBe("DENY");
 	});
 
 	it("(a2) stage 2: confirm matches cookie → 302 redirect with api_key / state / email", async () => {

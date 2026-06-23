@@ -57,6 +57,15 @@ authRoutes.get("/cli", async (c) => {
 			secure: c.req.url.startsWith("https://"),
 			maxAge: 600, // 10 minutes — user must confirm before this expires
 		});
+		// Anti-clickjacking: the CSRF cookie defeats blind cross-site form
+		// submission, but a third-party page could still iframe this consent
+		// page and trick the user into clicking the (real) Authorize button.
+		// Refuse all framing and pin form submission to this origin.
+		c.header(
+			"Content-Security-Policy",
+			"frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+		);
+		c.header("X-Frame-Options", "DENY");
 		return c.html(renderConsentHtml({ email, callback, state, csrfToken }));
 	}
 
