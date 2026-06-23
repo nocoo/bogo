@@ -64,6 +64,7 @@
 			"!**/playwright-report",
 			"!**/blob-report",
 			"!**/.clip-output",
+			"!**/packages/cli/build",
 			"!**/packages/ui/src/index.css"
 		]
 	}

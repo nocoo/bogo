@@ -44,3 +44,7 @@ packages/worker/static/*
 
 # clip generated CLI
 .clip-output/
+
+# packages/cli build scratch (dist/ already caught by the global rule above)
+packages/cli/build/
+packages/cli/*.tgz
