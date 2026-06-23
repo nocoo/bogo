@@ -771,18 +771,24 @@ bunx wrangler d1 execute bogo --remote --command "UPDATE api_tokens SET revoked_
 
 ### Commit 4 — `feat(worker): add /api/auth/cli + query→body bridge`
 
-- 新增 `packages/worker/src/routes/auth.ts`(§5.4),`/api/auth/cli` 强制 `authMethod === "cf-access-jwt" | "localhost"`(防 bearer 自助换 token)
+> **历史注**:Commit 4 最初按"无 consent 直接 302"实现,后续 review 加 task 12 (one-active-per-identity) + task 13 (两阶段 consent) + task 17 (anti-clickjacking headers) 把端点演进成 §2.3 / §5.4 描述的形态。下面是**最终落地形态**,与 main 上 `routes/auth.ts` 一致。
+
+- 新增 `packages/worker/src/routes/auth.ts`(§5.4),`/api/auth/cli` 强制 `authMethod === "cf-access-jwt" | "localhost"`(防 bearer 自助换 token);两阶段 consent 流(§2.3)
 - 改 `packages/worker/src/routes/documents.ts` POST `/`:在 zod 校验之前,若 query 有 `personIds` 而 body 没有,split CSV 注入 body(§6.1)
 - 改 `packages/worker/src/routes/fields.ts` POST `/` 与 PUT `/:id`:同样处理 `options` query CSV
 - 新增 `packages/worker/src/routes/auth.test.ts`:
-  - (a) localhost dev:302 含 api_key / state / email
-  - (b) **`authMethod === "bearer"` 的请求 → 403**(防换 token)
+  - (a) **Stage 1**: 无 confirm → 200 HTML consent + Set-Cookie `bogo_cli_csrf` (HttpOnly, SameSite=Strict, Path=/api/auth/cli) + 三条 CSP `frame-ancestors 'none'` / `base-uri 'none'` / `form-action 'self'` + `X-Frame-Options: DENY`(task 17)
+  - (a2) **Stage 2**: confirm 匹配 cookie → 302 含 api_key / state / email
+  - (a3) Stage 2 confirm 不匹配 cookie → 403,**无 INSERT**
+  - (a4) Stage 2 有 confirm 无 cookie → 403,**无 INSERT**(drive-by 模拟)
+  - (b) **`authMethod === "bearer"` 的请求 → 403**(防换 token),**无 INSERT**
   - (c) callback 非 loopback(外网) → 400
   - (d) callback pathname ≠ `/callback` → 400
   - (e) callback protocol https → 400
   - (f) callback 缺失 → 400
-  - (g) DB 中 token_hash == sha256(redirect URL 中 api_key)
-  - (h) `isLoopbackCallback` 工具函数 6 个 case 单独测
+  - (g) Stage 2 走完后,batch INSERT 的 bind 参数中 token_hash == sha256(redirect URL 中 api_key),且所有 bind 参数均不含明文(task 12 + 13)
+  - (h) Stage 2 走完后,prepare 顺序: UPDATE(撤销同 owner 旧 cli-login) 在 INSERT 之前,且二者走单一 `DB.batch()`(task 12)
+  - 加上 `isLoopbackCallback` 工具函数 9 个 case(标准 + userinfo 拒绝 + IPv4 别名接受)
 - 改 `documents.test.ts` / `fields.test.ts` 加 query→body 桥接的 3 个 case(query 有 / body 有 / 二者都有 → 以 body 为准)
 - 改 `packages/worker/src/index.ts` 挂载 `app.route("/api/auth", authRoutes)`
 - 依赖:Commit 1 + 2 + 3

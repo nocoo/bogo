@@ -124,30 +124,66 @@ Browser                  CF Access                Worker
 **CLI bearer path:**
 
 ```
-CLI                      Worker (browser session)        D1
- │                          │                            │
- ├─ bogo login              │                            │
- │   open loopback server   │                            │
- │   open browser to ──────▶│  /api/auth/cli?callback=…  │
- │                          ├── authMethod ∈ {jwt, local}│
- │                          ├── generateToken (bogo_…)   │
- │                          ├── hash = sha256(plain)     │
- │                          ├── INSERT api_tokens ──────▶│
- │   302 to loopback ◀──────┤   (id, owner_email, hash,  │
- │                          │    prefix, label)          │
- │   write credentials.json │                            │
- │   (chmod 600)            │                            │
- │                          │                            │
- ├─ bogo me                 │                            │
- │   Authorization:         │                            │
- │     Bearer <token> ─────▶│                            │
- │                          ├── sha256(token) → SELECT ─▶│
- │                          │   row, !revoked, !expired  │
- │                          ├── set userEmail            │
- │                          │   = owner_email            │
- │                          │   authMethod = "bearer"    │
- │   JSON ◀─────────────────┤                            │
+CLI                       Worker (browser session)         D1
+ │                          │                              │
+ ├─ bogo login              │                              │
+ │   open loopback server   │                              │
+ │   open browser to ──────▶│  GET /api/auth/cli?callback=…│
+ │                          ├── authMethod ∈ {jwt, local}  │
+ │                          │                              │
+ │                          │  Stage 1: no `confirm` query │
+ │                          ├── render consent HTML        │
+ │                          │   Set-Cookie bogo_cli_csrf=… │
+ │                          │     HttpOnly, SameSite=Strict│
+ │                          │   CSP frame-ancestors 'none' │
+ │                          │   form-action 'self'         │
+ │                          │   X-Frame-Options DENY       │
+ │  200 HTML  ◀─────────────┤                              │
+ │                          │                              │
+ │   (user clicks Authorize)│                              │
+ │                          │  GET /api/auth/cli?…&confirm=│
+ │                          │  + Cookie bogo_cli_csrf=…    │
+ │                          │                              │
+ │                          │  Stage 2: confirm == cookie? │
+ │                          ├── constant-time compare      │
+ │                          ├── generateToken (bogo_…)     │
+ │                          ├── hash = sha256(plain)       │
+ │                          ├── DB.batch([ ───────────────▶│
+ │                          │     UPDATE … revoked_at=now  │
+ │                          │       WHERE owner_email=?    │
+ │                          │       AND label='cli-login'  │
+ │                          │       AND revoked_at IS NULL,│
+ │                          │     INSERT api_tokens …      │
+ │                          │   ])                         │
+ │                          ├── Set-Cookie maxAge=0        │
+ │   302 to loopback ◀──────┤   (single-shot cookie)       │
+ │   write credentials.json │                              │
+ │   (chmod 600)            │                              │
+ │                          │                              │
+ ├─ bogo me                 │                              │
+ │   Authorization:         │                              │
+ │     Bearer <token> ─────▶│                              │
+ │                          ├── sha256(token) → SELECT ───▶│
+ │                          │   row, revoked_at IS NULL,   │
+ │                          │   expires_at IS NULL ‖ future│
+ │                          ├── set userEmail              │
+ │                          │   = owner_email              │
+ │                          │   authMethod = "bearer"      │
+ │   JSON ◀─────────────────┤                              │
 ```
+
+The Stage 1 / Stage 2 split is anti-CSRF: a third-party page that
+embeds `<img src=…/api/auth/cli?callback=evil_loopback>` cannot read
+the SameSite=Strict cookie and cannot guess a matching `confirm`,
+so the worst it triggers is the no-op Stage 1 HTML response. The
+CSP / X-Frame-Options block iframe-and-overlay clickjacking on
+the consent page itself. See `docs/features/02-cli.md` §2.3 / §5.4
+for the full threat model.
+
+Issuing a new CLI token always revokes the prior `cli-login` row
+for the same owner via the atomic D1 batch above — one active CLI
+token per identity, no unbounded growth, leaked tokens die the
+moment the user re-runs `bogo login`.
 
 **Bearer revocation (v1):** manual `UPDATE api_tokens SET revoked_at = …`
 against the live D1 (see `docs/features/02-cli.md` §775-779). A phase 2
@@ -199,7 +235,7 @@ All API routes are prefixed with `/api`.
 |--------|------|-------------|
 | GET | `/api/live` | Health check for non-bearer requests; CF Access bypassed and Worker middleware short-circuits before auth. A present `Bearer bogo_*` is still resolved through the bearer branch first, so revoked CLI tokens cannot quietly reach this endpoint. |
 | GET | `/api/me` | Current authenticated identity (`{ data: { email } }`) |
-| GET | `/api/auth/cli` | Browser-login callback for the bogo CLI — mints a `bogo_*` bearer token and 302-redirects to the caller's loopback `/callback`. Rejects `authMethod === "bearer"` to prevent self-minting. See `docs/features/02-cli.md` §5.4. |
+| GET | `/api/auth/cli` | Two-stage browser-login consent flow for the bogo CLI. Stage 1 (no `confirm` query) returns an HTML consent page with a HttpOnly + SameSite=Strict CSRF cookie; Stage 2 (matching `confirm`) atomically revokes any prior `cli-login` row for the owner, mints a `bogo_*` bearer, and 302s to the caller's loopback `/callback`. Rejects `authMethod === "bearer"` to prevent self-minting. See `docs/features/02-cli.md` §5.4. |
 | GET | `/api/workspaces` | List user's workspaces |
 | POST | `/api/workspaces` | Create workspace |
 | PUT | `/api/workspaces/:id` | Update workspace |
