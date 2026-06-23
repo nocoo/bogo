@@ -1,0 +1,41 @@
+{
+	"name": "@nocoo/bogo",
+	"version": "0.4.0",
+	"description": "Command-line companion for bogo (https://bogo.hexly.ai) — generated from clip.yaml",
+	"type": "module",
+	"bin": {
+		"bogo": "./dist/index.js"
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "bun scripts/build.ts",
+		"prepack": "bun scripts/build.ts"
+	},
+	"dependencies": {
+		"@nocoo/cli-base": "^0.2.4",
+		"commander": "^15.0.0"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"keywords": [
+		"bogo",
+		"cli",
+		"clip",
+		"cloudflare-access"
+	],
+	"author": "nocoo",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/nocoo/bogo.git",
+		"directory": "packages/cli"
+	},
+	"homepage": "https://github.com/nocoo/bogo#cli",
+	"publishConfig": {
+		"access": "public",
+		"provenance": false
+	}
+}
