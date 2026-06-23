@@ -211,11 +211,15 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 		try {
 			await waitForServer(`${BASE}/api/live`);
 
-			// Generate a CLI from a temporary schema with baseUrl pointed at our
-			// wrangler dev port. clip's generator hard-codes the api/login URL
-			// into the generated CLI at codegen time; CLIP_BASE_URL only
-			// overrides business request URLs, not login.
-			const yaml = readFileSync(CLIP_YAML, "utf-8").replace(/^baseUrl:.*$/m, `baseUrl: "${BASE}"`);
+			// Generate a CLI from a temporary schema with baseUrl + loginUrl
+			// both pointed at our wrangler dev port. clip's generator
+			// hard-codes the api/login URL into the generated CLI at
+			// codegen time; CLIP_BASE_URL only overrides business request
+			// URLs, not login. clip.yaml may carry an absolute loginUrl
+			// (split-hostname production setup) — when present it wins
+			// over baseUrl for the login flow, so we must rewrite both.
+			let yaml = readFileSync(CLIP_YAML, "utf-8").replace(/^baseUrl:.*$/m, `baseUrl: "${BASE}"`);
+			yaml = yaml.replace(/^(\s*loginUrl:).*$/m, `$1 "${BASE}/api/auth/cli"`);
 			const tmpYaml = join(tmpDir, "clip.yaml");
 			writeFileSync(tmpYaml, yaml);
 
