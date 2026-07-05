@@ -27,6 +27,7 @@ Bogo 的设计与规范文档。按主题分两个二级目录，每个目录内
 | 编号 | 文档 | 主题 |
 |------|------|------|
 | 01 | [tag-system-spec](./features/01-tag-system-spec.md) | 标签系统规格 |
+| 04 | [org-tree-advanced](./features/04-org-tree-advanced.md) | People 组织架构图高级交互（折叠/拖拽/Minimap） |
 
 ## 约定
 
