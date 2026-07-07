@@ -230,6 +230,7 @@ describe("useFieldValues", () => {
 			act(() => result.current.vm.setValue("fd-1", "Product"));
 
 			await waitFor(() => expect(result.current.vm.getValueFor("fd-1")).toBe("Product"));
+			await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Field saved"));
 		});
 
 		it("optimistically adds new value entry", async () => {

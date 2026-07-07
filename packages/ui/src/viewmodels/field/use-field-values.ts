@@ -109,7 +109,10 @@ export function useFieldValues(personId: string): FieldValuesVM {
 
 	const setValue = useCallback(
 		(fieldDefId: string, value: string) =>
-			setValueMutation.mutate({ personId, fieldDefId, input: { value } }),
+			setValueMutation.mutate(
+				{ personId, fieldDefId, input: { value } },
+				{ onSuccess: () => toast.success("Field saved") },
+			),
 		[setValueMutation, personId],
 	);
 
