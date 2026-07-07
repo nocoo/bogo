@@ -179,6 +179,7 @@ describe("useDocTypes", () => {
 			act(() => result.current.vm.update("dt-1", { name: "Standup Notes" }));
 
 			await waitFor(() => expect(result.current.vm.types[0].name).toBe("Standup Notes"));
+			await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Document type saved"));
 		});
 
 		it("rolls back on update failure", async () => {
@@ -197,6 +198,23 @@ describe("useDocTypes", () => {
 
 			await waitFor(() => expect(toast.error).toHaveBeenCalled());
 			expect(result.current.vm.types[0].name).toBe("Meeting Notes");
+		});
+	});
+
+	describe("reorder", () => {
+		it("stays silent on success (no toast spam during swap)", async () => {
+			mockFetch.mockResolvedValue(ok([TYPE_A, TYPE_B]));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace(), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.types).toHaveLength(2));
+
+			mockFetch.mockResolvedValue(ok({ updated: true }));
+			act(() => result.current.vm.reorder("dt-1", 5));
+
+			await waitFor(() => expect(result.current.vm.types[0].sortOrder).toBe(5));
+			expect(toast.success).not.toHaveBeenCalledWith("Document type saved");
 		});
 	});
 

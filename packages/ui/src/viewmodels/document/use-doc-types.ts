@@ -49,6 +49,28 @@ export function useDocTypes(): DocTypesVM {
 			);
 			return { previous };
 		},
+		onSuccess: () => {
+			toast.success("Document type saved");
+		},
+		onError: (err: Error, _vars, context) => {
+			queryClient.setQueryData(docTypeKeys.all(wid), context?.previous);
+			toast.error(err.message);
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: docTypeKeys.all(wid) });
+		},
+	});
+
+	const reorderMutation = useMutation({
+		...docTypeModel.updateMutationOptions(wid),
+		onMutate: async ({ id, input }) => {
+			await queryClient.cancelQueries({ queryKey: docTypeKeys.all(wid) });
+			const previous = queryClient.getQueryData<DocumentType[]>(docTypeKeys.all(wid));
+			queryClient.setQueryData(docTypeKeys.all(wid), (old: DocumentType[] | undefined) =>
+				(old ?? []).map((d) => (d.id === id ? { ...d, ...input } : d)),
+			);
+			return { previous };
+		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(docTypeKeys.all(wid), context?.previous);
 			toast.error(err.message);
@@ -91,8 +113,8 @@ export function useDocTypes(): DocTypesVM {
 	const remove = useCallback((id: string) => deleteMutation.mutate(id), [deleteMutation]);
 	const reorder = useCallback(
 		(id: string, newSortOrder: number) =>
-			updateMutation.mutate({ id, input: { sortOrder: newSortOrder } }),
-		[updateMutation],
+			reorderMutation.mutate({ id, input: { sortOrder: newSortOrder } }),
+		[reorderMutation],
 	);
 
 	return {
