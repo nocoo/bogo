@@ -1,9 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { usePersonList } from "./use-person-list.js";
+
+vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -244,6 +247,7 @@ describe("usePersonList", () => {
 			await waitFor(() =>
 				expect(result.current.vm.persons.find((p) => p.id === "p-alice")?.name).toBe("Alice2"),
 			);
+			await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Person saved"));
 		});
 
 		it("rolls back on update failure", async () => {
@@ -270,6 +274,7 @@ describe("usePersonList", () => {
 			await waitFor(() =>
 				expect(result.current.vm.persons.find((p) => p.id === "p-alice")?.name).toBe("Alice"),
 			);
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("DB error"));
 		});
 	});
 
@@ -295,6 +300,7 @@ describe("usePersonList", () => {
 			await waitFor(() =>
 				expect(result.current.vm.persons.find((p) => p.id === "p-bob")?.managerId).toBe("p-alice"),
 			);
+			await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Person moved"));
 		});
 
 		it("rolls back managerId on move failure (cycle detected)", async () => {
@@ -321,6 +327,7 @@ describe("usePersonList", () => {
 			await waitFor(() =>
 				expect(result.current.vm.persons.find((p) => p.id === "p-root")?.managerId).toBeNull(),
 			);
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Would create cycle"));
 		});
 	});
 

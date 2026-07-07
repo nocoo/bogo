@@ -56,6 +56,9 @@ export function usePersonList(): PersonListVM {
 			setMutationError(null);
 			return { previous };
 		},
+		onSuccess: () => {
+			toast.success("Person saved");
+		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(personKeys.all(wid), context?.previous);
 			setMutationError(err);
@@ -76,6 +79,9 @@ export function usePersonList(): PersonListVM {
 			);
 			setMutationError(null);
 			return { previous };
+		},
+		onSuccess: () => {
+			toast.success("Person moved");
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(personKeys.all(wid), context?.previous);
