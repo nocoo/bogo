@@ -160,6 +160,7 @@ describe("useTags", () => {
 		act(() => result.current.vm.update("tag-1", { name: "Platform" }));
 
 		await waitFor(() => expect(result.current.vm.tags[0].name).toBe("Platform"));
+		await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Tag saved"));
 	});
 
 	it("rolls back optimistic update on error", async () => {

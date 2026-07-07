@@ -56,6 +56,7 @@ export function useTags(scope: TagScope): TagsVM {
 			queryClient.setQueryData(qk, (old: TagWithCount[] | undefined) =>
 				(old ?? []).map((t) => (t.id === updated.id ? { ...t, ...updated } : t)),
 			);
+			toast.success("Tag saved");
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(tagKeys.withCounts(wid, scope), context?.previous);
