@@ -186,6 +186,7 @@ describe("useDocuments", () => {
 
 			await waitFor(() => expect(result.current.vm.documents[0].title).toBe("Q1 Final"));
 			await waitFor(() => expect(result.current.vm.documents[0].version).toBe(2));
+			await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Document saved"));
 		});
 
 		it("rolls back on update failure", async () => {

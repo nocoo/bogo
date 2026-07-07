@@ -89,7 +89,8 @@ export function useDocuments(tagIds?: string[]): DocumentsVM {
 		[createMutation],
 	);
 	const update = useCallback(
-		(id: string, input: UpdateDocumentInput) => updateMutation.mutate({ id, input }),
+		(id: string, input: UpdateDocumentInput) =>
+			updateMutation.mutate({ id, input }, { onSuccess: () => toast.success("Document saved") }),
 		[updateMutation],
 	);
 	const remove = useCallback((id: string) => deleteMutation.mutate(id), [deleteMutation]);
