@@ -85,7 +85,8 @@ export function useFieldDefs(): FieldDefsVM {
 		[createMutation],
 	);
 	const update = useCallback(
-		(id: string, input: UpdateFieldDefInput) => updateMutation.mutate({ id, input }),
+		(id: string, input: UpdateFieldDefInput) =>
+			updateMutation.mutate({ id, input }, { onSuccess: () => toast.success("Field saved") }),
 		[updateMutation],
 	);
 	const remove = useCallback((id: string) => deleteMutation.mutate(id), [deleteMutation]);

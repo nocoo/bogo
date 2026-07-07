@@ -192,6 +192,7 @@ describe("useFieldDefs", () => {
 			act(() => result.current.vm.update("fd-1", { name: "Dept" }));
 
 			await waitFor(() => expect(result.current.vm.defs[0].name).toBe("Dept"));
+			await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Field saved"));
 		});
 
 		it("rolls back on update failure", async () => {
@@ -315,6 +316,27 @@ describe("useFieldDefs", () => {
 			act(() => result.current.vm.reorder("fd-1", 5));
 
 			await waitFor(() => expect(result.current.vm.defs[0].sortOrder).toBe(5));
+			expect(toast.success).not.toHaveBeenCalledWith("Field saved");
+		});
+
+		it("rolls back sortOrder on reorder failure", async () => {
+			mockFetch.mockResolvedValue(ok([DEF_TEXT, DEF_SELECT]));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace(), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.defs).toHaveLength(2));
+
+			mockFetch
+				.mockResolvedValueOnce(err(500, "INTERNAL", "swap failed"))
+				.mockResolvedValueOnce(ok([DEF_TEXT, DEF_SELECT]));
+
+			act(() => result.current.vm.reorder("fd-1", 99));
+
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("swap failed"));
+			await waitFor(() =>
+				expect(result.current.vm.defs.find((d) => d.id === "fd-1")?.sortOrder).toBe(0),
+			);
 		});
 	});
 
