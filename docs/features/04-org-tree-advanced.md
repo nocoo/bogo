@@ -2,33 +2,36 @@
 
 ## Objective
 
-在 People 页面的组织架构图（`PersonTree`）上，把 **拖拽**、**折叠 / 展开子树**、**画布导航**
-三类高级交互做到"跟主流 OrgChart 工具（Miro、Notion、Linear team tree）对齐"的水准。
-实现方式限定：**充分利用 `@xyflow/react` v12 原生能力**，不引入新组件库。
+在 People 页面的组织架构图（`PersonTree`）上，交付两类高级交互：**折叠 / 展开子树**
+与**画布导航（Minimap + 快捷键）**。实现方式限定：**充分利用 `@xyflow/react` v12 原生
+能力**，不引入新组件库。
 
 **Target users**: Workspace admins（一次管数十到数百人的经理），需要在同一画布上
-既能看到全局架构，又能钻进某个子树、把某个成员挂到新经理下。
+既能看到全局架构，又能把无关的子树折叠掉、只聚焦当下关心的分支。
 
 **Scope**: 纯前端 UI + 客户端持久化。零后端改动、零 DB 迁移、零 API 变更。
 
 ## Non-Goals
 
 - 不改数据模型（`persons` 表、`managerId` / `dottedManagerId` / `sortOrder` 保持不变）。
+- **不做通过拖拽 / handle 连线来修改 manager 关系**。改经理只走 `EditPersonPanel` 的下拉框
+  （已存在），本 spec 里 `PersonTree` 的 drag 行为退回"纯视觉调整节点位置"，不触发
+  任何 API。见 §Behavior/Drag。
 - 不做 dotted-line 汇报关系的折叠语义（保持当前的实线渲染，见 §Behavior/Collapse）。
 - 不做服务端同步的折叠偏好（v1 只 localStorage，见 §Persistence）。
-- 不改现有 `persons-move` API 契约（Person Move 依旧走 `PUT /api/w/:wid/persons/:id/move`）。
+- 不改现有 `persons-move` API 契约（Person Move 依旧走 `PUT /api/w/:wid/persons/:id/move`，
+  UI 触发点只有 EditPanel）。
 - 不做键盘可访问的整棵树导航（Tab / Arrow keys 遍历节点）—— 6DQ Accessibility 项显式记为
   已知欠账，见 §6DQ。
 
-## Feature Set (哥 2026-07-04 拍板)
+## Feature Set (哥 2026-07-09 拍板)
 
 | # | 能力 | 说明 |
 |---|------|------|
 | 1 | **折叠 / 展开子树** | 每个有下属的节点右下角一个 chevron chip；点击折叠该人整条下属子树；chip 上叠加隐藏子孙的 `Nₕ` 计数。基础项。 |
-| 2 | **拖拽体验强化** | 从节点底部 `source` handle 拉线 → 拖到目标节点顶部 `target` handle → 松手 = 把源挂到目标下（等价 `persons-move`）。保留现有的"整个节点拖到附近就吸附"作为备用交互。 |
-| 3 | **Minimap 与画布快捷键** | 右下角新增 `<MiniMap />`；`f` = fitView、`+` / `-` = zoom in/out、`0` = reset zoom 1.0。 |
+| 2 | **Minimap 与画布快捷键** | 右下角新增 `<MiniMap />`；`f` = fitView、`+` / `-` = zoom in/out、`0` = reset zoom 1.0。 |
 
-优先级：**折叠 > 拖拽强化 > Minimap/快捷键**（后两项可分独立 PR，不阻塞前一项 ship）。
+优先级：**折叠 > Minimap/快捷键**（后者可独立 PR，不阻塞前者 ship）。
 
 ## Behavior
 
@@ -54,24 +57,22 @@
 - Toolbar 上一个 `Collapse all` 按钮：折叠所有 `hasReports` 节点。
 - Toolbar 上一个 `Expand all` 按钮：清空 `collapsedIds`。
 
-### Drag 强化
+### Drag（仅视觉调整，不改数据）
 
-现状：`onNodeDragStop` 用 `findDropTarget` 就近吸附，容易误触（拖着走到中途松手会意外落到最近
-的人下面）。**方案 A**（本次采用）：
+现状：`PersonTree` 有 `nodesDraggable={true}` + `onNodeDragStop` 触发的"就近吸附改经理"逻辑，
+本 spec **移除该数据变更行为**。
 
-1. 保留 `nodesDraggable={true}` 用于纯粹的位置微调（松手时如果落点在 threshold 外，不触发 move）。
-2. 打开 `nodesConnectable={true}`，从节点 bottom `source` handle 拉出连线到目标 top `target`
-   handle 时，触发 `onConnect(source, target)` → 调 `vm.move(target, source)`（source 是新 manager，
-   target 是被 move 的人）。
-   - 拉线过程中 ReactFlow 原生会画预览线，用户视觉反馈明确。
-   - `isValidConnection` 过滤掉：连到自己、连成环、连到当前已有的 manager（no-op）。
-   - Handle 只在 hover / drag 中的节点上高亮（`className="!bg-primary !w-3 !h-3"`
-     + CSS `.react-flow__handle` opacity transition），空闲时半透明，不干扰阅读。
-3. 保留 `handleNodeDragStop` 的就近吸附作为**兼容路径**，但 threshold 收紧到 60px（当前 100px），
-   降低误触。
+本 spec 完成后的 drag 行为：
+1. `nodesDraggable={true}` 保留 —— 用户仍可以拖动节点，但仅调整**画布上的视觉位置**。
+2. `onNodeDragStop` 不再调用 `vm.handleDrop`，也不再 wire 任何 mutation。默认不 wire 该 handler。
+3. `vm.handleDrop`、`dropError`、`clearDropError`、`findDropTarget`、`wouldCreateCycle` 这套
+   函数与状态一并**从当前 vm / layout 中移除**（保留在 git 历史里，本 spec 之后不再有代码
+   依赖它们）。
+4. 移经理的唯一 UI 路径 = `EditPersonPanel` 的 Manager `<select>` 下拉框（今天已经工作）。
 
-**Root 保护**：`onConnect` 与 `handleNodeDragStop` 共用 `vm.canMove(id)` 判定：`person.isRoot`
-或会成环时拒绝并 `setDropError`。
+**已知 trade-off**：Dagre 每次 `persons` 数据变化都会重算所有节点位置，用户手工挪动的位置
+在下次 layout 触发时会被覆盖。这是 v1 接受的行为 —— 如果需要"记住手工位置"，属于 v2 议题
+（Out of Scope），可能需要引入用户自定位置存储或切到 free-form 布局。
 
 ### Minimap 与画布快捷键
 
@@ -86,7 +87,7 @@
 
 ## State Model (client-side)
 
-新增两个客户端状态，都住在 `usePersonTree` 里：
+新增一个客户端状态，住在 `usePersonTree` 里：
 
 ```ts
 interface CollapseState {
@@ -149,13 +150,16 @@ packages/ui/src/components/person/
 ```
 packages/ui/src/viewmodels/person/person-tree-layout.ts
   ↳ computeTreeLayout 支持 visibleSet + hiddenCountOf；旧签名向后兼容
-  ↳ findDropTarget threshold 100 → 60；nodes 参数由外部限定为 visibleSet
+  ↳ 移除 findDropTarget、wouldCreateCycle（不再有调用者）
 packages/ui/src/viewmodels/person/use-person-tree.ts
-  ↳ 组合 use-collapse-state、descendants-map；导出 collapse API + canMove()
+  ↳ 组合 use-collapse-state、descendants-map；导出 collapse API
+  ↳ 移除 handleDrop、dropError、clearDropError（拖拽不再改经理）
 packages/ui/src/components/person/PersonNode.tsx
-  ↳ 右下角 chevron chip（有 reports 时）；handle hover 高亮 CSS
+  ↳ 右下角 chevron chip（有 reports 时）
+  ↳ 移除 GripVertical 图标（曾提示可拖动改经理，现无此语义）
 packages/ui/src/components/person/PersonTree.tsx
-  ↳ nodesConnectable={true} + onConnect + isValidConnection
+  ↳ 移除 onNodeDragStop wire、getNodeCenter helper、dropError UI
+  ↳ 保留 nodesDraggable={true}（纯视觉位置调整，不 wire handler）
   ↳ <MiniMap /> + useCanvasShortcuts
   ↳ 顶部左侧 <PersonTreeToolbar />（替换现在的 Add 按钮）
   ↳ selected person 若跌出 visibleSet，effect 里 selectPerson(null)
@@ -167,17 +171,19 @@ packages/ui/src/components/person/PersonTree.tsx
 - `packages/worker/**`（API 契约不变）
 - `packages/cli/**`（生成配置不动）
 - `packages/ui/src/lib/api/persons.ts`（无新增端点）
+- `packages/ui/src/components/person/EditPersonPanel.tsx`（Manager `<select>` 已是改经理的
+  正规路径，不动）
 
 ## Code Style
 
 - 遵循 `docs/architecture/09-css-conventions.md`：Tailwind + `hsl(var(--…))` token；不写自定义
-  CSS 文件（handle hover 用 utility 组合 + `data-*` selector）。
+  CSS 文件。
 - Chevron chip 尺寸固定 `h-5 min-w-[20px] px-1`，用 `lucide-react` 的 `ChevronDown` / `ChevronRight`，
   颜色 `text-muted-foreground`。
 - Collapse state 用 `Set<string>` 作为 source of truth；对外暴露 API 时不返回可变引用（返回
   `readonly` 视图或用 selector 读）。
 - `use-collapse-state` 只做状态 + 持久化；descendants 计算独立文件、纯函数、可单测。
-- 遵循 MVVM（`docs/architecture/05-ui-mvvm-architecture.md`）：所有业务判定（`hasReports`、`canMove`、
+- 遵循 MVVM（`docs/architecture/05-ui-mvvm-architecture.md`）：所有业务判定（`hasReports`、
   `visibleSet`）住 viewmodel，组件只读 props。
 - TS：`Set<string>` 用 `ReadonlySet<string>` 从 vm 传出，避免消费方误 mutate。
 
@@ -201,6 +207,7 @@ packages/ui/src/components/person/PersonTree.tsx
   - 传入 `visibleSet` 时，只对子集出 nodes，且 edge 被剪时不出悬空 edge
   - `hiddenCountOf` 塞进 `node.data.hiddenCount`
   - 老签名（不传 opts）行为与迁移前一致
+  - 删除原来关于 `findDropTarget`、`wouldCreateCycle` 的用例（函数已被移除）
 - `use-canvas-shortcuts.test.ts`：
   - `f/+/-/0` 分别触发对应 ReactFlow API（mock instance）
   - focus 在 input 时不触发
@@ -209,10 +216,9 @@ packages/ui/src/components/person/PersonTree.tsx
   - `hiddenCount === 0 && hasReports` 时显示 `▼`
   - 无 reports 时无 chip
   - 点击 chip 触发 `onToggleCollapse`，且不冒泡到 card
-- `PersonTree.test.tsx`（补充）：
+- `PersonTree.test.tsx`（补充 / 调整）：
   - selected person 被折叠隐藏后 selection 清空（用 rendered EditPanel 存在与否断言）
-  - `onConnect` 会成环 → 拒绝 + setDropError
-  - `onConnect` 目标 = 当前 manager → no-op
+  - 删除原来对 `handleDrop` / dropError UI 的断言
 
 ### L3 Playwright（新增）
 
@@ -220,10 +226,10 @@ packages/ui/src/components/person/PersonTree.tsx
 
 1. 页面加载 → 点击某个经理的 chevron chip → 期望其子孙 DOM 节点不再出现，chip 显示 `▶ N`。
 2. Collapse all → Expand all round-trip → 节点数恢复。
-3. 拖 handle 从 A 到 B → 期望 `persons-move` 网络请求被打出，且面板反映新 manager。
+3. 折叠状态刷新页面后保留（走 localStorage）。
 4. 按 `f` 键 → 视图 zoom & pan 到 fit（用 viewport transform DOM assertion）。
 
-不涵盖：动画中间态、拖拽鼠标轨迹细节（浏览器实现差异大）。
+不涵盖：拖拽轨迹（本 spec 已明确 drag 不改数据）、动画中间态。
 
 ### 通过门 (Gate)
 
@@ -237,69 +243,81 @@ packages/ui/src/components/person/PersonTree.tsx
 
 - 折叠状态一律持久化到 `bogo:orgTree:collapsed:${userEmail}:${workspaceId}`。
 - `computeTreeLayout` 的老签名（只传 `persons`）保持工作，不 break 现有调用与单测。
-- `onConnect` / `onNodeDragStop` 触发 move 前必须过 `wouldCreateCycle` 与 root 保护。
 - 所有键盘快捷键必须在 focused-in-input 时被跳过（现在的 Edit panel 有一堆 input）。
 
 ### Ask First (哥点头再动)
 
 - 服务端持久化折叠偏好（新增表 / 用户偏好 API）。
 - 折叠状态出现在 URL query string 中（分享链接场景）。
-- 用 D&D 库（`@dnd-kit`、`react-dnd`）替换 ReactFlow handle 拖拽。
-- 引入手势库、动画库、canvas 渲染。
+- 恢复"拖拽改经理"或引入 handle-connect 改经理（本 spec 明确排除）。
+- 引入 D&D 库、手势库、动画库、canvas 渲染。
 - 修改 `persons` schema / API 契约。
 - 把 dotted-line 纳入 descendants 计算。
+- 持久化用户手工挪动的节点位置（v1 明确接受 Dagre 重算覆盖手工位置）。
 
 ### Never Do
 
 - 直接 mutate `collapsedIds` Set 而不走 `toggleCollapse`。
-- 在组件层实现业务判定（`hasReports` / `visibleSet` / `canMove` 必须在 vm）。
+- 在组件层实现业务判定（`hasReports` / `visibleSet` 必须在 vm）。
 - 用节点内 `<button>` 触发折叠时忘了 `stopPropagation` 导致 select 同时触发。
 - 引入除 React Flow / Dagre / lucide-react 外的第三方 UI 依赖。
 - 用 `any` 或 `@ts-ignore` 绕类型（`Node<PersonNodeData>` 是既定契约）。
+- 让 `PersonTree` 的 drag 手势触发任何后端 mutation（本 spec 的核心约束）。
 
 ## Implementation Order (原子化提交计划)
 
-每个 commit 都要能通过 pre-commit hook（L1 + G1），先 ship UI 骨架、再补交互，最后打磨。
+每个 commit 都要能通过 pre-commit hook（L1 + G1），先清旧路径、再上折叠、最后打磨画布导航。
 
 | # | Commit (`fix/feat/refactor: ...`) | 内容 |
 |---|-----------------------------------|------|
-| 1 | `refactor(ui): extract descendants map from person list` | 新增 `descendants-map.ts` + 单测。老代码路径不变。 |
-| 2 | `feat(ui): computeTreeLayout supports visibleSet + hiddenCount` | 扩签名向后兼容 + 补测。老单测不动。 |
-| 3 | `feat(ui): collapse state hook with localStorage persistence` | `use-collapse-state.ts` + 单测（含 mock localStorage、无 email 内存回退）。 |
-| 4 | `feat(ui): person node shows collapse chevron chip` | 修 `PersonNode` + 单测；`PersonTree` 尚未接线，仅 props 层准备好。 |
-| 5 | `feat(ui): person tree wires collapse toggle` | `usePersonTree` 组合 collapse state；点击 chip 生效；selected person 被隐藏后自动清 selection。 |
-| 6 | `feat(ui): tree toolbar with collapse all / expand all / fit` | 新增 `PersonTreeToolbar` 替换现在的 Add 按钮。 |
-| 7 | `feat(ui): connect-handle move flow` | 打开 `nodesConnectable`、`onConnect`、`isValidConnection`；drop threshold 收紧到 60px。 |
+| 1 | `refactor(ui): remove drag-to-move-manager wiring from person tree` | 删掉 `handleDrop` / `dropError` / `getNodeCenter` / `findDropTarget` / `wouldCreateCycle`；`onNodeDragStop` 不再 wire；同步删掉 PersonTree.tsx 里的 dropError UI 与相关测试。 |
+| 2 | `refactor(ui): extract descendants map from person list` | 新增 `descendants-map.ts` + 单测。老代码路径不变。 |
+| 3 | `feat(ui): computeTreeLayout supports visibleSet + hiddenCount` | 扩签名向后兼容 + 补测。老单测不动。 |
+| 4 | `feat(ui): collapse state hook with localStorage persistence` | `use-collapse-state.ts` + 单测（含 mock localStorage、无 email 内存回退）。 |
+| 5 | `feat(ui): person node shows collapse chevron chip` | 修 `PersonNode` + 单测；`PersonTree` 尚未接线，仅 props 层准备好；顺手移除 GripVertical。 |
+| 6 | `feat(ui): person tree wires collapse toggle` | `usePersonTree` 组合 collapse state；点击 chip 生效；selected person 被隐藏后自动清 selection。 |
+| 7 | `feat(ui): tree toolbar with collapse all / expand all / fit` | 新增 `PersonTreeToolbar` 替换现在的 Add 按钮。 |
 | 8 | `feat(ui): person tree minimap + canvas shortcuts` | `<MiniMap />` + `use-canvas-shortcuts`。 |
-| 9 | `test(ui): playwright e2e for collapse & connect move` | 新增 `people-tree-advanced.spec.ts` L3 用例。 |
+| 9 | `test(ui): playwright e2e for collapse (persistence + roundtrip)` | 新增 `people-tree-advanced.spec.ts` L3 用例。 |
 | 10 | `docs(features): mark 04-org-tree-advanced.md complete` | 更新本 spec 状态、README 索引状态列。 |
 
 ## 6DQ Quality Plan
 
 | 维度 | 是否达标 | 备注 |
 |------|---------|------|
-| Functional | ✅ | 折叠 / 拖拽 / 快捷键 L1 + L3 覆盖 |
-| Reliability | ✅ | localStorage 读失败降级到内存；folder 引用不存在 pid 时自动跳过 |
-| Performance | ✅ | descendants DFS 一次；Layout 只对 visibleSet 跑；chip / handle 均 memoized |
+| Functional | ✅ | 折叠 / 快捷键 L1 + L3 覆盖 |
+| Reliability | ✅ | localStorage 读失败降级到内存；collapsedIds 引用不存在 pid 时自动跳过 |
+| Performance | ✅ | descendants DFS 一次；Layout 只对 visibleSet 跑；chip 均 memoized |
 | Security | ✅ | 无新数据面变化；localStorage key 命名带 `userEmail`，避免多用户串数据 |
-| Maintainability | ✅ | vm/组件分层清晰；layout 老签名兼容；新增文件均带单测 |
+| Maintainability | ✅ | vm/组件分层清晰；layout 老签名兼容；新增文件均带单测；旧的 drag-to-move 死路径彻底清除 |
 | Accessibility | ⚠️ 部分 | chevron chip 加 `aria-expanded`、`aria-label="Collapse subtree of {name}"`。整棵树的键盘遍历（Tab/Arrow）**未做**，显式记为 v2 欠账。 |
 
 ## Out of Scope (v2 候选)
 
 - 服务端同步折叠偏好（跨设备）。
 - URL 中携带 `collapsed=` query 用于分享指定视图。
+- 拖拽改经理（本 spec 明确排除，如未来恢复需另起 spec）。
 - 拖拽多选 / 批量 move。
+- 持久化用户手工挪动的节点位置（覆盖 Dagre 自动布局）。
 - 树节点按 `sortOrder` 手动重排（今天 `sortOrder` 存在但 UI 未用）。
 - 键盘完全可达：Tab 焦点顺序、Arrow keys 上下左右移动焦点、Space 触发折叠。
 - 折叠状态动画（今天硬切换；动画留给 6DQ Delight 迭代）。
 
-## Decisions（2026-07-04 哥拍板）
+## Decisions（时间线）
 
-1. 高级功能范围 = 折叠 + 拖拽强化 + Minimap/快捷键（三选三）。
+**2026-07-04（初稿）**
+1. 高级功能范围原拟 = 折叠 + 拖拽强化 + Minimap/快捷键（三选三）。
 2. 折叠按钮位置 = 节点右下角 chevron chip（不是 hover 侧边浮动、也不是整卡点击）。
 3. Dotted line **不** 参与 descendants 计算 —— 折叠只作用于实线汇报。
 4. 折叠状态持久化到 localStorage，key 按 `(userEmail, workspaceId)` 隔离。
+
+**2026-07-09（本次修订）**
+5. **移除"拖拽改经理"目标**。`PersonTree` 的 drag 只保留视觉位置调整，不触发 mutation；
+   改经理的唯一 UI = EditPanel 的 Manager 下拉框（已存在）。理由：拖拽改经理误触率高、
+   与 Dagre 自动布局语义冲突、且 EditPanel 路径已经能覆盖所有 move 场景。
+6. 相应删除 `findDropTarget` / `wouldCreateCycle` / `handleDrop` 等一整套代码路径与测试
+   （不做 deprecate 保留，一次删干净）。
+7. 高级功能范围收窄为 **折叠 + Minimap/快捷键**（二选二），本 spec 只交付这两块。
 
 ## References
 
@@ -308,4 +326,4 @@ packages/ui/src/components/person/PersonTree.tsx
 - `docs/architecture/08-ui-test-strategy.md` — 6 层测试架构 + 6DQ
 - `docs/architecture/09-css-conventions.md` — Tailwind + token 规范
 - `docs/features/01-tag-system-spec.md` — Person tags（已被本页面渲染消费）
-- [@xyflow/react v12 docs](https://reactflow.dev/api-reference) — `onConnect` / `isValidConnection` / `MiniMap` / `useKeyPress`
+- [@xyflow/react v12 docs](https://reactflow.dev/api-reference) — `MiniMap` / `useKeyPress` / `fitView`
