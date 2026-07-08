@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.5.1] - 2026-07-07
+
+### Added
+- **Save-feedback toasts across every write mutation.** Editing a
+  person, tag, doc-type, custom field definition, custom field value,
+  or document now surfaces a "…saved" toast on success in addition to
+  the pre-existing error toast. Nine viewmodels audited; success
+  feedback added to every `update` / `move` / `setValue` path that
+  was previously silent on the happy path.
+- Success labels are user-facing verbs ("Person saved", "Person moved",
+  "Tag saved", "Document type saved", "Field saved", "Document saved"),
+  not the underlying mutation name.
+
+### Design decisions
+- **Reorder swaps stay silent.** DocType and FieldDef reorder issues
+  two `update` calls to swap `sortOrder`; the shared `updateMutation`
+  now attaches the toast via a per-call `mutate(vars, { onSuccess })`
+  callback rather than the mutation config, so `reorder` reuses the
+  same mutation without toasting twice.
+- **Tag assignment stays silent.** Toggling a tag on a person or
+  document is a high-frequency action; a toast per click would be
+  noise. `use-tag-assignment` remains success-silent by design.
+
+### Docs
+- New spec `docs/features/04-org-tree-advanced.md` — advanced
+  interactions for the People org tree (collapse/expand, drag via
+  ReactFlow handle-connect, minimap + canvas shortcuts). Design only;
+  no code shipped in this release.
+
 ## [0.5.0] - 2026-06-23
 
 ### Changed (breaking on responses)

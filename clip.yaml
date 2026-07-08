@@ -1,6 +1,6 @@
 name: "Bogo API"
 alias: bogo
-version: "0.5.0"
+version: "0.5.1"
 baseUrl: "https://api.bogo.hexly.ai"
 auth:
   type: browser-login
