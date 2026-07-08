@@ -27,7 +27,7 @@ export const fieldModel = {
 	}),
 
 	updateDefMutationOptions: (wid: string) => ({
-		mutationFn: ({ id, input }: { id: string; input: UpdateFieldDefInput }) =>
+		mutationFn: ({ id, input }: { id: string; input: UpdateFieldDefInput; silent?: boolean }) =>
 			api.fields.updateDef(wid, id, input),
 	}),
 

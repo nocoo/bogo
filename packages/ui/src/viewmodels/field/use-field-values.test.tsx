@@ -325,4 +325,32 @@ describe("useFieldValues", () => {
 			);
 		});
 	});
+
+	describe("concurrent setValue (P2 regression)", () => {
+		it("emits a save toast for every settled setValue, even when calls overlap", async () => {
+			mockFetch.mockResolvedValue(ok([VALUE_1]));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace("p-1"), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.values).toHaveLength(1));
+
+			mockFetch
+				.mockResolvedValueOnce(ok({ personId: "p-1", fieldDefId: "fd-1", value: "One" }))
+				.mockResolvedValueOnce(ok({ personId: "p-1", fieldDefId: "fd-1", value: "Two" }))
+				.mockResolvedValue(ok([{ ...VALUE_1, value: "Two" }]));
+
+			act(() => {
+				result.current.vm.setValue("fd-1", "One");
+				result.current.vm.setValue("fd-1", "Two");
+			});
+
+			await waitFor(() => {
+				const saveCalls = (toast.success as ReturnType<typeof vi.fn>).mock.calls.filter(
+					(call) => call[0] === "Field saved",
+				);
+				expect(saveCalls.length).toBe(2);
+			});
+		});
+	});
 });

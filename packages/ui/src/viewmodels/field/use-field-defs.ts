@@ -49,6 +49,11 @@ export function useFieldDefs(): FieldDefsVM {
 			);
 			return { previous };
 		},
+		onSuccess: (_data, vars) => {
+			if (!vars.silent) {
+				toast.success("Field saved");
+			}
+		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(fieldKeys.defs(wid), context?.previous);
 			toast.error(err.message);
@@ -85,14 +90,13 @@ export function useFieldDefs(): FieldDefsVM {
 		[createMutation],
 	);
 	const update = useCallback(
-		(id: string, input: UpdateFieldDefInput) =>
-			updateMutation.mutate({ id, input }, { onSuccess: () => toast.success("Field saved") }),
+		(id: string, input: UpdateFieldDefInput) => updateMutation.mutate({ id, input }),
 		[updateMutation],
 	);
 	const remove = useCallback((id: string) => deleteMutation.mutate(id), [deleteMutation]);
 	const reorder = useCallback(
 		(id: string, newSortOrder: number) =>
-			updateMutation.mutate({ id, input: { sortOrder: newSortOrder } }),
+			updateMutation.mutate({ id, input: { sortOrder: newSortOrder }, silent: true }),
 		[updateMutation],
 	);
 

@@ -370,4 +370,32 @@ describe("useFieldDefs", () => {
 			await waitFor(() => expect(result.current.vm.defs[0]?.name).toBe("Level"));
 		});
 	});
+
+	describe("concurrent updates (P2 regression)", () => {
+		it("emits a save toast for every settled update, even when calls overlap", async () => {
+			mockFetch.mockResolvedValue(ok([DEF_TEXT]));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace(), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.defs).toHaveLength(1));
+
+			mockFetch
+				.mockResolvedValueOnce(ok({ updated: true }))
+				.mockResolvedValueOnce(ok({ updated: true }))
+				.mockResolvedValue(ok([{ ...DEF_TEXT, name: "Second" }]));
+
+			act(() => {
+				result.current.vm.update("fd-1", { name: "First" });
+				result.current.vm.update("fd-1", { name: "Second" });
+			});
+
+			await waitFor(() => {
+				const saveCalls = (toast.success as ReturnType<typeof vi.fn>).mock.calls.filter(
+					(call) => call[0] === "Field saved",
+				);
+				expect(saveCalls.length).toBe(2);
+			});
+		});
+	});
 });

@@ -98,6 +98,9 @@ export function useFieldValues(personId: string): FieldValuesVM {
 			);
 			return { previous };
 		},
+		onSuccess: () => {
+			toast.success("Field saved");
+		},
 		onError: (err: Error, vars, context) => {
 			queryClient.setQueryData(fieldKeys.values(wid, vars.personId), context?.previous);
 			toast.error(err.message);
@@ -109,10 +112,7 @@ export function useFieldValues(personId: string): FieldValuesVM {
 
 	const setValue = useCallback(
 		(fieldDefId: string, value: string) =>
-			setValueMutation.mutate(
-				{ personId, fieldDefId, input: { value } },
-				{ onSuccess: () => toast.success("Field saved") },
-			),
+			setValueMutation.mutate({ personId, fieldDefId, input: { value } }),
 		[setValueMutation, personId],
 	);
 

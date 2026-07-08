@@ -287,4 +287,32 @@ describe("useDocuments", () => {
 
 		await waitFor(() => expect(result.current.vm.isRemoving).toBe(false));
 	});
+
+	describe("concurrent updates (P2 regression)", () => {
+		it("emits a save toast for every settled update, even when calls overlap", async () => {
+			mockFetch.mockResolvedValue(ok([DOC_A]));
+			const wrapper = createWrapper();
+			const { result } = renderHook(() => useWithWorkspace(), { wrapper });
+
+			act(() => result.current.ctx.switchWorkspace(WS));
+			await waitFor(() => expect(result.current.vm.documents).toHaveLength(1));
+
+			mockFetch
+				.mockResolvedValueOnce(ok({ version: 2 }))
+				.mockResolvedValueOnce(ok({ version: 3 }))
+				.mockResolvedValue(ok([{ ...DOC_A, title: "Second", version: 3 }]));
+
+			act(() => {
+				result.current.vm.update("doc-1", { title: "First" });
+				result.current.vm.update("doc-1", { title: "Second" });
+			});
+
+			await waitFor(() => {
+				const saveCalls = (toast.success as ReturnType<typeof vi.fn>).mock.calls.filter(
+					(call) => call[0] === "Document saved",
+				);
+				expect(saveCalls.length).toBe(2);
+			});
+		});
+	});
 });

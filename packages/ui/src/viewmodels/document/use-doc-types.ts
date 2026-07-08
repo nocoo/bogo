@@ -49,6 +49,11 @@ export function useDocTypes(): DocTypesVM {
 			);
 			return { previous };
 		},
+		onSuccess: (_data, vars) => {
+			if (!vars.silent) {
+				toast.success("Document type saved");
+			}
+		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(docTypeKeys.all(wid), context?.previous);
 			toast.error(err.message);
@@ -85,17 +90,13 @@ export function useDocTypes(): DocTypesVM {
 		[createMutation],
 	);
 	const update = useCallback(
-		(id: string, input: UpdateDocTypeInput) =>
-			updateMutation.mutate(
-				{ id, input },
-				{ onSuccess: () => toast.success("Document type saved") },
-			),
+		(id: string, input: UpdateDocTypeInput) => updateMutation.mutate({ id, input }),
 		[updateMutation],
 	);
 	const remove = useCallback((id: string) => deleteMutation.mutate(id), [deleteMutation]);
 	const reorder = useCallback(
 		(id: string, newSortOrder: number) =>
-			updateMutation.mutate({ id, input: { sortOrder: newSortOrder } }),
+			updateMutation.mutate({ id, input: { sortOrder: newSortOrder }, silent: true }),
 		[updateMutation],
 	);
 

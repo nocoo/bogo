@@ -19,7 +19,7 @@ export const docTypeModel = {
 	}),
 
 	updateMutationOptions: (wid: string) => ({
-		mutationFn: ({ id, input }: { id: string; input: UpdateDocTypeInput }) =>
+		mutationFn: ({ id, input }: { id: string; input: UpdateDocTypeInput; silent?: boolean }) =>
 			api.docTypes.update(wid, id, input),
 	}),
 

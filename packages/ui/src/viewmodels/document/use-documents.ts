@@ -52,6 +52,7 @@ export function useDocuments(tagIds?: string[]): DocumentsVM {
 			queryClient.setQueryData(documentKeys.all(wid), (old: DocumentSummary[] | undefined) =>
 				(old ?? []).map((d) => (d.id === id ? { ...d, version: result.version } : d)),
 			);
+			toast.success("Document saved");
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(documentKeys.all(wid), context?.previous);
@@ -89,8 +90,7 @@ export function useDocuments(tagIds?: string[]): DocumentsVM {
 		[createMutation],
 	);
 	const update = useCallback(
-		(id: string, input: UpdateDocumentInput) =>
-			updateMutation.mutate({ id, input }, { onSuccess: () => toast.success("Document saved") }),
+		(id: string, input: UpdateDocumentInput) => updateMutation.mutate({ id, input }),
 		[updateMutation],
 	);
 	const remove = useCallback((id: string) => deleteMutation.mutate(id), [deleteMutation]);
