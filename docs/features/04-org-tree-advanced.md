@@ -17,7 +17,9 @@
 - **不做通过拖拽 / handle 连线来修改 manager 关系**。改经理只走 `EditPersonPanel` 的下拉框
   （已存在），本 spec 里 `PersonTree` 的 drag 行为退回"纯视觉调整节点位置"，不触发
   任何 API。见 §Behavior/Drag。
-- 不做 dotted-line 汇报关系的折叠语义（保持当前的实线渲染，见 §Behavior/Collapse）。
+- 不做 dotted-line 汇报关系的折叠语义（保持当前的虚线 edge 渲染 —— 见
+  `packages/ui/src/viewmodels/person/person-tree-layout.ts` 中 `strokeDasharray: "5 5"` —— 与
+  §Behavior/Collapse 的剪枝规则）。
 - 不做服务端同步的折叠偏好（v1 只 localStorage，见 §Persistence）。
 - 不改现有 `persons-move` API 契约（Person Move 依旧走 `PUT /api/w/:wid/persons/:id/move`，
   UI 触发点只有 EditPanel）。
@@ -78,12 +80,16 @@
 
 1. `<MiniMap pannable zoomable position="bottom-right" />`，节点色使用 `data.person.isRoot ?
    'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'`。
-2. 快捷键在 `PersonTree` 内挂 `useKeyPress`（React Flow v12 hook），仅在画布 focused 时生效
-   （避免和输入框冲突）：
+2. 快捷键在 `PersonTree` 内挂 `useKeyPress`（React Flow v12 hook），**作用域限定为画布容器**：
+   `useKeyPress` 默认监听 `document`，会在 sidebar / 空白页面区域也触发；本 spec 要求
+   传入 `target: reactFlowWrapperRef.current` 或用 `document.activeElement` containment
+   在 handler 里守卫（`if (!wrapperEl.contains(document.activeElement)) return;`），
+   保证只在画布 focused 时生效。焦点在任何 `<input>` / `<textarea>` / `contenteditable`
+   上时一律跳过（EditPanel 有大量 input 会冲突）。
    - `f` → `fitView({ padding: 0.15, duration: 300 })`
    - `+` / `=` → `zoomIn({ duration: 200 })`
    - `-` → `zoomOut({ duration: 200 })`
-   - `0` → `setViewport({ x, y, zoom: 1 }, { duration: 200 })`
+   - `0` → `zoomTo(1, { duration: 200 })`（reset zoom 到 1，pan 保留当前值）
 
 ## State Model (client-side)
 
@@ -91,10 +97,10 @@
 
 ```ts
 interface CollapseState {
-  collapsedIds: Set<string>;        // person ids that are collapsed
+  collapsedIds: ReadonlySet<string>;  // person ids that are collapsed; readonly view (see §Code Style)
   toggleCollapse: (id: string) => void;
-  collapseAll: () => void;          // adds every hasReports pid
-  expandAll: () => void;            // clears the set
+  collapseAll: () => void;            // adds every hasReports pid
+  expandAll: () => void;              // clears the set
 }
 ```
 
@@ -210,7 +216,9 @@ packages/ui/src/components/person/PersonTree.tsx
   - 删除原来关于 `findDropTarget`、`wouldCreateCycle` 的用例（函数已被移除）
 - `use-canvas-shortcuts.test.ts`：
   - `f/+/-/0` 分别触发对应 ReactFlow API（mock instance）
-  - focus 在 input 时不触发
+  - focus 在 `<input>` / `<textarea>` / `contenteditable` 上时不触发
+  - **focus 在画布容器之外**（sidebar、空白页面区域、body 上无节点时）**不触发** ——
+    P2 回归点，防止 `useKeyPress` 默认监听 `document` 导致的全站快捷键泄漏
 - `PersonNode.test.tsx`（补充）：
   - `hiddenCount > 0` 时 chip 显示数字与 `▶`
   - `hiddenCount === 0 && hasReports` 时显示 `▼`
@@ -241,7 +249,9 @@ packages/ui/src/components/person/PersonTree.tsx
 
 ### Always Do
 
-- 折叠状态一律持久化到 `bogo:orgTree:collapsed:${userEmail}:${workspaceId}`。
+- 折叠状态当 `userEmail` 与 `workspaceId` 都可用时**必须持久化**到
+  `bogo:orgTree:collapsed:${userEmail}:${workspaceId}`；任一为空时回退到内存 `Set`
+  （见 §Persistence）。
 - `computeTreeLayout` 的老签名（只传 `persons`）保持工作，不 break 现有调用与单测。
 - 所有键盘快捷键必须在 focused-in-input 时被跳过（现在的 Edit panel 有一堆 input）。
 
@@ -318,6 +328,21 @@ packages/ui/src/components/person/PersonTree.tsx
 6. 相应删除 `findDropTarget` / `wouldCreateCycle` / `handleDrop` 等一整套代码路径与测试
    （不做 deprecate 保留，一次删干净）。
 7. 高级功能范围收窄为 **折叠 + Minimap/快捷键**（二选二），本 spec 只交付这两块。
+
+**2026-07-09（review 修订）** — 内部一致性与技术正确性修正：
+8. **快捷键作用域收紧**：`useKeyPress` 默认监听 `document`；本 spec 必须传入
+   `target: reactFlowWrapperRef.current` 或用 `document.activeElement` containment
+   守卫，避免 sidebar / 空白页面区域也响应。相应 Testing Strategy 加"焦点在画布之外
+   不触发"的回归测试。
+9. **Reset zoom 快捷键改为 `zoomTo(1, ...)`**：原写法 `setViewport({ x, y, zoom: 1 })`
+   里的 `x/y` 无出处，照抄编译不过；`zoomTo(1, ...)` 语义明确（只改 zoom、保留当前 pan）。
+10. **Dotted-line 描述修正**：原写"保持当前实线渲染"与代码不符（`strokeDasharray: "5 5"`
+    就是虚线）。改为"保持当前虚线 edge 渲染"。
+11. **CollapseState 示例类型对齐 Code Style**：`collapsedIds` 直接标注为 `ReadonlySet<string>`，
+    避免示例与"对外不返回可变引用"的规则前后矛盾。
+12. **Persistence 语义澄清**：Always Do 从"折叠状态一律持久化"改为"`userEmail` 与
+    `workspaceId` 都可用时必须持久化，否则内存回退"，与 §Persistence 的"未登录不持久化"
+    保持一致。
 
 ## References
 
