@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.5.1] - 2026-07-07
+## [0.5.1] - 2026-07-09
 
 ### Added
 - **Save-feedback toasts across every write mutation.** Editing a
