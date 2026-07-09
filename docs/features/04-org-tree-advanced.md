@@ -80,16 +80,30 @@
 
 1. `<MiniMap pannable zoomable position="bottom-right" />`，节点色使用 `data.person.isRoot ?
    'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'`。
-2. 快捷键在 `PersonTree` 内挂 `useKeyPress`（React Flow v12 hook），**作用域限定为画布容器**：
-   `useKeyPress` 默认监听 `document`，会在 sidebar / 空白页面区域也触发；本 spec 要求
-   传入 `target: reactFlowWrapperRef.current` 或用 `document.activeElement` containment
-   在 handler 里守卫（`if (!wrapperEl.contains(document.activeElement)) return;`），
-   保证只在画布 focused 时生效。焦点在任何 `<input>` / `<textarea>` / `contenteditable`
-   上时一律跳过（EditPanel 有大量 input 会冲突）。
+2. 快捷键**不得使用** `@xyflow/react` 的 `useKeyPress`。原因：
+   - v12 的实现（`node_modules/@xyflow/react/dist/esm/index.mjs`，`function useKeyPress`）
+     其 effect 依赖为 `[keyCode, setKeyPressed]`，`options.target` **不在依赖里**；首次
+     render 时 `wrapperRef.current === null` → `target` 回退成 `document`；ref 后来指到
+     DOM 也不会重新绑定。结果就是全局监听 `document`。
+   - `preventDefault()` 发生在 handler 顶部（matcher 判断之后立即调用），在 handler 里
+     再做 `document.activeElement` containment guard 已经太晚，键仍会被吞。
+3. 实现约束（选下面 A 或 B 其一，实施 PR 里必须显式选一个）：
+   - **A（推荐）**：`use-canvas-shortcuts.ts` 内 `useEffect` 里直接对 wrapper element 绑
+     原生 `keydown`（无需 `keyup` —— 这些快捷键都是 fire-and-forget）。wrapper 元素
+     由 `PersonTree` 通过 `ref` 拿到并作为参数传入；effect 依赖含 `[wrapperEl, handlers…]`，
+     `wrapperEl` 为 `null` 时**不绑**、也**不回退到 document**。wrapper 必须 `tabIndex={0}`
+     以便可 focus。
+   - **B**：把快捷键逻辑拆到独立子组件 `<CanvasShortcuts wrapper={wrapperEl} />`，只有当
+     `wrapperEl` 非空才 mount 该子组件，把稳定的 `HTMLElement` 传进去；子组件内部同样
+     `useEffect` + 原生 `addEventListener` 绑到该元素。
+4. 键位：
    - `f` → `fitView({ padding: 0.15, duration: 300 })`
    - `+` / `=` → `zoomIn({ duration: 200 })`
    - `-` → `zoomOut({ duration: 200 })`
    - `0` → `zoomTo(1, { duration: 200 })`（reset zoom 到 1，pan 保留当前值）
+5. 输入元素豁免：handler 内以 `event.target` 判定，如是 `<input>` / `<textarea>` /
+   `contenteditable` 直接 `return`（不 `preventDefault`）。这一步和 §3 的 wrapper 绑定
+   互补 —— 即使有人把输入框放进 wrapper 内，也不会被吞键。
 
 ## State Model (client-side)
 
@@ -217,8 +231,11 @@ packages/ui/src/components/person/PersonTree.tsx
 - `use-canvas-shortcuts.test.ts`：
   - `f/+/-/0` 分别触发对应 ReactFlow API（mock instance）
   - focus 在 `<input>` / `<textarea>` / `contenteditable` 上时不触发
+  - **首次 render 时 wrapper ref 为 `null`**：不得对 `document` 绑 keydown 监听
+    （用 `document.addEventListener` spy 断言 `expect(spy).not.toHaveBeenCalledWith('keydown', ...)`）。
+    这是禁用 `useKeyPress` 之后的核心回归点。
   - **focus 在画布容器之外**（sidebar、空白页面区域、body 上无节点时）**不触发** ——
-    P2 回归点，防止 `useKeyPress` 默认监听 `document` 导致的全站快捷键泄漏
+    直接 dispatch `KeyboardEvent` 到 `document.body`（而非 wrapper），断言 ReactFlow API 未被调用。
 - `PersonNode.test.tsx`（补充）：
   - `hiddenCount > 0` 时 chip 显示数字与 `▶`
   - `hiddenCount === 0 && hasReports` 时显示 `▼`
@@ -273,6 +290,9 @@ packages/ui/src/components/person/PersonTree.tsx
 - 引入除 React Flow / Dagre / lucide-react 外的第三方 UI 依赖。
 - 用 `any` 或 `@ts-ignore` 绕类型（`Node<PersonNodeData>` 是既定契约）。
 - 让 `PersonTree` 的 drag 手势触发任何后端 mutation（本 spec 的核心约束）。
+- 用 `@xyflow/react` 的 `useKeyPress` 挂本 spec 的画布快捷键 —— 见 §Behavior/Minimap
+  §3；其 target 不在 effect 依赖里，首 render ref 为 null 时会静默回退到 document
+  监听，且 `preventDefault` 在 handler 顶部执行，任何在 handler 里做的守卫都来不及。
 
 ## Implementation Order (原子化提交计划)
 
@@ -330,10 +350,9 @@ packages/ui/src/components/person/PersonTree.tsx
 7. 高级功能范围收窄为 **折叠 + Minimap/快捷键**（二选二），本 spec 只交付这两块。
 
 **2026-07-09（review 修订）** — 内部一致性与技术正确性修正：
-8. **快捷键作用域收紧**：`useKeyPress` 默认监听 `document`；本 spec 必须传入
-   `target: reactFlowWrapperRef.current` 或用 `document.activeElement` containment
-   守卫，避免 sidebar / 空白页面区域也响应。相应 Testing Strategy 加"焦点在画布之外
-   不触发"的回归测试。
+8. **快捷键作用域收紧（v1）**：初次意图是用 `useKeyPress` 传入 `target: ref.current`
+   + `document.activeElement` containment 守卫。**在 v2 修订中被推翻**（见第 13 条）。
+   Testing Strategy 保留"焦点在画布之外不触发"的回归测试。
 9. **Reset zoom 快捷键改为 `zoomTo(1, ...)`**：原写法 `setViewport({ x, y, zoom: 1 })`
    里的 `x/y` 无出处，照抄编译不过；`zoomTo(1, ...)` 语义明确（只改 zoom、保留当前 pan）。
 10. **Dotted-line 描述修正**：原写"保持当前实线渲染"与代码不符（`strokeDasharray: "5 5"`
@@ -343,6 +362,21 @@ packages/ui/src/components/person/PersonTree.tsx
 12. **Persistence 语义澄清**：Always Do 从"折叠状态一律持久化"改为"`userEmail` 与
     `workspaceId` 都可用时必须持久化，否则内存回退"，与 §Persistence 的"未登录不持久化"
     保持一致。
+
+**2026-07-09（review 修订 v2 — 快捷键实现策略）** — 推翻第 8 条：
+13. `@xyflow/react` v12 的 `useKeyPress` 不能承担"仅在画布 focused 时生效"的合同。
+    读源码（`index.mjs:376–473`）确认：
+    - effect 依赖是 `[keyCode, setKeyPressed]`，`options.target` 不在依赖里；首次
+      render 时 `ref.current === null` → `target` 回退到 `document` 并直接绑定；ref
+      后来变成 DOM 也不会重新绑，全站监听已经生效。
+    - `preventDefault()` 在 handler 顶部（match 判定后立即调用），在 handler 内做
+      containment guard 已经太晚，按键会被静默吞掉。
+14. **禁用 `useKeyPress` 挂本 spec 的快捷键**（写入 Never Do）。改用两种硬约束之一：
+    - A（推荐）：`use-canvas-shortcuts.ts` 在 `useEffect` 里直接对 wrapper element
+      绑原生 `keydown`，wrapper `tabIndex={0}`；wrapperEl 为 null 时不绑、不回退 document。
+    - B：把快捷键逻辑放在只有 wrapper 存在时才 mount 的子组件里，传入稳定 `HTMLElement`。
+15. Testing Strategy 新增硬性回归："首次 render wrapper ref 为 null 时，不得对 `document`
+    绑 keydown 监听"（`document.addEventListener` spy 断言）。
 
 ## References
 
