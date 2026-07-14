@@ -218,6 +218,7 @@ function DocTypeRow({
 		setEditName(docType.name);
 	}, [docType.name]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: docType.color is intentionally the trigger — the effect exits the inline color-editor UI when the row's saved color changes, and doesn't read the color in its body.
 	useEffect(() => {
 		setEditingColor(false);
 	}, [docType.color]);

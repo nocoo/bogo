@@ -53,6 +53,7 @@ export function DashboardLayout() {
 
 	const breadcrumbs = resolveBreadcrumbs(location.pathname);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: pathname is intentionally the trigger — the effect closes the mobile drawer on any route change and doesn't read pathname in its body.
 	useEffect(() => {
 		setMobileOpen(false);
 	}, [location.pathname]);

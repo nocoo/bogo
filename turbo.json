@@ -1,5 +1,6 @@
 {
 	"$schema": "https://turbo.build/schema.json",
+	"globalPassThroughEnv": ["BOGO_E2E_BASE", "BOGO_REQUIRE_CLI_E2E", "BOGO_SKIP_CLI_E2E"],
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
