@@ -33,15 +33,9 @@
 		"@biomejs/biome": "^2.5.3",
 		"@vitest/coverage-v8": "^4.1.8",
 		"husky": "^9.1.0",
-		"lint-staged": "^17.0.7",
 		"picomatch": "^4.0.4",
 		"turbo": "^2.9.16",
 		"typescript": "^7.0.2",
 		"vitest": "^4.1.8"
-	},
-	"lint-staged": {
-		"*.{ts,tsx,js,jsx,json,css}": [
-			"biome check --error-on-warnings --no-errors-on-unmatched"
-		]
 	}
 }

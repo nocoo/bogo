@@ -43,15 +43,4 @@ wait_stage gitleaks
 wait_stage routes
 wait_stage pages
 
-# lint-staged uses git stash which conflicts with concurrent stages —
-# run it serially after the parallel pool. It also formats staged files
-# and re-stages the fixes; keep it so unformatted-on-commit still gets
-# auto-corrected on top of the whole-repo biome_full gate above.
-echo "━━━ lint (exit=pending) ━━━"
-if ! bunx lint-staged; then
-  echo "❌ pre-commit stage 'lint' failed" >&2
-  exit 1
-fi
-echo "━━━ lint (exit=0) ━━━"
-
 echo "✔ pre-commit passed (L1 + G1)"
