@@ -30,6 +30,7 @@ wait_stage() {
 # Launch non-git-modifying stages concurrently
 run_bg unit_cov   bash scripts/check-coverage.sh 90 95
 run_bg typecheck  bun turbo typecheck
+run_bg biome_full bun run lint
 run_bg gitleaks   gitleaks protect --staged --no-banner
 run_bg routes     bun run gate:routes
 run_bg pages      bun run gate:pages
@@ -37,11 +38,15 @@ run_bg pages      bun run gate:pages
 # Wait in declaration order so logs print deterministically
 wait_stage unit_cov
 wait_stage typecheck
+wait_stage biome_full
 wait_stage gitleaks
 wait_stage routes
 wait_stage pages
 
-# lint-staged uses git stash which conflicts with concurrent stages
+# lint-staged uses git stash which conflicts with concurrent stages —
+# run it serially after the parallel pool. It also formats staged files
+# and re-stages the fixes; keep it so unformatted-on-commit still gets
+# auto-corrected on top of the whole-repo biome_full gate above.
 echo "━━━ lint (exit=pending) ━━━"
 if ! bunx lint-staged; then
   echo "❌ pre-commit stage 'lint' failed" >&2

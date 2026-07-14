@@ -35,9 +35,16 @@ run_bg l2_e2e bun turbo test:e2e --filter=@bogo/worker
 # G2: Security scanning (osv-scanner + gitleaks unified)
 run_bg g2_security bun run gate:security
 
+# Clip YAML gate — verifies the repo-root clip.yaml still produces a
+# working CLI via `clip generate`. Uses the same BOGO_SKIP/REQUIRE
+# CLI E2E env knobs so local devs without clip installed keep the
+# soft-skip escape hatch and CI hard-fails.
+run_bg clip_yaml bun run gate:clip-yaml
+
 # Wait in declaration order
 wait_stage l2_e2e
 wait_stage g2_security
+wait_stage clip_yaml
 
 # CLI e2e (login + CRUD + revoke against a clip-generated bogo CLI).
 # Local default: run unless BOGO_SKIP_CLI_E2E is set (clip optional).
