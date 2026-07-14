@@ -35,6 +35,14 @@ vi.mock("@xyflow/react", async () => {
 					>
 						<span>{node.data.person.name}</span>
 						{node.data.person.title && <span>{node.data.person.title}</span>}
+						{/* Chart fields — mirror PersonNode's shape closely enough
+						    that tests can assert on per-node field rows. */}
+						{/* biome-ignore lint/suspicious/noExplicitAny: mock iteration */}
+						{(node.data.fields ?? []).map((f: any) => (
+							<span key={f.fieldDefId} data-testid={`field-${node.id}-${f.fieldDefId}`}>
+								{f.name}: {f.value || "—"}
+							</span>
+						))}
 					</div>
 				))}
 				{/* biome-ignore lint/a11y/useKeyWithClickEvents: test helper */}
@@ -209,6 +217,60 @@ describe("PersonTree", () => {
 		await waitFor(() => expect(screen.getByText("Org")).toBeTruthy());
 		expect(screen.getByText("Alice")).toBeTruthy();
 		expect(screen.getByText("Bob")).toBeTruthy();
+	});
+
+	it("renders chart fields — including em-dash for persons with no value yet", async () => {
+		// Route fetches by URL so we can serve different bodies for
+		// persons / field defs / field values simultaneously. Every
+		// person (including those with zero rows in custom_field_values)
+		// must show the field row so the tree stays stable in height
+		// once values start landing.
+		const DEF = {
+			id: "fd-1",
+			workspaceId: "ws-1",
+			name: "Department",
+			fieldType: "text" as const,
+			options: null,
+			sortOrder: 0,
+			required: false,
+			defaultValue: null,
+			showOnChart: true,
+			createdAt: "2026-01-01",
+		};
+		mockFetch.mockImplementation((url: string) => {
+			if (url.includes("/persons")) {
+				return Promise.resolve(ok([ROOT, ALICE, BOB]));
+			}
+			if (url.endsWith("/fields")) {
+				return Promise.resolve(ok([DEF]));
+			}
+			if (url.endsWith("/fields/values")) {
+				// Only ALICE has a value; ROOT/BOB should still render the
+				// row with the em-dash placeholder.
+				return Promise.resolve(
+					ok([
+						{
+							id: "cfv-1",
+							workspaceId: "ws-1",
+							personId: "p-alice",
+							fieldDefId: "fd-1",
+							value: "Engineering",
+						},
+					]),
+				);
+			}
+			return Promise.resolve(ok([]));
+		});
+		renderWithProviders(<PersonTree />);
+		fireEvent.click(screen.getByText("Switch"));
+		await waitFor(() =>
+			expect(screen.getByTestId("field-p-alice-fd-1").textContent).toContain("Engineering"),
+		);
+		// Every person renders the row, even those with no saved value.
+		// The two persons without a value show the em-dash placeholder,
+		// which keeps the tree height stable when values start landing.
+		expect(screen.getByTestId("field-p-root-fd-1").textContent).toContain("—");
+		expect(screen.getByTestId("field-p-bob-fd-1").textContent).toContain("—");
 	});
 
 	it("shows Add button and opens create dialog with manager required", async () => {

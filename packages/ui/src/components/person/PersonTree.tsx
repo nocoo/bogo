@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
 	Background,
 	BackgroundVariant,
@@ -7,6 +8,7 @@ import {
 	useReactFlow,
 } from "@xyflow/react";
 import { useWorkspaceContext } from "@/contexts/workspace-context.js";
+import { personModel } from "@/models/person.model.js";
 import { useFieldDefs } from "@/viewmodels/field/use-field-defs.js";
 import { useAllFieldValues, useFieldValues } from "@/viewmodels/field/use-field-values.js";
 import type { ChartFieldRow } from "@/viewmodels/person/person-tree-layout.js";
@@ -32,38 +34,51 @@ export function getNodeCenter(nodeId: string): { x: number; y: number } | null {
 
 function PersonTreeInner() {
 	const { workspaceId } = useWorkspaceContext();
+	const wid = workspaceId ?? "";
 	const fieldDefsVm = useFieldDefs();
 	const chartDefs = useMemo(
-		() => fieldDefsVm.defs.filter((d) => d.showOnChart),
+		// The list endpoint already returns defs ordered by sortOrder, but
+		// optimistic post-create cache updates can prepend a fresh def with
+		// sortOrder=0 in front of existing rows, so re-sort explicitly to
+		// keep chart rows stable regardless of cache mutations. Stable
+		// numeric sort — no in-place mutation of the vm array.
+		() =>
+			fieldDefsVm.defs
+				.filter((d) => d.showOnChart)
+				.slice()
+				.sort((a, b) => a.sortOrder - b.sortOrder),
 		[fieldDefsVm.defs],
 	);
 	// Skip the bulk fetch when no field is opted-in — avoids a wasted
 	// GET on every workspace where showOnChart hasn't been enabled.
 	const allValuesVm = useAllFieldValues(chartDefs.length > 0);
 
-	// Build the (personId → chart rows) map used by both PersonNode
-	// (renders the rows) and person-tree-layout (reserves height per
-	// row). Rows inherit each def's `sortOrder` (the server already
-	// returns defs ordered by it). Missing values render as em-dash so
-	// the row stays present — treat it as "field applies but not
-	// filled in" rather than "hide the row," which would make the tree
-	// jump around as edits land.
+	// Peek at the person list from the same query cache that usePersonTree
+	// consumes below. Reading it here lets us build one row per person even
+	// when they have zero saved values yet — without this, a person with no
+	// custom_field_values rows would fall out of the map and the em-dash
+	// placeholder wouldn't render, so the tree would jump vertically the
+	// first time each person gets their first value saved.
+	const personListQuery = useQuery(personModel.listQueryOptions(wid));
+	const persons = personListQuery.data;
+
 	const chartFieldsByPerson = useMemo(() => {
-		if (chartDefs.length === 0) {
+		if (chartDefs.length === 0 || !persons) {
 			return undefined;
 		}
 		const result = new Map<string, ChartFieldRow[]>();
-		for (const [personId, values] of allValuesVm.valuesByPerson) {
+		for (const p of persons) {
+			const values = allValuesVm.valuesByPerson.get(p.id) ?? [];
 			const valueByDef = new Map(values.map((v) => [v.fieldDefId, v.value]));
 			const rows: ChartFieldRow[] = chartDefs.map((d) => ({
 				fieldDefId: d.id,
 				name: d.name,
 				value: valueByDef.get(d.id) ?? "",
 			}));
-			result.set(personId, rows);
+			result.set(p.id, rows);
 		}
 		return result;
-	}, [chartDefs, allValuesVm.valuesByPerson]);
+	}, [chartDefs, persons, allValuesVm.valuesByPerson]);
 
 	const vm = usePersonTree(chartFieldsByPerson);
 	const { screenToFlowPosition } = useReactFlow();
