@@ -1,6 +1,6 @@
 import type { CustomFieldDefinition, CustomFieldValue, FieldType } from "@bogo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { fieldKeys, fieldModel } from "../../models/field.model.js";
@@ -107,6 +107,9 @@ export function useFieldValues(personId: string): FieldValuesVM {
 		},
 		onSettled: (_data, _err, vars) => {
 			queryClient.invalidateQueries({ queryKey: fieldKeys.values(wid, vars.personId) });
+			// Bulk cache (used by the org chart) mirrors the same rows;
+			// keep them in sync so chart labels update after an edit.
+			queryClient.invalidateQueries({ queryKey: fieldKeys.allValues(wid) });
 		},
 	});
 
@@ -135,5 +138,49 @@ export function useFieldValues(personId: string): FieldValuesVM {
 		getValueFor,
 		validate,
 		isSaving: setValueMutation.isPending,
+	};
+}
+
+export interface AllFieldValuesVM {
+	valuesByPerson: Map<string, CustomFieldValue[]>;
+	isLoading: boolean;
+	error: Error | null;
+}
+
+/**
+ * Workspace-wide bulk read of every person's custom field values. Used
+ * by the org chart, which needs one row per (person, field-def) to
+ * render `showOnChart` fields inline on each node. Prefer this over
+ * fanning out `useFieldValues(personId)` calls, which would trigger N
+ * requests on tree render.
+ *
+ * Pass `enabled = false` to skip the request entirely — e.g. when the
+ * caller has already determined that no field def has `showOnChart` set
+ * and the map would go unused. The query only runs when both a
+ * workspace is active AND `enabled` is truthy.
+ */
+export function useAllFieldValues(enabled = true): AllFieldValuesVM {
+	const { workspaceId } = useWorkspaceContext();
+	const wid = workspaceId ?? "";
+
+	const { data, isLoading, error } = useQuery(fieldModel.allValuesQueryOptions(wid, enabled));
+
+	const valuesByPerson = useMemo(() => {
+		const map = new Map<string, CustomFieldValue[]>();
+		for (const v of data ?? []) {
+			const bucket = map.get(v.personId);
+			if (bucket) {
+				bucket.push(v);
+			} else {
+				map.set(v.personId, [v]);
+			}
+		}
+		return map;
+	}, [data]);
+
+	return {
+		valuesByPerson,
+		isLoading,
+		error: error as Error | null,
 	};
 }

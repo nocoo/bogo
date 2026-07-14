@@ -8,7 +8,8 @@ import {
 } from "@xyflow/react";
 import { useWorkspaceContext } from "@/contexts/workspace-context.js";
 import { useFieldDefs } from "@/viewmodels/field/use-field-defs.js";
-import { useFieldValues } from "@/viewmodels/field/use-field-values.js";
+import { useAllFieldValues, useFieldValues } from "@/viewmodels/field/use-field-values.js";
+import type { ChartFieldRow } from "@/viewmodels/person/person-tree-layout.js";
 import { usePersonTree } from "@/viewmodels/person/use-person-tree.js";
 import "@xyflow/react/dist/style.css";
 import { AlertCircle, Loader2, Plus } from "lucide-react";
@@ -30,11 +31,43 @@ export function getNodeCenter(nodeId: string): { x: number; y: number } | null {
 }
 
 function PersonTreeInner() {
-	const vm = usePersonTree();
 	const { workspaceId } = useWorkspaceContext();
+	const fieldDefsVm = useFieldDefs();
+	const chartDefs = useMemo(
+		() => fieldDefsVm.defs.filter((d) => d.showOnChart),
+		[fieldDefsVm.defs],
+	);
+	// Skip the bulk fetch when no field is opted-in — avoids a wasted
+	// GET on every workspace where showOnChart hasn't been enabled.
+	const allValuesVm = useAllFieldValues(chartDefs.length > 0);
+
+	// Build the (personId → chart rows) map used by both PersonNode
+	// (renders the rows) and person-tree-layout (reserves height per
+	// row). Rows inherit each def's `sortOrder` (the server already
+	// returns defs ordered by it). Missing values render as em-dash so
+	// the row stays present — treat it as "field applies but not
+	// filled in" rather than "hide the row," which would make the tree
+	// jump around as edits land.
+	const chartFieldsByPerson = useMemo(() => {
+		if (chartDefs.length === 0) {
+			return undefined;
+		}
+		const result = new Map<string, ChartFieldRow[]>();
+		for (const [personId, values] of allValuesVm.valuesByPerson) {
+			const valueByDef = new Map(values.map((v) => [v.fieldDefId, v.value]));
+			const rows: ChartFieldRow[] = chartDefs.map((d) => ({
+				fieldDefId: d.id,
+				name: d.name,
+				value: valueByDef.get(d.id) ?? "",
+			}));
+			result.set(personId, rows);
+		}
+		return result;
+	}, [chartDefs, allValuesVm.valuesByPerson]);
+
+	const vm = usePersonTree(chartFieldsByPerson);
 	const { screenToFlowPosition } = useReactFlow();
 	const [showCreate, setShowCreate] = useState(false);
-	const fieldDefsVm = useFieldDefs();
 	const fieldValuesVm = useFieldValues(vm.selectedPersonId ?? "");
 
 	const handleNodeClick = useCallback(

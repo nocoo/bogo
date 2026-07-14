@@ -3,16 +3,38 @@ import Dagre from "@dagrejs/dagre";
 import type { Edge, Node } from "@xyflow/react";
 
 const NODE_WIDTH = 240;
-const NODE_HEIGHT = 80;
+const NODE_HEIGHT_BASE = 80;
+const FIELD_ROW_HEIGHT = 16;
+
+/** Chart-visible custom field row rendered under a person's name/title.
+ * Rows arrive in the order the caller wants them shown (usually the
+ * field def's `sortOrder`). Empty values are the caller's call to
+ * include or omit — layout treats every entry as a rendered row. */
+export interface ChartFieldRow {
+	fieldDefId: string;
+	name: string;
+	value: string;
+}
 
 export interface PersonNodeData extends Record<string, unknown> {
 	person: Person;
+	fields: ChartFieldRow[];
 }
 
 export type PersonNode = Node<PersonNodeData, "person">;
 export type PersonEdge = Edge;
 
-export function computeTreeLayout(persons: Person[]): {
+/** Height Dagre reserves for a node. Kept in sync with the DOM height
+ * PersonNode actually renders — otherwise edges land in the middle of
+ * text. Base = avatar row; each extra field row adds FIELD_ROW_HEIGHT. */
+export function computeNodeHeight(fieldRowCount: number): number {
+	return NODE_HEIGHT_BASE + fieldRowCount * FIELD_ROW_HEIGHT;
+}
+
+export function computeTreeLayout(
+	persons: Person[],
+	fieldsByPerson?: Map<string, ChartFieldRow[]>,
+): {
 	nodes: PersonNode[];
 	edges: PersonEdge[];
 } {
@@ -23,8 +45,12 @@ export function computeTreeLayout(persons: Person[]): {
 	const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 	g.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 100 });
 
+	const heights = new Map<string, number>();
 	for (const p of persons) {
-		g.setNode(p.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+		const rows = fieldsByPerson?.get(p.id) ?? [];
+		const h = computeNodeHeight(rows.length);
+		heights.set(p.id, h);
+		g.setNode(p.id, { width: NODE_WIDTH, height: h });
 	}
 	for (const p of persons) {
 		if (p.managerId) {
@@ -36,10 +62,11 @@ export function computeTreeLayout(persons: Person[]): {
 
 	const nodes: PersonNode[] = persons.map((p) => {
 		const pos = g.node(p.id);
+		const h = heights.get(p.id) ?? NODE_HEIGHT_BASE;
 		return {
 			id: p.id,
-			position: { x: pos.x - NODE_WIDTH / 2, y: pos.y - NODE_HEIGHT / 2 },
-			data: { person: p },
+			position: { x: pos.x - NODE_WIDTH / 2, y: pos.y - h / 2 },
+			data: { person: p, fields: fieldsByPerson?.get(p.id) ?? [] },
 			type: "person",
 		};
 	});
@@ -79,7 +106,7 @@ export function findDropTarget(
 			continue;
 		}
 		const cx = node.position.x + NODE_WIDTH / 2;
-		const cy = node.position.y + NODE_HEIGHT / 2;
+		const cy = node.position.y + computeNodeHeight(node.data.fields.length) / 2;
 		const dx = dropPosition.x - cx;
 		const dy = dropPosition.y - cy;
 		const distance = Math.sqrt(dx * dx + dy * dy);

@@ -1,6 +1,7 @@
 import type { Person } from "@bogo/shared";
 import { useCallback, useMemo, useState } from "react";
 import {
+	type ChartFieldRow,
 	computeTreeLayout,
 	findDropTarget,
 	type PersonEdge,
@@ -38,12 +39,15 @@ export interface PersonTreeVM {
 	clearMutationError: () => void;
 }
 
-export function usePersonTree(): PersonTreeVM {
+export function usePersonTree(fieldsByPerson?: Map<string, ChartFieldRow[]>): PersonTreeVM {
 	const vm = usePersonList();
 	const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
 	const [dropError, setDropError] = useState<string | null>(null);
 
-	const { nodes, edges } = useMemo(() => computeTreeLayout(vm.persons), [vm.persons]);
+	const { nodes, edges } = useMemo(
+		() => computeTreeLayout(vm.persons, fieldsByPerson),
+		[vm.persons, fieldsByPerson],
+	);
 
 	const handleDrop = useCallback(
 		(draggedId: string, dropPosition: { x: number; y: number }) => {

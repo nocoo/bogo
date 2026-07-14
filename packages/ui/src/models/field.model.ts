@@ -5,6 +5,7 @@ import { api } from "../lib/api/index.js";
 export const fieldKeys = {
 	defs: (wid: string) => ["fieldDefs", wid] as const,
 	values: (wid: string, personId: string) => ["fieldValues", wid, personId] as const,
+	allValues: (wid: string) => ["fieldValues", wid, "__all"] as const,
 };
 
 export const fieldModel = {
@@ -20,6 +21,13 @@ export const fieldModel = {
 			queryKey: fieldKeys.values(wid, personId),
 			queryFn: () => api.fields.getValues(wid, personId),
 			enabled: !!wid && !!personId,
+		}),
+
+	allValuesQueryOptions: (wid: string, enabled = true) =>
+		queryOptions({
+			queryKey: fieldKeys.allValues(wid),
+			queryFn: () => api.fields.listAllValues(wid),
+			enabled: !!wid && enabled,
 		}),
 
 	createDefMutationOptions: (wid: string) => ({

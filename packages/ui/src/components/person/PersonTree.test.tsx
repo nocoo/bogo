@@ -60,8 +60,20 @@ vi.mock("@xyflow/react", async () => {
 
 const mockFetch = vi.fn();
 
+// Response bodies are streams that can only be read once. When a test
+// uses `mockResolvedValue(res)` (as most do), every fetch call receives
+// the same Response and the second `.json()` throws "Body already
+// read." Install a global override that clones the staged response on
+// each call so multi-request renders (e.g. persons + fieldDefs +
+// fieldValues fired from a single tree render) all see a fresh body.
 beforeEach(() => {
-	vi.stubGlobal("fetch", mockFetch);
+	vi.stubGlobal("fetch", (...args: unknown[]) => {
+		const result = mockFetch(...(args as Parameters<typeof fetch>));
+		if (result instanceof Response) {
+			return Promise.resolve(result.clone());
+		}
+		return Promise.resolve(result).then((v) => (v instanceof Response ? v.clone() : v));
+	});
 	mockScreenToFlowPosition.mockImplementation((pos) => ({ x: pos.x + 10, y: pos.y + 10 }));
 });
 

@@ -99,8 +99,18 @@ describe("computeTreeLayout", () => {
 
 describe("findDropTarget", () => {
 	const nodes = [
-		{ id: "n1", position: { x: 0, y: 0 }, data: { person: ROOT }, type: "person" as const },
-		{ id: "n2", position: { x: 300, y: 0 }, data: { person: ALICE }, type: "person" as const },
+		{
+			id: "n1",
+			position: { x: 0, y: 0 },
+			data: { person: ROOT, fields: [] },
+			type: "person" as const,
+		},
+		{
+			id: "n2",
+			position: { x: 300, y: 0 },
+			data: { person: ALICE, fields: [] },
+			type: "person" as const,
+		},
 	];
 
 	it("returns closest node within threshold", () => {

@@ -40,6 +40,9 @@ export function fieldApi(client: Client) {
 		getValues(wid: string, personId: string): Promise<CustomFieldValue[]> {
 			return client.request<CustomFieldValue[]>(`${base(wid)}/values/${personId}`);
 		},
+		listAllValues(wid: string): Promise<CustomFieldValue[]> {
+			return client.request<CustomFieldValue[]>(`${base(wid)}/values`);
+		},
 		setValue(
 			wid: string,
 			personId: string,

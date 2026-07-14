@@ -31,6 +31,16 @@ export const PersonNode = memo(function PersonNode({
 						))}
 					</div>
 				)}
+				{data.fields.length > 0 && (
+					<ul className="mt-1 space-y-0.5">
+						{data.fields.map((f) => (
+							<li key={f.fieldDefId} className="text-xs text-muted-foreground truncate">
+								<span className="text-foreground/70">{f.name}:</span>{" "}
+								{f.value || <span className="italic opacity-60">—</span>}
+							</li>
+						))}
+					</ul>
+				)}
 			</div>
 
 			<div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab">
