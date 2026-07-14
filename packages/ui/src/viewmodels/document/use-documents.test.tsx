@@ -121,7 +121,7 @@ describe("useDocuments", () => {
 	});
 
 	describe("create", () => {
-		it("appends new document on success", async () => {
+		it("prepends new document so latest-updated sits at the top", async () => {
 			mockFetch.mockResolvedValue(ok([DOC_A]));
 			const wrapper = createWrapper();
 			const { result } = renderHook(() => useWithWorkspace(), { wrapper });
@@ -135,7 +135,9 @@ describe("useDocuments", () => {
 			act(() => result.current.vm.create({ title: "Draft Notes", content: "", personIds: [] }));
 
 			await waitFor(() => expect(result.current.vm.documents).toHaveLength(2));
-			expect(result.current.vm.documents[1].id).toBe("doc-new");
+			// Optimistic prepend — matches the server's updated_at DESC ordering
+			// so the just-created doc lands at index 0, not at the bottom.
+			expect(result.current.vm.documents[0].id).toBe("doc-new");
 		});
 
 		it("exposes isCreating state", async () => {

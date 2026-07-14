@@ -29,13 +29,19 @@ export function useDocuments(tagIds?: string[]): DocumentsVM {
 	const createMutation = useMutation({
 		...documentModel.createMutationOptions(wid),
 		onSuccess: (created) => {
+			// Prepend — the list is server-sorted by updated_at DESC, and a
+			// just-created doc always has the newest updated_at. Append would
+			// bury it at the bottom of the list.
 			queryClient.setQueryData(documentKeys.all(wid), (old: DocumentSummary[] | undefined) => [
-				...(old ?? []),
 				created,
+				...(old ?? []),
 			]);
 			toast.success("Document created");
 		},
 		onError: (err: Error) => toast.error(err.message),
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: documentKeys.all(wid) });
+		},
 	});
 
 	const updateMutation = useMutation({
