@@ -57,7 +57,7 @@
 			"!**/.turbo",
 			"!**/coverage",
 			"!**/.wrangler",
-			"!**/.claude/skills",
+			"!**/.claude",
 			"!**/packages/worker/static",
 			"!**/scripts",
 			"!**/test-results",
