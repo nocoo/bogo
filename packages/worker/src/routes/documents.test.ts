@@ -51,12 +51,12 @@ describe("document routes", () => {
 			// on the response order alone would silently pass on a mock that
 			// returns a pre-sorted row set.
 			const listSql = mockPrepare.mock.calls[0]?.[0] as string;
-			expect(listSql).toMatch(/ORDER BY\s+updated_at DESC/i);
+			expect(listSql).toMatch(/ORDER BY\s+updated_at DESC,\s+id DESC/i);
 			expect(listSql).not.toMatch(/ORDER BY[^;]*event_date/i);
 		});
 
 		it("filters by tagIds", async () => {
-			const { db } = createSequenceD1([
+			const { db, prepare } = createSequenceD1([
 				{
 					type: "all",
 					value: {
@@ -86,6 +86,10 @@ describe("document routes", () => {
 			expect(res.status).toBe(200);
 			const json = await res.json();
 			expect(json.data[0].title).toBe("Tagged");
+			// Same stable-sort contract as the untagged list branch above:
+			// covered by idx_documents_workspace_updated (0005 migration).
+			const tagSql = prepare.mock.calls[0]?.[0] as string;
+			expect(tagSql).toMatch(/ORDER BY\s+d\.updated_at DESC,\s+d\.id DESC/i);
 		});
 
 		it("returns all documents with empty tagIds", async () => {

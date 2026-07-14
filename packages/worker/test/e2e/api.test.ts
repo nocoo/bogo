@@ -279,6 +279,16 @@ describe("workspace CRUD (real D1)", () => {
 			const list = await (await api(`/api/w/${wsId}/documents`)).json();
 			expect(list.data[0].id).toBe(otherId);
 
+			// Determinism guard for the ORDER BY tie-break (updated_at DESC,
+			// id DESC). Two back-to-back reads over the same row set must
+			// return the same order — if SQLite fell back to rowid ordering
+			// on ties this could still pass, but any drift means the query
+			// stopped being fully specified.
+			const list2 = await (await api(`/api/w/${wsId}/documents`)).json();
+			expect(list2.data.map((d: { id: string }) => d.id)).toEqual(
+				list.data.map((d: { id: string }) => d.id),
+			);
+
 			await api(`/api/w/${wsId}/documents/${otherId}`, { method: "DELETE" });
 		});
 
