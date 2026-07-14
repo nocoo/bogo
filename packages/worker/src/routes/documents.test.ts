@@ -19,7 +19,7 @@ const BASE = `/api/w/${WID}/documents`;
 describe("document routes", () => {
 	describe("GET /api/w/:wid/documents", () => {
 		it("returns document list", async () => {
-			const { db, mockAll } = createMockD1();
+			const { db, mockAll, mockPrepare } = createMockD1();
 			mockAll.mockResolvedValue({
 				results: [
 					{
@@ -47,6 +47,12 @@ describe("document routes", () => {
 			// List responses intentionally omit `content` so the payload stays
 			// small and fast; fetch GET /:id to read the body.
 			expect(json.data[0]).not.toHaveProperty("content");
+			// Guard the "latest first" contract at the SQL layer — assertions
+			// on the response order alone would silently pass on a mock that
+			// returns a pre-sorted row set.
+			const listSql = mockPrepare.mock.calls[0]?.[0] as string;
+			expect(listSql).toMatch(/ORDER BY\s+updated_at DESC/i);
+			expect(listSql).not.toMatch(/ORDER BY[^;]*event_date/i);
 		});
 
 		it("filters by tagIds", async () => {

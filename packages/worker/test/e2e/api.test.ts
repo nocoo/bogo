@@ -266,6 +266,22 @@ describe("workspace CRUD (real D1)", () => {
 			expect(json.data.version).toBe(2);
 		});
 
+		it("GET /api/w/:wid/documents returns most-recently-updated first", async () => {
+			// docId was updated above (updated_at bumped). Insert a fresh doc
+			// so its updated_at is even newer, verify it lands at index 0,
+			// then delete it so downstream tests still see a single doc.
+			const other = await api(`/api/w/${wsId}/documents`, {
+				method: "POST",
+				body: JSON.stringify({ title: "Later Doc" }),
+			});
+			const otherId = (await other.json()).data.id as string;
+
+			const list = await (await api(`/api/w/${wsId}/documents`)).json();
+			expect(list.data[0].id).toBe(otherId);
+
+			await api(`/api/w/${wsId}/documents/${otherId}`, { method: "DELETE" });
+		});
+
 		it("GET /api/w/:wid/documents/:id/versions returns versions", async () => {
 			const res = await api(`/api/w/${wsId}/documents/${docId}/versions`);
 			expect(res.status).toBe(200);

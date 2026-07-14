@@ -27,11 +27,11 @@ documentRoutes.get("/", async (c) => {
 
 	if (ids.length > 0) {
 		const placeholders = ids.map(() => "?").join(",");
-		sql = `SELECT DISTINCT d.id, d.workspace_id, d.type_id, d.title, d.event_date, d.version, d.created_at, d.updated_at FROM documents d INNER JOIN tag_documents td ON td.workspace_id = d.workspace_id AND td.document_id = d.id WHERE d.workspace_id = ? AND td.tag_id IN (${placeholders}) ORDER BY d.event_date DESC, d.created_at DESC`;
+		sql = `SELECT DISTINCT d.id, d.workspace_id, d.type_id, d.title, d.event_date, d.version, d.created_at, d.updated_at FROM documents d INNER JOIN tag_documents td ON td.workspace_id = d.workspace_id AND td.document_id = d.id WHERE d.workspace_id = ? AND td.tag_id IN (${placeholders}) ORDER BY d.updated_at DESC`;
 		params.push(...ids);
 	} else {
 		sql =
-			"SELECT id, workspace_id, type_id, title, event_date, version, created_at, updated_at FROM documents WHERE workspace_id = ? ORDER BY event_date DESC NULLS LAST, created_at DESC";
+			"SELECT id, workspace_id, type_id, title, event_date, version, created_at, updated_at FROM documents WHERE workspace_id = ? ORDER BY updated_at DESC";
 	}
 
 	const rows = await c.env.DB.prepare(sql)
