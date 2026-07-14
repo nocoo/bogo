@@ -1,6 +1,6 @@
 {
 	"name": "@nocoo/bogo",
-	"version": "0.5.1",
+	"version": "0.5.2",
 	"description": "Command-line companion for bogo (https://bogo.hexly.ai) — generated from clip.yaml",
 	"type": "module",
 	"bin": {

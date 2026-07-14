@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.5.2] - 2026-07-14
+
+### Added
+- **Custom field values can now surface directly on the org chart.** Each
+  custom field definition gains a new `showOnChart` flag (default off).
+  When enabled, the field's value appears under every person's node in
+  the People page, ordered by the definition's `sortOrder`. Missing
+  values render as an em-dash placeholder so the tree height stays
+  stable as values start landing.
+- **New bulk endpoint `GET /api/w/:wid/fields/values`** — returns every
+  custom field value across the workspace in a single request. Powers
+  the org-chart renderer without fanning out one GET per person.
+
+### Changed
+- **Documents list now sorts by `updated_at DESC` with a stable
+  `id DESC` tie-break.** The just-created / just-edited doc lands at
+  the top instead of buried by `event_date` order. Applies to both the
+  plain list and the tag-filtered list.
+- **Optimistic create for documents prepends** rather than appends, so
+  a newly created doc renders at the top immediately, aligned with the
+  server ordering above.
+
+### Fixed
+- Concurrent field-value writes now invalidate the workspace-wide bulk
+  cache alongside the single-person cache, so chart labels reflect
+  edits from any surface (edit panel, CLI, other tab).
+- Chart field defs are now sorted explicitly by `sortOrder` in the UI —
+  optimistic post-create cache mutations could otherwise prepend a
+  fresh def and break the row order.
+
+### Migrations
+- `0005_documents_updated_at_index.sql` — covering index
+  `(workspace_id, updated_at DESC, id DESC)` for the list query.
+- `0006_custom_field_show_on_chart.sql` — adds the `show_on_chart`
+  column to `custom_field_definitions` (default 0).
+- `0007_custom_field_values_workspace_index.sql` — covering index
+  `(workspace_id, person_id)` for the bulk values read; prior queries
+  fell back to a full-table SCAN.
+
+### Docs / chore
+- `biome.json` now excludes the entire `.claude/` directory (the local
+  `settings.local.json` is machine-managed and doesn't need lint).
+
 ## [0.5.1] - 2026-07-09
 
 ### Added
