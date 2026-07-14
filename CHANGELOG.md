@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.5.3] - 2026-07-15
+
+### Changed
+- **TypeScript upgraded to `^7.0.2`** across all workspaces (root + shared + ui + worker).
+- **Biome upgraded to `^2.5.3`** with `linter.rules.preset: "recommended"` enabled,
+  matching the sibling `bat` project's baseline. Also enables
+  `css.parser.tailwindDirectives` for the Tailwind CSS files.
+- **`turbo.json` declares `globalPassThroughEnv`** for `BOGO_E2E_BASE`,
+  `BOGO_REQUIRE_CLI_E2E`, `BOGO_SKIP_CLI_E2E` — previously Biome's
+  `noUndeclaredEnvVars` warned on every env var read in the CLI E2E
+  scripts.
+
+### Chore / gates
+- **`.husky/pre-commit`** now includes a `biome_full` stage that runs
+  `bun run lint` across the whole repo (not just staged files), so
+  unstaged bit-rot in the tree can no longer slip past a commit that
+  only touched a subset.
+- **`.husky/pre-push`** now includes a `clip_yaml` stage that runs
+  `gate:clip-yaml`, verifying the repo-root `clip.yaml` still produces a
+  working CLI via `clip generate`. Same soft-skip semantics as the
+  existing CLI E2E stage — local dev without `clip` installed keeps the
+  escape hatch; CI hard-fails when `BOGO_REQUIRE_CLI_E2E=1`.
+- **Removed `lint-staged`** dev dep and pre-commit stage — it duplicated
+  the coverage of the new `biome_full` stage above.
+
+### Fixes (surfaced by Biome 2.5.3 recommended)
+- Two `useExhaustiveDependencies` sites now carry `biome-ignore`
+  comments explaining the intent: `DashboardLayout.tsx` (pathname is a
+  change-trigger for closing the mobile drawer) and `DocTypeManager.tsx`
+  (`docType.color` change resets the inline color-editor UI). Both
+  don't reference the dep in the effect body, so a "correct" dep list
+  would break the trigger semantics.
+
 ## [0.5.2] - 2026-07-14
 
 ### Added
