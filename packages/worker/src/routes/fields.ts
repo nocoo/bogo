@@ -14,7 +14,7 @@ export const fieldRoutes = new Hono<AppEnv>();
 fieldRoutes.get("/", async (c) => {
 	const wid = c.req.param("wid") as string;
 	const rows = await c.env.DB.prepare(
-		"SELECT id, workspace_id, name, field_type, options, sort_order, required, default_value, created_at FROM custom_field_definitions WHERE workspace_id = ? ORDER BY sort_order ASC",
+		"SELECT id, workspace_id, name, field_type, options, sort_order, required, default_value, show_on_chart, created_at FROM custom_field_definitions WHERE workspace_id = ? ORDER BY sort_order ASC",
 	)
 		.bind(wid)
 		.all();
@@ -43,7 +43,7 @@ fieldRoutes.post("/", async (c) => {
 	const options = parsed.data.options ? JSON.stringify(parsed.data.options) : null;
 
 	await c.env.DB.prepare(
-		"INSERT INTO custom_field_definitions (id, workspace_id, name, field_type, options, sort_order, required, default_value, created_at) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)",
+		"INSERT INTO custom_field_definitions (id, workspace_id, name, field_type, options, sort_order, required, default_value, show_on_chart, created_at) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)",
 	)
 		.bind(
 			id,
@@ -53,6 +53,7 @@ fieldRoutes.post("/", async (c) => {
 			options,
 			parsed.data.required ? 1 : 0,
 			parsed.data.defaultValue ?? null,
+			parsed.data.showOnChart ? 1 : 0,
 			now,
 		)
 		.run();
@@ -66,6 +67,7 @@ fieldRoutes.post("/", async (c) => {
 		sortOrder: 0,
 		required: parsed.data.required ?? false,
 		defaultValue: parsed.data.defaultValue ?? null,
+		showOnChart: parsed.data.showOnChart ?? false,
 		createdAt: now,
 	};
 
@@ -113,6 +115,10 @@ fieldRoutes.put("/:id", async (c) => {
 		sets.push("sort_order = ?");
 		values.push(parsed.data.sortOrder);
 	}
+	if (parsed.data.showOnChart !== undefined) {
+		sets.push("show_on_chart = ?");
+		values.push(parsed.data.showOnChart ? 1 : 0);
+	}
 
 	if (sets.length === 0) {
 		return c.json({ data: { updated: false } });
@@ -148,6 +154,22 @@ fieldRoutes.delete("/:id", async (c) => {
 	}
 
 	return c.json({ data: { deleted: true } });
+});
+
+// Bulk read — all field values across the workspace. Used by the org
+// chart node renderer to pull every person's chart-enabled values in a
+// single request instead of fanning out one GET per person. Registered
+// before /values/:personId so Hono's matcher takes the static path when
+// no path param follows.
+fieldRoutes.get("/values", async (c) => {
+	const wid = c.req.param("wid") as string;
+	const rows = await c.env.DB.prepare(
+		"SELECT id, workspace_id, person_id, field_def_id, value FROM custom_field_values WHERE workspace_id = ?",
+	)
+		.bind(wid)
+		.all();
+
+	return c.json({ data: rows.results.map(mapValueRow) });
 });
 
 // Field values for a person
@@ -218,6 +240,7 @@ function mapDefRow(row: Record<string, unknown>): CustomFieldDefinition {
 		sortOrder: row.sort_order as number,
 		required: row.required === 1,
 		defaultValue: (row.default_value as string) || null,
+		showOnChart: row.show_on_chart === 1,
 		createdAt: row.created_at as string,
 	};
 }

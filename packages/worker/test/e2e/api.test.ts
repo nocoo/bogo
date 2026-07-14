@@ -179,6 +179,16 @@ describe("workspace CRUD (real D1)", () => {
 			expect(json.data.length).toBeGreaterThan(0);
 		});
 
+		it("GET /api/w/:wid/fields/values returns all values in workspace", async () => {
+			// Bulk read used by the org chart. Must at minimum include the
+			// value set above; other tests may have added more.
+			const res = await api(`/api/w/${wsId}/fields/values`);
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(Array.isArray(json.data)).toBe(true);
+			expect(json.data.some((v: { personId: string }) => v.personId === personId)).toBe(true);
+		});
+
 		it("DELETE /api/w/:wid/fields/:id deletes field", async () => {
 			const res = await api(`/api/w/${wsId}/fields/${fieldId}`, {
 				method: "DELETE",

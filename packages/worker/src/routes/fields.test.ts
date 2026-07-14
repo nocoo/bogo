@@ -31,6 +31,7 @@ describe("field routes", () => {
 						sort_order: 0,
 						required: 1,
 						default_value: null,
+						show_on_chart: 1,
 						created_at: "2026-01-01T00:00:00Z",
 					},
 				],
@@ -49,6 +50,7 @@ describe("field routes", () => {
 				sortOrder: 0,
 				required: true,
 				defaultValue: null,
+				showOnChart: true,
 				createdAt: "2026-01-01T00:00:00Z",
 			});
 		});

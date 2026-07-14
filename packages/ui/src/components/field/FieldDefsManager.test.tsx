@@ -28,6 +28,7 @@ const DEF_TEXT = {
 	sortOrder: 0,
 	required: false,
 	defaultValue: null,
+	showOnChart: false,
 	createdAt: "2026-01-01",
 };
 
@@ -40,6 +41,7 @@ const DEF_SELECT = {
 	sortOrder: 1,
 	required: true,
 	defaultValue: "Junior",
+	showOnChart: false,
 	createdAt: "2026-01-02",
 };
 
@@ -52,6 +54,7 @@ const DEF_NUMBER = {
 	sortOrder: 2,
 	required: false,
 	defaultValue: null,
+	showOnChart: false,
 	createdAt: "2026-01-03",
 };
 
@@ -112,6 +115,7 @@ describe("FieldDefsManager", () => {
 			name: "Location",
 			fieldType: "text",
 			required: false,
+			showOnChart: false,
 		});
 	});
 
@@ -135,6 +139,7 @@ describe("FieldDefsManager", () => {
 			fieldType: "select",
 			options: ["Active", "Inactive"],
 			required: false,
+			showOnChart: false,
 		});
 	});
 
@@ -154,6 +159,7 @@ describe("FieldDefsManager", () => {
 			name: "Dept",
 			fieldType: "text",
 			required: true,
+			showOnChart: false,
 		});
 	});
 

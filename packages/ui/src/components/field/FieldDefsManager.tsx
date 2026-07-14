@@ -104,6 +104,7 @@ function CreateFieldForm({
 		fieldType: FieldType;
 		options?: string[];
 		required: boolean;
+		showOnChart: boolean;
 	}) => void;
 	onCancel: () => void;
 	isCreating: boolean;
@@ -112,6 +113,7 @@ function CreateFieldForm({
 	const [fieldType, setFieldType] = useState<FieldType>("text");
 	const [options, setOptions] = useState("");
 	const [required, setRequired] = useState(false);
+	const [showOnChart, setShowOnChart] = useState(false);
 
 	const handleSubmit = useCallback(() => {
 		const trimmed = name.trim();
@@ -125,16 +127,23 @@ function CreateFieldForm({
 		if (fieldType === "select" && parsedOptions.length === 0) {
 			return;
 		}
-		const input: { name: string; fieldType: FieldType; options?: string[]; required: boolean } = {
+		const input: {
+			name: string;
+			fieldType: FieldType;
+			options?: string[];
+			required: boolean;
+			showOnChart: boolean;
+		} = {
 			name: trimmed,
 			fieldType,
 			required,
+			showOnChart,
 		};
 		if (fieldType === "select") {
 			input.options = parsedOptions;
 		}
 		onSubmit(input);
-	}, [name, fieldType, options, required, onSubmit]);
+	}, [name, fieldType, options, required, showOnChart, onSubmit]);
 
 	return (
 		<div className="rounded-lg border border-border bg-card p-3 space-y-3">
@@ -207,6 +216,15 @@ function CreateFieldForm({
 						className="rounded border-border"
 					/>
 					Required
+				</label>
+				<label className="flex items-center gap-2 text-xs text-muted-foreground">
+					<input
+						type="checkbox"
+						checked={showOnChart}
+						onChange={(e) => setShowOnChart(e.target.checked)}
+						className="rounded border-border"
+					/>
+					Show on chart
 				</label>
 			</div>
 			<div className="flex items-center gap-2">
@@ -288,6 +306,10 @@ function FieldDefRow({
 	const handleRequiredToggle = useCallback(() => {
 		onUpdate(def.id, { required: !def.required });
 	}, [def.id, def.required, onUpdate]);
+
+	const handleShowOnChartToggle = useCallback(() => {
+		onUpdate(def.id, { showOnChart: !def.showOnChart });
+	}, [def.id, def.showOnChart, onUpdate]);
 
 	const handleOptionsBlur = useCallback(() => {
 		const parsed = editOptions
@@ -394,6 +416,16 @@ function FieldDefRow({
 						aria-label={`Required for ${def.name}`}
 					/>
 					Required
+				</label>
+				<label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+					<input
+						type="checkbox"
+						checked={def.showOnChart}
+						onChange={handleShowOnChartToggle}
+						className="rounded border-border"
+						aria-label={`Show on chart for ${def.name}`}
+					/>
+					Show on chart
 				</label>
 				{def.options && (
 					<span className="text-xs text-muted-foreground">{def.options.length} options</span>

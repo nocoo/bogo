@@ -25,6 +25,7 @@ const DEF_TEXT = {
 	sortOrder: 0,
 	required: false,
 	defaultValue: null,
+	showOnChart: false,
 	createdAt: "2026-01-01",
 };
 
@@ -37,6 +38,7 @@ const DEF_NUMBER = {
 	sortOrder: 1,
 	required: true,
 	defaultValue: null,
+	showOnChart: false,
 	createdAt: "2026-01-02",
 };
 
@@ -49,6 +51,7 @@ const DEF_DATE = {
 	sortOrder: 2,
 	required: false,
 	defaultValue: null,
+	showOnChart: false,
 	createdAt: "2026-01-03",
 };
 
@@ -61,6 +64,7 @@ const DEF_SELECT = {
 	sortOrder: 3,
 	required: false,
 	defaultValue: null,
+	showOnChart: false,
 	createdAt: "2026-01-04",
 };
 
@@ -73,6 +77,7 @@ const DEF_BOOLEAN = {
 	sortOrder: 4,
 	required: false,
 	defaultValue: null,
+	showOnChart: false,
 	createdAt: "2026-01-05",
 };
 
