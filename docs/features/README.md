@@ -10,7 +10,7 @@
 | 02 | [cli.md](./02-cli.md) | 规格 | Bogo CLI：从仓库根 `clip.yaml` 用 [clip](../../../clip) `clip generate` 出完整 CRUD CLI；worker 端配套 bearer token 鉴权（`api_tokens` 表 + `/api/auth/cli` 端点 + CF Access bypass）；含自证 e2e 测试 |
 | 03 | [self-hosting.md](./03-self-hosting.md) | 操作 | 自部署指南：worker 部署 + CF Access 配置 + 两条 CLI 路径（`CLIP_BASE_URL` 重定向已发布的 `@nocoo/bogo`，或 fork 重 generate 自有品牌 CLI） |
 | 04 | [org-tree-advanced.md](./04-org-tree-advanced.md) | 规格 | People 组织架构图高级交互：折叠/展开子树（chevron chip + localStorage 持久化）+ Minimap + 画布快捷键；拖拽仅调整视觉位置、不改经理（经理改动只走 EditPanel 下拉框）；沿用 `@xyflow/react` 原生能力，零后端改动 |
-| 05 | [people-table-views.md](./05-people-table-views.md) | 规格 / review 修订中 | People 多维表格：workspace 级命名 View（列配置 + 排序/筛选），侧栏 Table `/table`，只读网格 + EditPersonPanel，CLI CSV/JSON bridge |
+| 05 | [people-table-views.md](./05-people-table-views.md) | 已实现 | People 多维表格：workspace 级命名 View（列配置 + 排序/筛选），侧栏 Table `/table`，只读网格 + EditPersonPanel，CLI CSV/JSON bridge |
 
 ## 维护约定
 

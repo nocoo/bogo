@@ -3,6 +3,7 @@ import { docTypeApi } from "./doc-types.js";
 import { documentApi } from "./documents.js";
 import { fieldApi } from "./fields.js";
 import { personApi } from "./persons.js";
+import { tableViewApi } from "./table-views.js";
 import { tagApi } from "./tags.js";
 import { workspaceApi } from "./workspaces.js";
 
@@ -18,6 +19,7 @@ export function createApi(baseUrl = "") {
 		docTypes: docTypeApi(client),
 		documents: documentApi(client),
 		tags: tagApi(client),
+		tableViews: tableViewApi(client),
 	};
 }
 

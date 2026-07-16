@@ -439,3 +439,62 @@ endpoints:
         wid:      { type: string, required: true }
         id:       { type: string, required: true }
         personId: { type: string, required: true }
+
+  # -------------------- Table views (People grid) --------------------
+  # columns / sort / filters use query bridges — clip cannot send arrays/objects
+  # in body. Worker applyCliBridges merges query into body before Zod.
+  - name: table-views-list
+    method: GET
+    path: "/api/w/:wid/table-views"
+    description: "List person table views in workspace"
+    params:
+      path: { wid: { type: string, required: true } }
+
+  - name: table-views-get
+    method: GET
+    path: "/api/w/:wid/table-views/:id"
+    description: "Get a table view by id"
+    params:
+      path:
+        wid: { type: string, required: true }
+        id:  { type: string, required: true }
+
+  - name: table-views-create
+    method: POST
+    path: "/api/w/:wid/table-views"
+    description: "Create a person table view"
+    params:
+      path: { wid: { type: string, required: true } }
+      query:
+        columns: { type: string, description: "CSV of column keys e.g. builtin:name,builtin:title" }
+        sort:    { type: string, description: "JSON sort object or null" }
+        filters: { type: string, description: "JSON array of filters" }
+      body:
+        name:      { type: string, required: true }
+        isDefault: { type: boolean }
+
+  - name: table-views-update
+    method: PUT
+    path: "/api/w/:wid/table-views/:id"
+    description: "Update a table view (partial); isDefault true promotes default"
+    params:
+      path:
+        wid: { type: string, required: true }
+        id:  { type: string, required: true }
+      query:
+        columns: { type: string, description: "CSV of column keys" }
+        sort:    { type: string, description: "JSON sort object or null" }
+        filters: { type: string, description: "JSON array of filters" }
+      body:
+        name:      { type: string }
+        isDefault: { type: boolean }
+        sortOrder: { type: number }
+
+  - name: table-views-delete
+    method: DELETE
+    path: "/api/w/:wid/table-views/:id"
+    description: "Delete a non-default table view"
+    params:
+      path:
+        wid: { type: string, required: true }
+        id:  { type: string, required: true }

@@ -9,6 +9,7 @@ import { FieldsSettingsPage } from "@/pages/FieldsSettingsPage";
 import { OverviewPage } from "@/pages/OverviewPage";
 import { PeoplePage } from "@/pages/PeoplePage";
 import { SettingsPage } from "@/pages/SettingsPage";
+import { TablePage } from "@/pages/TablePage";
 import { TagsSettingsPage } from "@/pages/TagsSettingsPage";
 import { WorkspacesPage } from "@/pages/WorkspacesPage";
 
@@ -22,6 +23,7 @@ export function App() {
 						<Route path="/documents" element={<DocumentsPage />} />
 						<Route path="/documents/:id" element={<DocumentEditorPage />} />
 						<Route path="/people" element={<PeoplePage />} />
+						<Route path="/table" element={<TablePage />} />
 						<Route path="/workspaces" element={<WorkspacesPage />} />
 						<Route path="/settings" element={<SettingsPage />} />
 						<Route path="/settings/doc-types" element={<DocTypesSettingsPage />} />

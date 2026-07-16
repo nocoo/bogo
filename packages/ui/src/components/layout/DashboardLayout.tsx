@@ -14,6 +14,7 @@ const SECTION_LABELS: Record<string, string> = {
 	"/": "Overview",
 	"/documents": "Documents",
 	"/people": "People",
+	"/table": "Table",
 	"/workspaces": "Workspaces",
 	"/settings": "Settings",
 };

@@ -20,6 +20,7 @@ test("all SPA pages render without errors", async ({ page }) => {
 		"/documents",
 		"/documents/test-id",
 		"/people",
+		"/table",
 		"/workspaces",
 		"/settings",
 		"/settings/doc-types",

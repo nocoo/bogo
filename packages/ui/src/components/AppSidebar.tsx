@@ -8,6 +8,7 @@ import {
 	PanelLeft,
 	Search,
 	Settings,
+	Table2,
 	Tags,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -24,6 +25,7 @@ interface NavItem {
 const WORKSPACE_ITEMS: NavItem[] = [
 	{ title: "Documents", icon: FileText, path: "/documents" },
 	{ title: "People", icon: Network, path: "/people" },
+	{ title: "Table", icon: Table2, path: "/table" },
 ];
 
 const SETTINGS_ITEMS: NavItem[] = [
