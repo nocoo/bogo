@@ -27,7 +27,10 @@ Bogo 的设计与规范文档。按主题分两个二级目录，每个目录内
 | 编号 | 文档 | 主题 |
 |------|------|------|
 | 01 | [tag-system-spec](./features/01-tag-system-spec.md) | 标签系统规格 |
+| 02 | [cli](./features/02-cli.md) | CLI（clip.yaml + bearer auth） |
+| 03 | [self-hosting](./features/03-self-hosting.md) | 自部署指南 |
 | 04 | [org-tree-advanced](./features/04-org-tree-advanced.md) | People 组织架构图高级交互（折叠/拖拽/Minimap） |
+| 05 | [people-table-views](./features/05-people-table-views.md) | People 多维表格 View（列配置 + 排序/筛选） |
 
 ## 约定
 
