@@ -14,7 +14,7 @@
 		"prepack": "bun scripts/build.ts"
 	},
 	"dependencies": {
-		"@nocoo/cli-base": "^0.2.4",
+		"@nocoo/base-cli": "^0.3.0",
 		"commander": "^15.0.0"
 	},
 	"engines": {

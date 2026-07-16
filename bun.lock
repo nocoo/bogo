@@ -16,18 +16,18 @@
     },
     "packages/cli": {
       "name": "@nocoo/bogo",
-      "version": "0.5.2",
+      "version": "0.5.3",
       "bin": {
         "bogo": "dist/index.js",
       },
       "dependencies": {
-        "@nocoo/cli-base": "^0.2.4",
+        "@nocoo/base-cli": "^0.3.0",
         "commander": "^15.0.0",
       },
     },
     "packages/shared": {
       "name": "@bogo/shared",
-      "version": "0.5.2",
+      "version": "0.5.3",
       "dependencies": {
         "zod": "^4",
       },
@@ -37,7 +37,7 @@
     },
     "packages/ui": {
       "name": "@bogo/ui",
-      "version": "0.5.2",
+      "version": "0.5.3",
       "dependencies": {
         "@bogo/shared": "workspace:*",
         "@dagrejs/dagre": "^3.0.0",
@@ -76,7 +76,7 @@
     },
     "packages/worker": {
       "name": "@bogo/worker",
-      "version": "0.5.2",
+      "version": "0.5.3",
       "dependencies": {
         "@bogo/shared": "workspace:*",
         "hono": "^4.12.23",
@@ -298,9 +298,9 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@nocoo/bogo": ["@nocoo/bogo@workspace:packages/cli"],
+    "@nocoo/base-cli": ["@nocoo/base-cli@0.3.0", "", { "dependencies": { "citty": "^0.2.2", "consola": "^3.4.2", "picocolors": "^1.1.1", "yocto-spinner": "^1.1.0" } }, "sha512-7YOwAJjOvVT+1Ek5bszLRnAhHx0pUCBSUR3TUYO/4+D67XNee5jw7gmtDesIB2k4u/Lv0jXmgdYqq6tuIx3FVQ=="],
 
-    "@nocoo/cli-base": ["@nocoo/cli-base@0.2.4", "", { "dependencies": { "citty": "^0.2.2", "consola": "^3.4.2", "picocolors": "^1.1.1", "yocto-spinner": "^1.1.0" } }, "sha512-SUqfYxPiEjbdBE8q9q+LOQ5l9p+BfeTLAWIftxX4ceCRRqxF3xeL6aIqGXYt2j8dKrL13GS8QEv2etmtCPIoiQ=="],
+    "@nocoo/bogo": ["@nocoo/bogo@workspace:packages/cli"],
 
     "@pierre/diffs": ["@pierre/diffs@1.2.11", "", { "dependencies": { "@pierre/theme": "1.0.3", "@pierre/theming": "0.0.1", "@shikijs/transformers": "^3.0.0 || ^4.0.0", "diff": "8.0.3", "hast-util-to-html": "9.0.5", "lru_map": "0.4.1", "shiki": "^3.0.0 || ^4.0.0" }, "peerDependencies": { "react": "^18.3.1 || ^19.0.0", "react-dom": "^18.3.1 || ^19.0.0" } }, "sha512-lSkl5C7eb8Zq7Ote0+J5ZdVOlI72r2EU3vW4+06wULSQqkIMP8mkxG70lVj593b1XYlsM2hCvuyt0cKTA96plQ=="],
 

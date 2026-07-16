@@ -10,7 +10,7 @@
  *   3. Verify the generated package.json version matches our own —
  *      "one version everywhere" guarantee.
  *   4. bun build the generated entry into a single dist/index.js with
- *      @nocoo/cli-base + commander bundled in, shebang rewritten to
+ *      @nocoo/base-cli + commander bundled in, shebang rewritten to
  *      `node` so npm users without bun can run it.
  *   5. chmod +x dist/index.js, so npm's bin symlink works on Unix.
  *
@@ -92,7 +92,7 @@ if (rawPkg.version !== pkg.version) {
 
 // 4. Install raw deps and bundle to dist/index.js. Deps are bundled in
 // so the npm tarball is a single file and `npm i -g @nocoo/bogo` works
-// on plain node without a local bun install of @nocoo/cli-base/commander.
+// on plain node without a local bun install of @nocoo/base-cli/commander.
 step("bun install (raw deps)");
 execSync("bun install --no-save", { stdio: "inherit", cwd: RAW_DIR });
 
