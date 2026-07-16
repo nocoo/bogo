@@ -357,6 +357,80 @@ describe("workspace CRUD (real D1)", () => {
 		});
 	});
 
+	describe("table-views (real D1)", () => {
+		let defaultViewId: string;
+		let extraViewId: string;
+
+		it("GET /api/w/:wid/table-views lists seeded Default view", async () => {
+			const res = await api(`/api/w/${wsId}/table-views`);
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.length).toBeGreaterThanOrEqual(1);
+			const def = json.data.find((v: { isDefault: boolean }) => v.isDefault);
+			expect(def).toBeDefined();
+			expect(def.name).toBe("Default");
+			expect(def.columns).toContain("builtin:name");
+			defaultViewId = def.id;
+		});
+
+		it("GET /api/w/:wid/table-views/:id returns one view", async () => {
+			const res = await api(`/api/w/${wsId}/table-views/${defaultViewId}`);
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.id).toBe(defaultViewId);
+		});
+
+		it("POST /api/w/:wid/table-views creates a view", async () => {
+			const res = await api(`/api/w/${wsId}/table-views`, {
+				method: "POST",
+				body: JSON.stringify({
+					name: "E2E HR",
+					columns: ["builtin:name", "builtin:title"],
+					sort: { key: "builtin:name", direction: "asc" },
+					filters: [{ key: "builtin:title", op: "contains", value: "eng" }],
+				}),
+			});
+			expect(res.status).toBe(201);
+			const json = await res.json();
+			extraViewId = json.data.id;
+			expect(json.data.name).toBe("E2E HR");
+			expect(json.data.isDefault).toBe(false);
+			expect(json.data.sortOrder).toBeGreaterThanOrEqual(1);
+		});
+
+		it("PUT /api/w/:wid/table-views/:id renames and promotes default", async () => {
+			const rename = await api(`/api/w/${wsId}/table-views/${extraViewId}`, {
+				method: "PUT",
+				body: JSON.stringify({ name: "E2E HR Renamed" }),
+			});
+			expect(rename.status).toBe(200);
+			expect((await rename.json()).data.name).toBe("E2E HR Renamed");
+
+			const promote = await api(`/api/w/${wsId}/table-views/${extraViewId}`, {
+				method: "PUT",
+				body: JSON.stringify({ isDefault: true }),
+			});
+			expect(promote.status).toBe(200);
+			expect((await promote.json()).data.isDefault).toBe(true);
+
+			// original Default is no longer default — can delete it later after re-promote if needed
+			const list = await (await api(`/api/w/${wsId}/table-views`)).json();
+			const defaults = list.data.filter((v: { isDefault: boolean }) => v.isDefault);
+			expect(defaults).toHaveLength(1);
+			expect(defaults[0].id).toBe(extraViewId);
+		});
+
+		it("DELETE /api/w/:wid/table-views/:id deletes non-default view", async () => {
+			// defaultViewId is no longer default after promote; delete it
+			const res = await api(`/api/w/${wsId}/table-views/${defaultViewId}`, {
+				method: "DELETE",
+			});
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.data.deleted).toBe(true);
+		});
+	});
+
 	it("DELETE /api/workspaces/:id deletes workspace (after cleanup)", async () => {
 		const pRes = await api(`/api/w/${wsId}/persons`);
 		const persons = await pRes.json();

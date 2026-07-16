@@ -1,6 +1,8 @@
 import {
 	type CreateWorkspaceInput,
 	createWorkspaceSchema,
+	DEFAULT_TABLE_VIEW_COLUMNS,
+	DEFAULT_TABLE_VIEW_NAME,
 	generateId,
 	updateWorkspaceSchema,
 	type Workspace,
@@ -32,6 +34,7 @@ workspaceRoutes.post("/", async (c) => {
 	const input: CreateWorkspaceInput = parsed.data;
 	const id = generateId();
 	const rootId = generateId();
+	const viewId = generateId();
 	const now = new Date().toISOString();
 
 	await c.env.DB.batch([
@@ -41,6 +44,16 @@ workspaceRoutes.post("/", async (c) => {
 		c.env.DB.prepare(
 			"INSERT INTO persons (id, workspace_id, name, title, manager_id, is_root, sort_order, created_at, updated_at) VALUES (?, ?, ?, '', NULL, 1, 0, ?, ?)",
 		).bind(rootId, id, input.name, now, now),
+		c.env.DB.prepare(
+			"INSERT INTO person_table_views (id, workspace_id, name, columns_json, sort_json, filters_json, is_default, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, NULL, '[]', 1, 0, ?, ?)",
+		).bind(
+			viewId,
+			id,
+			DEFAULT_TABLE_VIEW_NAME,
+			JSON.stringify(DEFAULT_TABLE_VIEW_COLUMNS),
+			now,
+			now,
+		),
 	]);
 
 	const workspace: Workspace = {

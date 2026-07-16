@@ -7,6 +7,7 @@ import { fieldRoutes } from "./routes/fields.js";
 import { liveRoute } from "./routes/live.js";
 import { meRoute } from "./routes/me.js";
 import { personRoutes } from "./routes/persons.js";
+import { tableViewRoutes } from "./routes/table-views.js";
 import { tagRoutes } from "./routes/tags.js";
 import { workspaceRoutes } from "./routes/workspaces.js";
 import type { AppEnv } from "./types.js";
@@ -24,5 +25,6 @@ app.route("/api/w/:wid/fields", fieldRoutes);
 app.route("/api/w/:wid/doc-types", docTypeRoutes);
 app.route("/api/w/:wid/documents", documentRoutes);
 app.route("/api/w/:wid/tags", tagRoutes);
+app.route("/api/w/:wid/table-views", tableViewRoutes);
 
 export default app;
