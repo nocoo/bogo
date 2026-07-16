@@ -119,8 +119,8 @@ surface、违背「View 只是投影」。v1 网格 = 读 persons + field defs +
 | `builtin:avatarUrl` | `avatarUrl` | 小头像 / 占位 | ❌ | ❌ | 只读展示 |
 | `builtin:isRoot` | `isRoot` | boolean badge | ✅ | boolean | |
 | `builtin:tags` | embedded `tags` | TagBadge 列表 | ❌ | tag-ids | 复用 list persons 已 embed 的 tags |
-| `builtin:createdAt` | `createdAt` | ISO date 格式化 | ✅ | date | |
-| `builtin:updatedAt` | `updatedAt` | 同上 | ✅ | date | |
+| `builtin:createdAt` | `createdAt` | ISO timestamp 格式化 | ✅ | date-day（UTC） | 存完整 ISO；筛选见 §Timestamp Day Filters |
+| `builtin:updatedAt` | `updatedAt` | 同上 | ✅ | date-day（UTC） | 同上 |
 
 **不在 v1 catalog：** `sortOrder`、`id`、`workspaceId`。
 
@@ -221,11 +221,32 @@ type ViewSort = {
 | 大小写 | text 的 `eq` / `neq` / `contains` / `not_contains`：**大小写不敏感**（先 `toLocaleLowerCase("en-US")`） |
 | trim | 比较前对 **操作数两侧** 做 `trim()`（列 resolved 字符串与 filter.value） |
 | select | **不支持** `contains` / `not_contains`；仅 eq/neq/in/is_empty/is_not_empty。eq/neq 对 option 字符串 **大小写敏感**（选项是闭集，与存储一致） |
-| number / date 比较 | 先 parse；任一端 parse 失败 → 该行对该 filter 视为 **不匹配**（`eq` 等为 false）；sort 中 parse 失败沉底 |
-| `neq` 与空值 | resolved empty 对 `neq X`：**不命中**（空值只由 `is_empty` / `is_not_empty` 表达，避免「空 ≠ foo」扫进所有空行的意外） |
+| number 比较 | `Number.parseFloat`；任一端 `NaN` → 该行对该 filter **不匹配**；sort 中 `NaN` 沉底 |
+| date / date-day 比较 | 见 §Timestamp Day Filters 与 §Filter Value Shape；格式非法 → filter 不匹配 / sort 沉底 |
+| `neq` 与空值 | resolved empty 对 `neq X`：**不命中**（空值只由 `is_empty` / `is_not_empty` 表达） |
 | `not_contains` 与空值 | resolved empty：**不命中**（同 neq） |
 | `contains` | 仅 text（builtin name/title + fieldType text）；`haystack.includes(needle)`（均已 lower+trim） |
 | 稳定次序 | 主比较相等时 tie-break：`person.id` 升序 |
+
+### Timestamp Day Filters（builtin createdAt / updatedAt）
+
+Person 的 `createdAt` / `updatedAt` 是 **完整 ISO-8601 timestamp**（如
+`2026-07-17T07:28:10.123Z`）。UI date 控件提交 **`YYYY-MM-DD`**。v1 **不做**
+datetime 精确到秒的 filter；统一按 **UTC 日历日** 比较：
+
+| 步骤 | 规则 |
+|------|------|
+| 规范化 cell | 取 resolved ISO 字符串，解析为 `Date`；取 **UTC** `YYYY-MM-DD`（`toISOString().slice(0, 10)`） |
+| 规范化 filter.value | 必须匹配 `^\d{4}-\d{2}-\d{2}$`（写入时校验）；否则 `400 INVALID_FILTER` |
+| `eq` / `neq` | 比较两个 `YYYY-MM-DD` 字符串 |
+| `gt` / `gte` / `lt` / `lte` | 同上，字典序即时间序 |
+| sort | 仍按完整 ISO 字符串字典序（保留时分秒精度）；缺失沉底 |
+
+**custom field `fieldType: date`**：存储已是 `YYYY-MM-DD`，直接字符串比较；filter.value
+同样要求 `YYYY-MM-DD`。
+
+**不采用**「本地时区日」：Workers / 浏览器时区不一致会导致同 filter 结果漂移；UTC 日
+可复现、可测。
 
 ---
 
@@ -235,14 +256,14 @@ type ViewSort = {
 type FilterOperator =
   | "eq" | "neq"
   | "contains" | "not_contains"  // text only（非 select）
-  | "gt" | "gte" | "lt" | "lte"  // number / date
+  | "gt" | "gte" | "lt" | "lte"  // number / date / date-day
   | "is_empty" | "is_not_empty"
   | "in";                        // select multi / tag-ids / person-ref multi
 
 type ViewFilter = {
   key: ColumnKey;
   op: FilterOperator;
-  value?: string | string[] | null; // is_empty / is_not_empty 时省略或 null
+  value?: string | string[] | null;
 };
 
 // View.filters: ViewFilter[]  — AND only in v1
@@ -254,18 +275,41 @@ type ViewFilter = {
 |--------|----------|
 | text (builtin name/title, field text) | eq, neq, contains, not_contains, is_empty, is_not_empty |
 | number | eq, neq, gt, gte, lt, lte, is_empty, is_not_empty |
-| date (createdAt/updatedAt, field date) | eq, neq, gt, gte, lt, lte, is_empty, is_not_empty |
+| date-day (builtin createdAt/updatedAt) | eq, neq, gt, gte, lt, lte, is_empty, is_not_empty（value = `YYYY-MM-DD`，UTC 日） |
+| date (fieldType date) | 同上（value = `YYYY-MM-DD`，直接比） |
 | boolean / isRoot | eq, neq, is_empty, is_not_empty |
 | select | eq, neq, in, is_empty, is_not_empty（**无** contains） |
 | person-ref (manager*) | eq, neq, in, is_empty, is_not_empty（value = person id） |
 | tags | `in`（tag id[]，**any** 命中）、is_empty, is_not_empty |
 | avatarUrl | **不可筛选** |
 
-- 过滤基于 **resolved value**（含 defaultValue），person-ref 的 eq/in 用 **id**，展示姓名仅 UI。
-- `is_empty` / `is_not_empty`：见 §Cell Resolution 空值定义。
+### Filter Value Shape（完整状态校验，写入时强制）
+
+Zod 的粗类型 `string | string[] | null` **不够**；handler 在 op × 列类型维度做
+**形状 + 格式**校验（POST 全部 filter；PUT 仅 **新写入/修改** 的 filter，见 §Stale）。
+
+| op | `value` 形状 | 额外格式 |
+|----|--------------|----------|
+| `is_empty` / `is_not_empty` | **必须省略**或 `null`；出现非 null 字符串/数组 → `400 INVALID_FILTER` | — |
+| `in` | **非空** `string[]`（`length ≥ 1`）；`string` 或空数组 → 400 | 元素 trim 后非空；person-ref/tags 元素须为合法 uuid 形；select 元素为 option 字符串 |
+| 其余 ops（eq/neq/contains/…） | **必须是 `string`**（非数组、非 null） | 见下表 |
+
+**按列类型的 string 格式**（在 op 已允许的前提下）：
+
+| 列类型 | value string 约束 |
+|--------|-------------------|
+| text | 任意 string（trim 后用于比较；允许 trim 后为空 —— 但 `eq ""` 与 `is_empty` 语义不同：前者匹配 resolved 为 `""` 的显式空，后者匹配 resolved empty 含无 default） |
+| number | 可 `Number.parseFloat` 且非 `NaN`（拒绝 `""`、`abc`） |
+| date / date-day | `^\d{4}-\d{2}-\d{2}$` 且日历合法（拒绝 `2026-13-40`） |
+| boolean / isRoot | 与 `fields.ts` `validateFieldValue` 布尔字面量一致（实现时单测钉死允许集，如 `"true"`/`"false"`） |
+| select | 单个 option 字符串（`in` 走数组分支） |
+| person-ref | 单个 uuid 字符串（`in` 为 uuid[]） |
+
+失败码统一 **`400 INVALID_FILTER`**（可在 `message` 区分 shape vs format）。
+
+- 过滤基于 **resolved value**（含 defaultValue），person-ref 的 eq/in 用 **id**。
 - OR 组合 → v2。
-- 写入 View 时 op/类型不匹配 → `400 INVALID_FILTER`。
-- **读网格**时若因字段 type 变更或 stale key 导致 filter 非法 → 该 filter **跳过 + toast**，不 500。
+- **读网格**时非法 / stale filter → **跳过 + toast**，不 500。
 
 **执行位置**：客户端 AND 链。
 
@@ -284,13 +328,37 @@ type ViewFilter = {
 
 | 场景 | 行为 |
 |------|------|
-| **POST**（新建） | `columns` 中每个 `field:<uuid>` **必须**存在于当前 defs；否则 `400 UNKNOWN_FIELD`。不得创建带 stale 的 view。 |
-| **PUT** 未传 `columns` | 不碰列；允许在仍含历史 stale 的 view 上只改 `name` / `sort` / `filters` / `sortOrder`。 |
-| **PUT** 传了 `columns` | 对 **新引入** 的 key（∈ nextColumns \ prevColumns）中的 `field:*`：必须存在于 defs，否则 `400 UNKNOWN_FIELD`。 **保留** 的 stale key（仍在 prev 与 next 中）**允许**，以便用户逐步删列。 |
-| **从 columns 移除某 key**（含 stale） | **同步清除** `sort`（若 `sort.key` 等于该 key → 置 `null`）以及 `filters` 中 `key` 等于该 key 的项。在 merge 之后、完整状态校验之前执行。 |
-| GET | `columns` **原样**返回（含 stale），不静默过滤。 |
+| **POST**（新建） | `columns` 中每个 `field:<uuid>` **必须**存在于当前 defs；否则 `400 UNKNOWN_FIELD`。`sort`/`filters` 不得引用缺失 field（无历史可保留）。 |
+| **PUT** 未传 `columns` | 不碰列；允许在仍含历史 stale 的 view 上只改 `name` / `sortOrder` / 非 stale 的 sort·filters 等。 |
+| **PUT** 传了 `columns` | 对 **新引入** 的 key（∈ nextColumns \ prevColumns）中的 `field:*`：必须存在于 defs，否则 `400 UNKNOWN_FIELD`。 **保留** 的 stale key（仍在 prev 与 next 中）**允许**。 |
+| **从 columns 移除某 key**（含 stale） | **同步清除** `sort`（若 `sort.key` 等于该 key → 置 `null`）以及 `filters` 中 `key` 等于该 key 的项。在 merge 之后、校验之前执行。 |
+| GET | `columns` / `sort` / `filters` **原样**返回（可含 stale），不静默过滤。 |
 
-读时 stale **sort** / **filter**：跳过 + 警告（与上表一致）。
+#### 历史 stale sort / filter 不得阻塞改名（关键）
+
+缺失 field definition 时 **无法**判断列类型，因此 **不能**对「原样保留的历史
+sort/filter」跑完整类型校验——否则「只改 name」也会 400。
+
+定义：
+
+- `sortTouched` := `patch.sort !== undefined`
+- `filtersTouched` := `patch.filters !== undefined`
+- **stale key**：`field:<uuid>` 且 uuid ∉ 当前 workspace field defs  
+  （builtin key 永非 stale；未知 builtin 文法在 columnKeySchema 已拒）
+
+| 对象 | 校验策略 |
+|------|----------|
+| **未修改**的 `next.sort`（`!sortTouched`，仍为 existing） | **原样保留**，即使 key 已 stale 或类型已不可解析。**不做** sortable / 类型检查。 |
+| **新写入/修改**的 sort（`sortTouched`） | 必须：`null`，或（`key ∈ next.columns` ∧ key **非 stale** ∧ 列可排序）。禁止把 sort 指到 stale key。 |
+| **未修改**的 `next.filters`（`!filtersTouched`） | **原样保留**每一条历史 filter（可含 stale key）。**不做** op/类型/value-shape 检查。 |
+| **新写入/修改**的 filters（`filtersTouched`） | **数组整体替换**语义：patch.filters 中 **每一条** 必须：`key ∈ next.columns` ∧ key **非 stale** ∧ op 允许 ∧ value shape/format 合法。不得在新 filters 数组里写入 stale key。 |
+
+列移除引发的自动清 sort/filter（上表「从 columns 移除」）在 `sortTouched` /
+`filtersTouched` 判定 **之后**仍执行：若用户 PUT 了新 columns 去掉某 key，即使
+未传 sort/filters，也会清掉引用该 key 的 sort/filter（属于 columns 变更的副作用，
+不是「校验历史 stale」）。
+
+读时 stale **sort** / **filter**：跳过 + toast（与上一致）。
 
 ---
 
@@ -413,6 +481,8 @@ viewSortSchema = z.object({
   direction: z.enum(["asc", "desc"]),
 }).nullable();
 
+// Coarse wire shape only — op×value 形状与 number/date/boolean 格式见
+// §Filter Value Shape（handler 完整状态校验，不能单靠本 schema）。
 viewFilterSchema = z.object({
   key: columnKeySchema,
   op: z.enum([
@@ -454,33 +524,47 @@ updatePersonTableViewSchema = z.object({
 ```
 1. Load existing row; 404 if missing.
 2. Parse body with updatePersonTableViewSchema (patch only; omitted keys absent).
-3. next = {
+3. sortTouched = patch.sort !== undefined
+   filtersTouched = patch.filters !== undefined
+4. next = {
      name: patch.name ?? existing.name,
      columns: patch.columns ?? existing.columns,
-     sort: patch.sort !== undefined ? patch.sort : existing.sort,
-     filters: patch.filters ?? existing.filters,
+     sort: sortTouched ? patch.sort : existing.sort,
+     filters: filtersTouched ? patch.filters : existing.filters,
      isDefault: patch.isDefault ?? existing.isDefault,
      sortOrder: patch.sortOrder ?? existing.sortOrder,
    }
-4. If patch.columns defined:
+5. If patch.columns defined:
      removed = prevColumns \ next.columns
      if next.sort?.key ∈ removed → next.sort = null
      next.filters = next.filters.filter(f => f.key ∉ removed)
-5. Validate full next state (not the patch alone):
-     - columns includes builtin:name, unique keys, max 64
-     - field keys: only NEW keys (next \ prev) must exist in defs
-     - sort: null or (key ∈ columns ∧ sortable)
-     - filters: each key ∈ columns ∧ op allowed for column type
-     - isDefault false while existing.isDefault → CANNOT_CLEAR_DEFAULT
-6. Persist; if next.isDefault && !existing.isDefault → batch clear other defaults.
-7. Return full PersonTableView.
+6. Validate (分档，避免 stale 阻塞改名):
+     ALWAYS:
+       - columns includes builtin:name, unique keys, max 64
+       - field keys: only NEW keys (next.columns \ prev) must exist in defs
+       - isDefault false while existing.isDefault → CANNOT_CLEAR_DEFAULT
+     IF sortTouched:
+       - next.sort is null OR (
+           key ∈ next.columns ∧ key not stale ∧ column sortable
+         )
+     ELSE:
+       - skip sort type checks (historical stale sort may remain)
+     IF filtersTouched:
+       - for each filter in next.filters:
+           key ∈ next.columns ∧ key not stale
+           ∧ op allowed for resolvable column type
+           ∧ value shape/format per §Filter Value Shape
+     ELSE:
+       - skip filter type/shape checks (historical stale filters may remain)
+7. Persist; if next.isDefault && !existing.isDefault → batch clear other defaults.
+8. Return full PersonTableView.
 ```
 
 ### POST 校验规则
 
 1. `columns` 含 `builtin:name`；keys 唯一。
 2. 全部 `field:*` 必须存在于 defs（无 stale）。
-3. `sort` / `filters` 相对 **columns** 合法。
+3. `sort` / `filters` **全部**按「新写入」标准校验（无历史保留）；含 §Filter Value Shape。
 4. `sort_order` 服务端分配，忽略客户端若误传。
 5. `isDefault: true` → batch 转移。
 
@@ -557,10 +641,19 @@ Icon：`Table2`（lucide）。
 
 | Path | Page |
 |------|------|
-| `/table` | `TablePage` — 无 `?view=` 时用 default view；有则选中该 id |
+| `/table` | `TablePage` — 见下方 `?view=` 解析 |
 | 配置 | page 内 Drawer / Dialog，无独立 edit 路由 |
 
-`App.tsx` 注册路由；`gate:pages` + `tests/smoke.spec.ts` 覆盖。
+#### `?view=` 解析（非阻塞补强，v1 必做）
+
+| 条件 | 行为 |
+|------|------|
+| 无 `view` query | 使用 workspace 的 **default** view |
+| `view=<id>` 且 id ∈ 当前 workspace 的 views 列表 | 选中该 view |
+| `view=<id>` 无效（未知 id）、或属于其他 workspace（列表查无） | **回退 default**，并用 `navigate(..., { replace: true })` **改写 URL** 为 `/table` 或 `/table?view=<defaultId>`（二选一实现时固定一种：推荐 `/table?view=<defaultId>` 以便刷新稳定） |
+| views 仍在 loading | 不闪回退；load 完成后再解析 |
+
+`App.tsx` 注册路由；`gate:pages` + `tests/smoke.spec.ts` 覆盖（含无效 `?view=` 回退）。
 
 ### TablePage 布局
 
@@ -675,8 +768,8 @@ parallel:
 | Layer | 覆盖 |
 |-------|------|
 | L1 shared | create vs update schema：`parse({})` on update **不得**注入 filters/isDefault；columnKey |
-| L1 worker | merge PUT；CANNOT_CLEAR_DEFAULT；default 转移 batch；DELETE last/default；UNKNOWN_FIELD 仅新 key；remove column 清 sort/filter；POST sort_order MAX+1；list 稳定序；CLI query bridge |
-| L1 ui | resolve-cell；comparison norms；stale sort/filter skip；manager 按姓名 sort |
+| L1 worker | merge PUT；rename 含 stale sort/filter 成功；PUT 新 sort/filter 拒 stale；value shape（in/empty/eq）；CANNOT_CLEAR_DEFAULT；default 转移；DELETE last/default；UNKNOWN_FIELD 仅新 key；remove column 清 sort/filter；POST sort_order MAX+1；CLI bridge |
+| L1 ui | resolve-cell；UTC day filter for createdAt；comparison norms；stale skip；manager 按姓名 sort；invalid `?view=` replace |
 | L2 | table-views CRUD；workspace create 带 Default |
 | L3 | smoke `/table` + breadcrumb；打开 panel |
 | G1 | typecheck + biome |
@@ -701,10 +794,13 @@ parallel:
 
 - View 只存配置
 - `builtin:name` 必在 columns
-- update 用独立 schema + load-merge-validate
+- update 用独立 schema + load-merge-validate；**未 touch 的历史 stale sort/filter 原样保留**
+- 新写入的 sort/filter **不得**引用 stale key；完整 value shape/format 校验
+- createdAt/updatedAt 筛选按 **UTC 日历日** vs `YYYY-MM-DD`
 - default 只能 `isDefault: true` 转移，禁止 clear
 - JSON Zod 后再入库；`updated_at` 显式更新
 - CLI columns CSV + sort/filters JSON bridge；更新 `check-clip-yaml.ts`
+- 非法 `?view=` 回退 default 并 `replace` URL
 
 ### Never Do
 
@@ -748,13 +844,17 @@ parallel:
 | sort/filter | 客户端 + Comparison Norms | 可测、免动态 SQL |
 | PUT schema | 独立、无 default，merge 后校验 | 避免清空 filters/default |
 | default | 恰一个；仅 `isDefault:true` 转移 | partial index + 应用闭环 |
-| stale 写入 | 只拒新未知 field；删列清 sort/filter | 含 stale 的 view 仍可 rename/sort |
+| stale 写入 | 只拒新未知 field；删列清 sort/filter | 含 stale 的 view 仍可 rename |
+| stale sort/filter | 未 touch 则原样保留；touch 则禁 stale | 改名不被历史脏数据阻塞 |
+| filter value | op×形状+格式完整校验 | 拒 in+string / empty+"foo" 等 |
+| createdAt 筛选 | UTC 日历日 vs `YYYY-MM-DD` | 避免 ISO eq 永不命中 |
 | 侧栏 | `Table` / `/table` | 拍板 |
 | 行点击 | EditPersonPanel | 拍板 |
 | 默认名 | `Default` | 拍板 |
 | manager sort | resolved 姓名 | 拍板 |
 | CLI | 同期 + CSV/JSON bridge + gate 49 | 可实现、可 CI |
 | 新 view 序 | MAX(sort_order)+1，GET 稳定排序 | 避免并列 0 |
+| `?view=` 非法 | 回退 default + replace URL | 防死链 |
 | aria-sort | 在 `<th>` | a11y 正确语义 |
 
 ---
@@ -779,8 +879,11 @@ parallel:
 | 服务端 table-rows 投影 | v1 不需要 |
 | create.partial() 当 update | Zod default 清空状态 |
 | 双 API 设 default | 入口重复；已收束到 PUT isDefault:true |
-| PUT 拒绝任何 stale column | 无法在含 stale 时改名/改 sort |
-| select 支持 contains | 闭集选项用 eq/in 即可；避免与注释冲突 |
+| PUT 拒绝任何 stale column | 无法在含 stale 时改名 |
+| 完整校验未 touch 的历史 sort/filter | 缺 def 无法判类型 → 改名 400；改为 touch 才严校验 |
+| createdAt 直接 ISO eq | date 控件 `YYYY-MM-DD` 永不命中；改 UTC 日 |
+| 本地时区日比较 | Worker/浏览器漂移；固定 UTC |
+| select 支持 contains | 闭集选项用 eq/in 即可 |
 
 ---
 
