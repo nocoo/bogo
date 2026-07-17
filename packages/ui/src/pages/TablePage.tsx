@@ -3,10 +3,12 @@ import { DEFAULT_TABLE_VIEW_COLUMNS, DEFAULT_TABLE_VIEW_NAME } from "@bogo/share
 import { Columns3, Plus, Star, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
+import { PersonAvatar } from "@/components/person/PersonAvatar";
 import { TagBadge } from "@/components/TagBadge";
 import { useWorkspaceContext } from "@/contexts/workspace-context";
 import { cn } from "@/lib/utils";
 import { builtinColumnMetas, resolveColumnMeta } from "@/viewmodels/table/column-catalog";
+import { indexPersons } from "@/viewmodels/table/resolve-cell";
 import { useTableGrid } from "@/viewmodels/table/use-table-grid";
 import { useTableViews } from "@/viewmodels/table/use-table-views";
 
@@ -55,7 +57,7 @@ export function TablePage() {
 		}
 	}, [viewsLoading, views, viewParam, defaultView, setSearchParams]);
 
-	const { grid, defs, isLoading: gridLoading } = useTableGrid(activeView);
+	const { grid, defs, persons, isLoading: gridLoading } = useTableGrid(activeView);
 
 	const [configOpen, setConfigOpen] = useState(false);
 	const [filtersOpen, setFiltersOpen] = useState(false);
@@ -80,6 +82,8 @@ export function TablePage() {
 		const custom = defs.map((d) => resolveColumnMeta(`field:${d.id}` as ColumnKey, defs));
 		return [...builtins, ...custom];
 	}, [defs]);
+
+	const personsById = useMemo(() => indexPersons(persons), [persons]);
 
 	const activeFilterCount = activeView?.filters.length ?? 0;
 
@@ -450,6 +454,7 @@ export function TablePage() {
 									{columnMetas.map((col) => {
 										const cell = row.cells[col.key];
 										const isName = col.key === "builtin:name";
+										const isPersonRef = col.kind === "person-ref";
 										return (
 											<td
 												key={col.key}
@@ -458,12 +463,26 @@ export function TablePage() {
 												{isName ? (
 													<Link
 														to={`/people/${row.person.id}`}
-														className="font-medium text-primary hover:underline"
+														className="inline-flex max-w-full items-center gap-2 font-medium text-primary hover:underline"
 													>
-														{cell?.display ?? "—"}
+														<PersonAvatar
+															name={row.person.name}
+															avatarUrl={row.person.avatarUrl}
+															size="xs"
+														/>
+														<span className="truncate">{cell?.display ?? "—"}</span>
 													</Link>
+												) : isPersonRef && cell?.refId && cell.raw ? (
+													<span className="inline-flex max-w-full items-center gap-2">
+														<PersonAvatar
+															name={cell.display}
+															avatarUrl={personsById.get(cell.refId)?.avatarUrl}
+															size="xs"
+														/>
+														<span className="truncate">{cell.display}</span>
+													</span>
 												) : col.kind === "tags" && cell?.tags ? (
-													<span className="flex flex-wrap gap-1">
+													<span className="flex flex-wrap items-center gap-1">
 														{cell.tags.map((t) => (
 															<TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
 														))}
