@@ -1,40 +1,27 @@
-import type { ColumnKey, FilterOperator, ViewFilter, ViewSort } from "@bogo/shared";
-import { DEFAULT_TABLE_VIEW_COLUMNS, DEFAULT_TABLE_VIEW_NAME } from "@bogo/shared";
+import type { ColumnKey, ViewFilter, ViewSort } from "@bogo/shared";
+import {
+	DEFAULT_TABLE_VIEW_COLUMNS,
+	DEFAULT_TABLE_VIEW_NAME,
+	fieldIdFromColumnKey,
+} from "@bogo/shared";
 import { Columns3, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
+import { toast } from "sonner";
 import { PersonAvatar } from "@/components/person/PersonAvatar";
 import { TagBadge } from "@/components/TagBadge";
 import { ColumnPicker } from "@/components/table/ColumnPicker";
+import { FilterValueInput } from "@/components/table/FilterValueInput";
 import { useWorkspaceContext } from "@/contexts/workspace-context";
 import { cn } from "@/lib/utils";
-import {
-	builtinColumnMetas,
-	type ColumnMeta,
-	resolveColumnMeta,
-} from "@/viewmodels/table/column-catalog";
+import { builtinColumnMetas, resolveColumnMeta } from "@/viewmodels/table/column-catalog";
 import { ensureNameColumn } from "@/viewmodels/table/column-picker";
+import { opsForKind } from "@/viewmodels/table/filter-ops";
 import { indexPersons } from "@/viewmodels/table/resolve-cell";
 import { useTableGrid } from "@/viewmodels/table/use-table-grid";
 import { useTableViews } from "@/viewmodels/table/use-table-views";
-
-/** Operators allowed per column kind — mirrors worker table-view-logic OPS. */
-const FILTER_OPS_BY_KIND: Record<ColumnMeta["kind"], readonly FilterOperator[]> = {
-	text: ["eq", "neq", "contains", "not_contains", "is_empty", "is_not_empty"],
-	number: ["eq", "neq", "gt", "gte", "lt", "lte", "is_empty", "is_not_empty"],
-	date: ["eq", "neq", "gt", "gte", "lt", "lte", "is_empty", "is_not_empty"],
-	"date-day": ["eq", "neq", "gt", "gte", "lt", "lte", "is_empty", "is_not_empty"],
-	boolean: ["eq", "neq", "is_empty", "is_not_empty"],
-	select: ["eq", "neq", "in", "is_empty", "is_not_empty"],
-	"person-ref": ["eq", "neq", "contains", "not_contains", "in", "is_empty", "is_not_empty"],
-	tags: ["in", "is_empty", "is_not_empty"],
-	avatar: [],
-};
-
-function opsForColumn(key: string, metas: ColumnMeta[]): readonly FilterOperator[] {
-	const kind = metas.find((c) => c.key === key)?.kind ?? "text";
-	return FILTER_OPS_BY_KIND[kind] ?? FILTER_OPS_BY_KIND.text;
-}
+import { validateFilterDraft } from "@/viewmodels/table/validate-filter-draft";
+import { useTags } from "@/viewmodels/tag/use-tags";
 
 export function TablePage() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -46,6 +33,7 @@ export function TablePage() {
 		defaultView,
 		activeView,
 		isLoading: viewsLoading,
+		isError: viewsError,
 		createView,
 		updateView,
 		deleteView,
@@ -67,20 +55,33 @@ export function TablePage() {
 		}
 	}, [viewsLoading, views, viewParam, defaultView, setSearchParams]);
 
-	const { grid, defs, persons, isLoading: gridLoading } = useTableGrid(activeView);
+	const {
+		grid,
+		defs,
+		persons,
+		isLoading: gridLoading,
+		isError: gridError,
+	} = useTableGrid(activeView);
+	const tagsVm = useTags("person");
 
 	const [configOpen, setConfigOpen] = useState(false);
 	const [filtersOpen, setFiltersOpen] = useState(false);
 	const [draftColumns, setDraftColumns] = useState<ColumnKey[]>([]);
 	const [filterDraft, setFilterDraft] = useState<ViewFilter[]>([]);
+	const [filterError, setFilterError] = useState<string | null>(null);
 	const [newViewName, setNewViewName] = useState("");
 
+	// Reset drafts only when switching views — not when sort/filter PUT refreshes activeView
+	const activeViewId = activeView?.id;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: only re-seed drafts on view id change
 	useEffect(() => {
-		if (activeView) {
-			setDraftColumns(activeView.columns as ColumnKey[]);
-			setFilterDraft(activeView.filters);
-		}
-	}, [activeView]);
+		if (!activeView) return;
+		setDraftColumns(activeView.columns as ColumnKey[]);
+		setFilterDraft(activeView.filters);
+		setFilterError(null);
+		setConfigOpen(false);
+		setFiltersOpen(false);
+	}, [activeViewId]);
 
 	const columnMetas = useMemo(() => {
 		if (!activeView) return [];
@@ -94,6 +95,8 @@ export function TablePage() {
 	}, [defs]);
 
 	const personsById = useMemo(() => indexPersons(persons), [persons]);
+
+	const tableReturnPath = activeView ? `/table?view=${activeView.id}` : "/table";
 
 	const activeFilterCount = activeView?.filters.length ?? 0;
 
@@ -112,13 +115,28 @@ export function TablePage() {
 
 	const saveColumns = async () => {
 		if (!activeView) return;
-		await updateView(activeView.id, { columns: ensureNameColumn(draftColumns) });
-		setConfigOpen(false);
+		try {
+			await updateView(activeView.id, { columns: ensureNameColumn(draftColumns) });
+			setConfigOpen(false);
+		} catch (e) {
+			toast.error(e instanceof Error ? e.message : "Failed to save columns");
+		}
 	};
 
 	const saveFilters = async () => {
 		if (!activeView) return;
-		await updateView(activeView.id, { filters: filterDraft });
+		const err = validateFilterDraft(filterDraft, columnMetas, defs);
+		if (err) {
+			setFilterError(err);
+			toast.error(err);
+			return;
+		}
+		setFilterError(null);
+		try {
+			await updateView(activeView.id, { filters: filterDraft });
+		} catch (e) {
+			toast.error(e instanceof Error ? e.message : "Failed to save filters");
+		}
 	};
 
 	const handleCreateView = async () => {
@@ -150,7 +168,24 @@ export function TablePage() {
 		);
 	}
 
+	if (viewsError || gridError) {
+		return (
+			<div
+				className="rounded-lg border border-destructive/25 bg-destructive/5 p-4 text-sm text-destructive"
+				role="alert"
+			>
+				Failed to load the people table. Check that the API is reachable and D1 migrations are
+				applied.
+			</div>
+		);
+	}
+
 	const loading = viewsLoading || gridLoading;
+
+	const opsForColumn = (key: string) => {
+		const kind = columnMetas.find((c) => c.key === key)?.kind ?? "text";
+		return opsForKind(kind);
+	};
 
 	return (
 		<div className="flex h-full min-h-0 flex-col gap-3">
@@ -208,8 +243,11 @@ export function TablePage() {
 						type="button"
 						className={cn("btn-secondary", configOpen && "bg-accent text-accent-foreground")}
 						onClick={() => {
+							if (!configOpen && activeView) {
+								setDraftColumns(activeView.columns as ColumnKey[]);
+								setFiltersOpen(false);
+							}
 							setConfigOpen((o) => !o);
-							if (!configOpen) setFiltersOpen(false);
 						}}
 						aria-pressed={configOpen}
 					>
@@ -221,8 +259,12 @@ export function TablePage() {
 						type="button"
 						className={cn("btn-secondary", filtersOpen && "bg-accent text-accent-foreground")}
 						onClick={() => {
+							if (!filtersOpen && activeView) {
+								setFilterDraft(activeView.filters);
+								setFilterError(null);
+								setConfigOpen(false);
+							}
 							setFiltersOpen((o) => !o);
-							if (!filtersOpen) setConfigOpen(false);
 						}}
 						aria-pressed={filtersOpen}
 					>
@@ -349,7 +391,7 @@ export function TablePage() {
 										value={f.key}
 										onChange={(e) => {
 											const key = e.target.value;
-											const allowed = opsForColumn(key, columnMetas);
+											const allowed = opsForColumn(key);
 											const op = (allowed.includes(f.op) ? f.op : allowed[0]) as ViewFilter["op"];
 											setFilterDraft((d) =>
 												d.map((x, j) =>
@@ -381,9 +423,7 @@ export function TablePage() {
 									<select
 										className="field-select field-sm min-w-[7rem]"
 										value={
-											opsForColumn(f.key, columnMetas).includes(f.op)
-												? f.op
-												: (opsForColumn(f.key, columnMetas)[0] ?? "eq")
+											opsForColumn(f.key).includes(f.op) ? f.op : (opsForColumn(f.key)[0] ?? "eq")
 										}
 										onChange={(e) => {
 											const op = e.target.value as ViewFilter["op"];
@@ -407,48 +447,24 @@ export function TablePage() {
 											);
 										}}
 									>
-										{opsForColumn(f.key, columnMetas).map((op) => (
+										{opsForColumn(f.key).map((op) => (
 											<option key={op} value={op}>
 												{op}
 											</option>
 										))}
 									</select>
-									{f.op !== "is_empty" && f.op !== "is_not_empty" && f.op !== "in" && (
-										<input
-											className="field field-sm min-w-[8rem] flex-1"
-											value={typeof f.value === "string" ? f.value : ""}
-											placeholder={
-												columnMetas.find((c) => c.key === f.key)?.kind === "person-ref"
-													? "Person name, e.g. Zheng Li"
-													: columnMetas.find((c) => c.key === f.key)?.kind === "date-day" ||
-															columnMetas.find((c) => c.key === f.key)?.kind === "date"
-														? "YYYY-MM-DD"
-														: undefined
-											}
-											onChange={(e) => {
-												const value = e.target.value;
-												setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, value } : x)));
-											}}
-										/>
-									)}
-									{f.op === "in" && (
-										<input
-											className="field field-sm min-w-[10rem] flex-1"
-											placeholder={
-												columnMetas.find((c) => c.key === f.key)?.kind === "person-ref"
-													? "Names or ids, comma-separated"
-													: "comma-separated values"
-											}
-											value={Array.isArray(f.value) ? f.value.join(",") : ""}
-											onChange={(e) => {
-												const value = e.target.value
-													.split(",")
-													.map((s) => s.trim())
-													.filter(Boolean);
-												setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, value } : x)));
-											}}
-										/>
-									)}
+									<FilterValueInput
+										filter={f}
+										meta={columnMetas.find((c) => c.key === f.key)}
+										def={(() => {
+											const fid = fieldIdFromColumnKey(f.key);
+											return fid ? defs.find((d) => d.id === fid) : undefined;
+										})()}
+										personTags={tagsVm.tags.map((t) => ({ id: t.id, name: t.name }))}
+										onChange={(value) => {
+											setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, value } : x)));
+										}}
+									/>
 									<button
 										type="button"
 										className="btn-ghost btn-sm"
@@ -460,6 +476,11 @@ export function TablePage() {
 							))}
 						</ul>
 					)}
+					{filterError ? (
+						<p className="mt-2 text-xs text-destructive" role="alert">
+							{filterError}
+						</p>
+					) : null}
 				</section>
 			)}
 
@@ -519,7 +540,7 @@ export function TablePage() {
 											>
 												{isName ? (
 													<Link
-														to={`/people/${row.person.id}`}
+														to={`/people/${row.person.id}?from=${encodeURIComponent(tableReturnPath)}`}
 														className="inline-flex max-w-full items-center gap-2 font-medium text-primary hover:underline"
 													>
 														<PersonAvatar

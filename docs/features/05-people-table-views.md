@@ -21,7 +21,7 @@
 | 3 | 可选列 | **内置字段 + 自定义字段** |
 | 4 | 导航 | 侧栏 **第三主入口**，文案 **`Table`**，路径 `/table` |
 | 5 | View 数量 | **支持多个命名 View**；每个 workspace **有且仅有一个** default |
-| 6 | 行点击 | 打开 **`EditPersonPanel`**（与 People 同组件；不跳转 `/people`） |
+| 6 | 行点击 | 点 **Name** 进入全页 **`/people/:id`**（`?from=/table?view=` 保留来源 View） |
 | 7 | 默认 View 名 | 固定 **`All People`** |
 | 8 | manager 列排序 | 按 **resolved 姓名**（`localeCompare`），不是 person id |
 | 9 | CLI | 与 API **同期上线**；必须补齐 CSV/JSON bridge + `check-clip-yaml` 计数 |
@@ -723,8 +723,7 @@ Icon：`Table2`（lucide）。
    上（`none` | `ascending` | `descending`），不在内部 button 上单独充当 columnheader。
 4. **Filters**：draft → **Save filters** 显式 PUT（防误改共享 view）。
 5. **Sort**：列头变更后 **立即 PUT** `sort`（merge 算法，不传 filters 则保留）。
-6. **行点击 / Open 按钮**：打开 **`EditPersonPanel`**（与 People 页同组件、同
-   viewmodel 能力）；不 `navigate('/people')`。
+6. **Name 链接**：进入 **`/people/:id?from=/table?view=<id>`** 全页编辑；返回恢复来源 View。
 7. **空状态**：无 people → CTA「Go to People」；始终至少有 All People view。
 
 ### MVVM / 文件清单（完整）
@@ -782,7 +781,7 @@ localStorage key：`bogo.table.colwidth.<viewId>`；不进 D1。
 - 语义化 `<table>` / `<th scope="col">`；
 - **`aria-sort` 在 `<th>`**（columnheader），排序控件为 th 内 button；
 - filter 可键盘操作；
-- 每行可见 **Open** 控件（不只靠整行 click）打开 EditPersonPanel。
+- Name 列可点进全页编辑；返回保留 `?view=`。
 
 ---
 
@@ -900,7 +899,7 @@ parallel:
 | API 响应 | `PersonTableView` + `{ data }` 状态码表 | 契约可测 |
 | createdAt 筛选 | UTC 日历日 vs `YYYY-MM-DD` | 避免 ISO eq 永不命中 |
 | 侧栏 | `Table` / `/table` | 拍板 |
-| 行点击 | EditPersonPanel | 拍板 |
+| 行点击 | `/people/:id` 全页 + `from` 回跳 | 拍板 |
 | 默认名 | `All People` | 拍板 |
 | manager sort | resolved 姓名 | 拍板 |
 | CLI | 同期 + CSV/JSON bridge + gate 49 | 可实现、可 CI |
@@ -915,7 +914,7 @@ parallel:
 | # | 决议 |
 |---|------|
 | 侧栏文案 | **Table** |
-| 行点击 | **EditPersonPanel** |
+| 行点击 | **`/people/:id` 全页**（from Table view） |
 | 默认 View 名 | **Default** |
 | manager 排序 | **resolved 姓名** |
 | CLI | **与 API 同期**；columns=CSV query，sort/filters=JSON query string；`EXPECTED_COMMAND_FILES=49` |

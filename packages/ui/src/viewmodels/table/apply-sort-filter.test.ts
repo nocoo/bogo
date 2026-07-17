@@ -547,5 +547,25 @@ describe("buildGrid", () => {
 			filters: [{ key: "builtin:createdAt", op: "lt", value: "2099-01-01" }],
 		};
 		expect(buildGrid(vDayLt, [a], [], []).filteredCount).toBe(1);
+
+		// illegal op for current kind (e.g. text→number type change left contains) → skip
+		const vStaleOp: PersonTableView = {
+			...viewBase,
+			columns: ["builtin:name", key],
+			filters: [{ key, op: "contains", value: "1" }],
+		};
+		const gIllegalOp = buildGrid(vStaleOp, [a, b], [def], values);
+		expect(gIllegalOp.skippedFilters).toBe(1);
+		expect(gIllegalOp.filteredCount).toBe(2);
+
+		// select `in` with padded values matches stored option
+		const vSelInPad: PersonTableView = {
+			...viewBase,
+			columns: ["builtin:name", selectKey],
+			filters: [{ key: selectKey, op: "in", value: [" A "] }],
+		};
+		expect(
+			buildGrid(vSelInPad, [a, b], [selectDef], selectVals).rows.map((r) => r.person.id),
+		).toEqual(["a"]);
 	});
 });

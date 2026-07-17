@@ -120,6 +120,13 @@ function renderAtPath(path: string) {
 	);
 }
 
+function basePersonListWithError(message: string) {
+	return {
+		...basePersonList({ persons: [] }),
+		error: new Error(message),
+	};
+}
+
 describe("PersonEditorPage", () => {
 	it("shows workspace gate when no workspace selected", () => {
 		withWorkspace(null);
@@ -137,6 +144,15 @@ describe("PersonEditorPage", () => {
 		expect(container.querySelector(".animate-spin")).toBeTruthy();
 	});
 
+	it("shows load error distinctly from not-found", () => {
+		withWorkspace("ws-1");
+		mockUsePersonList.mockReturnValue(basePersonListWithError("D1_ERROR: no such table"));
+
+		renderAtPath("/people/p-alice");
+		expect(screen.getByText(/Failed to load people/)).toBeTruthy();
+		expect(screen.queryByText("Person not found.")).toBeNull();
+	});
+
 	it("shows not-found when person id is unknown", () => {
 		withWorkspace("ws-1");
 		mockUsePersonList.mockReturnValue(basePersonList());
@@ -145,6 +161,22 @@ describe("PersonEditorPage", () => {
 		expect(screen.getByText("Person not found.")).toBeTruthy();
 		fireEvent.click(screen.getByLabelText("Back to Table"));
 		expect(screen.getByText("Table page")).toBeTruthy();
+	});
+
+	it("returns to source table view from ?from=", () => {
+		withWorkspace("ws-1");
+		mockUsePersonList.mockReturnValue(basePersonList());
+
+		render(
+			<MemoryRouter initialEntries={["/people/p-alice?from=%2Ftable%3Fview%3Dv-hr"]}>
+				<Routes>
+					<Route path="/people/:id" element={<PersonEditorPage />} />
+					<Route path="/table" element={<div>Table view v-hr</div>} />
+				</Routes>
+			</MemoryRouter>,
+		);
+		fireEvent.click(screen.getByLabelText("Back to Table"));
+		expect(screen.getByText("Table view v-hr")).toBeTruthy();
 	});
 
 	it("renders editor form for found person with back control", () => {

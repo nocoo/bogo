@@ -212,13 +212,17 @@ function validateValueFormat(
 		case "date":
 		case "date-day":
 			return isValidDateYmd(v.trim()) ? null : "value must be YYYY-MM-DD";
-		case "boolean":
-			return v === "true" || v === "false" ? null : "value must be 'true' or 'false'";
-		case "select":
-			if (options && !options.includes(v)) {
+		case "boolean": {
+			const t = v.trim();
+			return t === "true" || t === "false" ? null : "value must be 'true' or 'false'";
+		}
+		case "select": {
+			// Accept exact option or trimmed form (clients may pad values)
+			if (options && !options.includes(v) && !options.includes(v.trim())) {
 				return `value must be one of: ${options.join(", ")}`;
 			}
 			return null;
+		}
 		case "person-ref":
 			// Prefer resolved manager name in the UI; person id still accepted.
 			return v.trim() === "" ? "value must be non-empty" : null;

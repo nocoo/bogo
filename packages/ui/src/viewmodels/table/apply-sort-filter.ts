@@ -9,6 +9,7 @@ import type {
 } from "@bogo/shared";
 import { isValidFiniteNumberString } from "@bogo/shared";
 import { resolveColumnMeta } from "./column-catalog.js";
+import { isFilterOpAllowedForKind } from "./filter-ops.js";
 import {
 	indexFieldValues,
 	indexPersons,
@@ -80,6 +81,8 @@ function matchFilter(
 		return false;
 	}
 
+	const raw = cell.raw ?? "";
+
 	if (op === "in") {
 		const arr = Array.isArray(filter.value) ? filter.value : [];
 		if (kind === "tags") {
@@ -94,11 +97,11 @@ function matchFilter(
 				return t === id || normText(t) === name;
 			});
 		}
-		return arr.some((v) => v === cell.raw);
+		// select (and other string `in`): trim elements so worker-accepted " A " matches
+		return arr.some((v) => v.trim() === raw.trim() || v === raw);
 	}
 
 	const fv = typeof filter.value === "string" ? filter.value : "";
-	const raw = cell.raw ?? "";
 
 	if (kind === "person-ref") {
 		// Match resolved manager name (what the grid shows) or person id.
@@ -188,20 +191,21 @@ function matchFilter(
 		}
 	}
 
-	// select / date: case-sensitive eq
+	// select / date: exact match with trimmed filter value (options themselves untrimmed)
+	const fvTrim = fv.trim();
 	switch (op) {
 		case "eq":
-			return raw === fv;
+			return raw === fv || raw === fvTrim;
 		case "neq":
-			return raw !== fv;
+			return raw !== fv && raw !== fvTrim;
 		case "gt":
-			return raw > fv;
+			return raw > fvTrim;
 		case "gte":
-			return raw >= fv;
+			return raw >= fvTrim;
 		case "lt":
-			return raw < fv;
+			return raw < fvTrim;
 		case "lte":
-			return raw <= fv;
+			return raw <= fvTrim;
 		default:
 			return false;
 	}
@@ -234,6 +238,11 @@ export function buildGrid(
 		}
 		const meta = resolveColumnMeta(f.key as ColumnKey, defs);
 		if (meta.label === "Missing field" && f.key.startsWith("field:")) {
+			skippedFilters++;
+			continue;
+		}
+		// Field type change (e.g. text→number) leaves illegal ops; skip instead of matching none
+		if (!isFilterOpAllowedForKind(meta.kind, f.op)) {
 			skippedFilters++;
 			continue;
 		}

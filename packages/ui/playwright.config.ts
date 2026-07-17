@@ -26,7 +26,10 @@ export default defineConfig({
 	],
 
 	webServer: {
-		command: "cd ../worker && bunx wrangler dev --port 27036 --local --persist-to .wrangler/e2e-pw",
+		// Apply D1 migrations into the Playwright persist dir before serving —
+		// otherwise /api/w/* returns 500 (missing tables) while smoke still “passes”.
+		command:
+			"cd ../worker && bunx wrangler d1 migrations apply bogo --local --persist-to .wrangler/e2e-pw && bunx wrangler dev --port 27036 --local --persist-to .wrangler/e2e-pw",
 		url: "http://localhost:27036/api/live",
 		reuseExistingServer: !process.env.CI,
 		timeout: 120_000,
