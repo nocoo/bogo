@@ -1,6 +1,10 @@
 import type { CustomFieldDefinition, Person } from "@bogo/shared";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { indexFieldValues, indexPersons, resolveCell, utcDay } from "./resolve-cell.js";
+
+afterEach(() => {
+	vi.useRealTimers();
+});
 
 const FIELD_ID = "019a0000-0000-7000-8000-0000000000f1";
 const FIELD_KEY = `field:${FIELD_ID}` as const;
@@ -116,6 +120,29 @@ describe("resolveCell", () => {
 			"Yes",
 		);
 		expect(resolveCell(p, "builtin:managerId", [], new Map(), persons).display).toBe("—");
+	});
+
+	it("appends calendar distance for date fields", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(2026, 6, 17)); // 2026-07-17 local
+		const dateDef: CustomFieldDefinition = {
+			...levelDef,
+			fieldType: "date",
+			defaultValue: null,
+		};
+		const persons = indexPersons([basePerson]);
+		const values = indexFieldValues([
+			{
+				id: "v",
+				workspaceId: "ws",
+				personId: "p1",
+				fieldDefId: FIELD_ID,
+				value: "2025-04-22",
+			},
+		]);
+		const cell = resolveCell(basePerson, FIELD_KEY, [dateDef], values, persons);
+		expect(cell.raw).toBe("2025-04-22");
+		expect(cell.display).toBe("2025-04-22 (1y 2m 25d)");
 	});
 
 	it("handles missing manager lookup and empty stored field", () => {

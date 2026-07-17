@@ -1,5 +1,6 @@
 import type { ColumnKey, CustomFieldDefinition, CustomFieldValue, Person } from "@bogo/shared";
 import { builtinNameFromKey, fieldIdFromColumnKey } from "@bogo/shared";
+import { formatDateWithDistance } from "../../lib/date-distance.js";
 
 export type ResolvedCell = {
 	/** Display string (em-dash for empty). */
@@ -125,6 +126,10 @@ function formatFieldDisplay(value: string, def: CustomFieldDefinition | undefine
 	if (!def) return value;
 	if (def.fieldType === "boolean") {
 		return value === "true" ? "Yes" : value === "false" ? "No" : value;
+	}
+	if (def.fieldType === "date") {
+		// Keep raw as YYYY-MM-DD for sort/filter; display adds (1y 2m 25d).
+		return formatDateWithDistance(value);
 	}
 	return value;
 }
