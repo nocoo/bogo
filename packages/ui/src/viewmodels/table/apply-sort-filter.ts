@@ -301,10 +301,9 @@ export function buildGrid(
 			return ra.person.id.localeCompare(rb.person.id);
 		});
 	} else {
+		// Default name ASC — same trim norms as explicit column sort
 		sorted.sort((a, b) => {
-			const cmp = a.person.name.localeCompare(b.person.name, "en-US", {
-				sensitivity: "base",
-			});
+			const cmp = compareRaw(a.person.name, b.person.name, "text", "asc");
 			if (cmp !== 0) return cmp;
 			return a.person.id.localeCompare(b.person.id);
 		});

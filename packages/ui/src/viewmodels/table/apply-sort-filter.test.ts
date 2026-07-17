@@ -39,6 +39,18 @@ describe("buildGrid", () => {
 		expect(grid.total).toBe(2);
 	});
 
+	it("default name ASC trims both sides (sort: null)", () => {
+		const persons = [
+			person({ id: "z", name: " Z" }),
+			person({ id: "a", name: "A" }),
+			person({ id: "m", name: "M" }),
+		];
+		const view: PersonTableView = { ...viewBase, sort: null };
+		const grid = buildGrid(view, persons, [], []);
+		// " Z" trims to "Z" → after A, M
+		expect(grid.rows.map((r) => r.person.id)).toEqual(["a", "m", "z"]);
+	});
+
 	it("sorts by column and filters with contains", () => {
 		const persons = [
 			person({ id: "a", name: "Alice", title: "Engineer" }),
