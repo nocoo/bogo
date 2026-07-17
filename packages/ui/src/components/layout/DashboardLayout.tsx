@@ -37,7 +37,12 @@ function resolveBreadcrumbs(pathname: string): BreadcrumbItem[] {
 		if (pathname.startsWith(`${path}/`)) {
 			items.push({ label, href: path });
 			const rest = pathname.slice(path.length + 1);
-			items.push({ label: rest });
+			// People editor: /people/:id → show "Edit" rather than raw uuid
+			if (path === "/people" && rest && !rest.includes("/")) {
+				items.push({ label: "Edit" });
+			} else {
+				items.push({ label: rest });
+			}
 			return items;
 		}
 	}

@@ -2,14 +2,10 @@ import type { ColumnKey, ViewFilter, ViewSort } from "@bogo/shared";
 import { DEFAULT_TABLE_VIEW_COLUMNS, DEFAULT_TABLE_VIEW_NAME } from "@bogo/shared";
 import { Columns3, Plus, Star, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
-import { EditPersonPanel } from "@/components/person/EditPersonPanel";
+import { Link, useSearchParams } from "react-router";
 import { TagBadge } from "@/components/TagBadge";
 import { useWorkspaceContext } from "@/contexts/workspace-context";
 import { cn } from "@/lib/utils";
-import { useFieldDefs } from "@/viewmodels/field/use-field-defs";
-import { useFieldValues } from "@/viewmodels/field/use-field-values";
-import { usePersonList } from "@/viewmodels/person/use-person-list";
 import { builtinColumnMetas, resolveColumnMeta } from "@/viewmodels/table/column-catalog";
 import { useTableGrid } from "@/viewmodels/table/use-table-grid";
 import { useTableViews } from "@/viewmodels/table/use-table-views";
@@ -32,9 +28,6 @@ export function TablePage() {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const viewParam = searchParams.get("view");
 	const { workspaceId } = useWorkspaceContext();
-	const navigate = useNavigate();
-	const personList = usePersonList();
-	const fieldDefsVm = useFieldDefs();
 
 	const {
 		views,
@@ -63,13 +56,6 @@ export function TablePage() {
 	}, [viewsLoading, views, viewParam, defaultView, setSearchParams]);
 
 	const { grid, defs, isLoading: gridLoading } = useTableGrid(activeView);
-
-	const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
-	const selectedPerson = useMemo(
-		() => personList.persons.find((p) => p.id === selectedPersonId) ?? null,
-		[personList.persons, selectedPersonId],
-	);
-	const fieldValuesVm = useFieldValues(selectedPersonId ?? "");
 
 	const [configOpen, setConfigOpen] = useState(false);
 	const [filtersOpen, setFiltersOpen] = useState(false);
@@ -422,13 +408,9 @@ export function TablePage() {
 				{!loading && grid && grid.total === 0 && (
 					<div className="flex flex-col items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
 						<p>No people yet.</p>
-						<button
-							type="button"
-							className="btn-primary btn-sm"
-							onClick={() => navigate("/people")}
-						>
+						<Link to="/people" className="btn-primary btn-sm">
 							Go to People
-						</button>
+						</Link>
 					</div>
 				)}
 				{!loading && grid && grid.total > 0 && (
@@ -460,27 +442,27 @@ export function TablePage() {
 										</th>
 									);
 								})}
-								<th scope="col">Actions</th>
 							</tr>
 						</thead>
 						<tbody>
 							{grid.rows.map((row) => (
-								<tr
-									key={row.person.id}
-									className="cursor-pointer"
-									onClick={() => setSelectedPersonId(row.person.id)}
-									onKeyDown={(e) => {
-										if (e.key === "Enter") setSelectedPersonId(row.person.id);
-									}}
-								>
+								<tr key={row.person.id}>
 									{columnMetas.map((col) => {
 										const cell = row.cells[col.key];
+										const isName = col.key === "builtin:name";
 										return (
 											<td
 												key={col.key}
 												className={cn(cell?.isDefault && "italic text-muted-foreground")}
 											>
-												{col.kind === "tags" && cell?.tags ? (
+												{isName ? (
+													<Link
+														to={`/people/${row.person.id}`}
+														className="font-medium text-primary hover:underline"
+													>
+														{cell?.display ?? "—"}
+													</Link>
+												) : col.kind === "tags" && cell?.tags ? (
 													<span className="flex flex-wrap gap-1">
 														{cell.tags.map((t) => (
 															<TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
@@ -493,18 +475,6 @@ export function TablePage() {
 											</td>
 										);
 									})}
-									<td>
-										<button
-											type="button"
-											className="btn-ghost btn-sm text-primary"
-											onClick={(e) => {
-												e.stopPropagation();
-												setSelectedPersonId(row.person.id);
-											}}
-										>
-											Open
-										</button>
-									</td>
 								</tr>
 							))}
 						</tbody>
@@ -518,23 +488,6 @@ export function TablePage() {
 				{grid && grid.skippedFilters > 0 ? ` · ${grid.skippedFilters} filter(s) skipped` : ""}
 				{activeView ? ` · ${activeView.name || DEFAULT_TABLE_VIEW_NAME}` : ""}
 			</footer>
-
-			{selectedPerson && (
-				<EditPersonPanel
-					person={selectedPerson}
-					persons={personList.persons}
-					onUpdate={personList.update}
-					onMove={personList.move}
-					onRemove={(id) => {
-						personList.remove(id);
-						setSelectedPersonId(null);
-					}}
-					onClose={() => setSelectedPersonId(null)}
-					isRemoving={personList.isRemoving}
-					fieldDefs={fieldDefsVm.defs}
-					fieldValuesVm={fieldValuesVm}
-				/>
-			)}
 		</div>
 	);
 }

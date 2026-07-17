@@ -8,6 +8,7 @@ import { DocumentsPage } from "@/pages/DocumentsPage";
 import { FieldsSettingsPage } from "@/pages/FieldsSettingsPage";
 import { OverviewPage } from "@/pages/OverviewPage";
 import { PeoplePage } from "@/pages/PeoplePage";
+import { PersonEditorPage } from "@/pages/PersonEditorPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { TablePage } from "@/pages/TablePage";
 import { TagsSettingsPage } from "@/pages/TagsSettingsPage";
@@ -23,6 +24,7 @@ export function App() {
 						<Route path="/documents" element={<DocumentsPage />} />
 						<Route path="/documents/:id" element={<DocumentEditorPage />} />
 						<Route path="/people" element={<PeoplePage />} />
+						<Route path="/people/:id" element={<PersonEditorPage />} />
 						<Route path="/table" element={<TablePage />} />
 						<Route path="/workspaces" element={<WorkspacesPage />} />
 						<Route path="/settings" element={<SettingsPage />} />
