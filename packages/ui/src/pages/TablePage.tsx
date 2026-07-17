@@ -399,6 +399,11 @@ export function TablePage() {
 										<input
 											className="field field-sm min-w-[8rem] flex-1"
 											value={typeof f.value === "string" ? f.value : ""}
+											placeholder={
+												columnMetas.find((c) => c.key === f.key)?.kind === "person-ref"
+													? "Person name, e.g. Zheng Li"
+													: undefined
+											}
 											onChange={(e) => {
 												const value = e.target.value;
 												setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, value } : x)));

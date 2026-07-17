@@ -87,7 +87,12 @@ function matchFilter(
 			return arr.some((id) => ids.has(id.trim()));
 		}
 		if (kind === "person-ref") {
-			return arr.some((id) => id.trim() === cell.refId);
+			const id = cell.refId ?? "";
+			const name = normText(cell.raw ?? "");
+			return arr.some((v) => {
+				const t = v.trim();
+				return t === id || normText(t) === name;
+			});
 		}
 		return arr.some((v) => v === cell.raw);
 	}
@@ -96,10 +101,23 @@ function matchFilter(
 	const raw = cell.raw ?? "";
 
 	if (kind === "person-ref") {
-		const id = cell.refId ?? null;
-		if (op === "eq") return id === fv.trim();
-		if (op === "neq") return id !== fv.trim();
-		return false;
+		// Match resolved manager name (what the grid shows) or person id.
+		const id = cell.refId ?? "";
+		const name = normText(raw);
+		const needle = fv.trim();
+		const needleNorm = normText(needle);
+		switch (op) {
+			case "eq":
+				return id === needle || name === needleNorm;
+			case "neq":
+				return id !== needle && name !== needleNorm;
+			case "contains":
+				return name.includes(needleNorm);
+			case "not_contains":
+				return !name.includes(needleNorm);
+			default:
+				return false;
+		}
 	}
 
 	if (kind === "date-day") {

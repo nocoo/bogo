@@ -111,7 +111,16 @@ const OPS: Record<ColumnFilterKind, ReadonlySet<FilterOperator>> = {
 	"date-day": new Set(["eq", "neq", "gt", "gte", "lt", "lte", "is_empty", "is_not_empty"]),
 	boolean: new Set(["eq", "neq", "is_empty", "is_not_empty"]),
 	select: new Set(["eq", "neq", "in", "is_empty", "is_not_empty"]),
-	"person-ref": new Set(["eq", "neq", "in", "is_empty", "is_not_empty"]),
+	// person-ref: value is resolved manager name (preferred) or person id
+	"person-ref": new Set([
+		"eq",
+		"neq",
+		"contains",
+		"not_contains",
+		"in",
+		"is_empty",
+		"is_not_empty",
+	]),
 	tags: new Set(["in", "is_empty", "is_not_empty"]),
 	none: new Set(),
 };
@@ -177,8 +186,11 @@ function validateValueFormat(
 		if (!Array.isArray(value)) return "in requires string array";
 		for (const el of value) {
 			const t = el.trim();
-			if (kind === "person-ref" || kind === "tags") {
+			if (kind === "tags") {
 				if (!isUuidString(t)) return "in elements must be UUIDs";
+			} else if (kind === "person-ref") {
+				// person id (uuid) or resolved display name
+				if (t === "") return "in elements must be non-empty";
 			} else if (kind === "select") {
 				if (options && !options.includes(el) && !options.includes(t)) {
 					// allow exact option match; options are case-sensitive as stored
@@ -208,7 +220,8 @@ function validateValueFormat(
 			}
 			return null;
 		case "person-ref":
-			return isUuidString(v.trim()) ? null : "value must be a UUID";
+			// Prefer resolved manager name in the UI; person id still accepted.
+			return v.trim() === "" ? "value must be non-empty" : null;
 		// tags / none: non-empty ops are rejected earlier via OPS allow-list
 		default:
 			return "column is not filterable";

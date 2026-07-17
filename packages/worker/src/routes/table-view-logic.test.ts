@@ -127,6 +127,20 @@ describe("table-view-logic", () => {
 		).toBeNull();
 		expect(
 			validateFilterAgainstColumn(
+				{ key: "builtin:managerId", op: "eq", value: "Zheng Li" },
+				cols,
+				defs,
+			),
+		).toBeNull();
+		expect(
+			validateFilterAgainstColumn(
+				{ key: "builtin:managerId", op: "contains", value: "Zheng" },
+				cols,
+				defs,
+			),
+		).toBeNull();
+		expect(
+			validateFilterAgainstColumn(
 				{ key: "builtin:managerId", op: "in", value: [PERSON_ID] },
 				cols,
 				defs,
@@ -134,7 +148,14 @@ describe("table-view-logic", () => {
 		).toBeNull();
 		expect(
 			validateFilterAgainstColumn(
-				{ key: "builtin:managerId", op: "in", value: ["nope"] },
+				{ key: "builtin:managerId", op: "in", value: ["Zheng Li"] },
+				cols,
+				defs,
+			),
+		).toBeNull();
+		expect(
+			validateFilterAgainstColumn(
+				{ key: "builtin:managerId", op: "in", value: ["  "] },
 				cols,
 				defs,
 			),

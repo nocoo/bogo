@@ -265,8 +265,38 @@ describe("buildGrid", () => {
 			columns: ["builtin:name", "builtin:managerId"],
 			filters: [{ key: "builtin:managerId", op: "eq", value: "boss" }],
 		};
-		// person-ref eq uses refId
+		// person-ref eq matches person id
 		expect(buildGrid(vRef, [boss, a, b], [], []).filteredCount).toBe(1);
+
+		const vRefByName: PersonTableView = {
+			...viewBase,
+			columns: ["builtin:name", "builtin:managerId"],
+			filters: [{ key: "builtin:managerId", op: "eq", value: "Boss" }],
+		};
+		// person-ref eq also matches resolved display name (case-insensitive)
+		expect(buildGrid(vRefByName, [boss, a, b], [], []).filteredCount).toBe(1);
+
+		const vRefContains: PersonTableView = {
+			...viewBase,
+			columns: ["builtin:name", "builtin:managerId"],
+			filters: [{ key: "builtin:managerId", op: "contains", value: "bos" }],
+		};
+		expect(buildGrid(vRefContains, [boss, a, b], [], []).filteredCount).toBe(1);
+
+		const vRefNotContains: PersonTableView = {
+			...viewBase,
+			columns: ["builtin:name", "builtin:managerId"],
+			filters: [{ key: "builtin:managerId", op: "not_contains", value: "boss" }],
+		};
+		// only rows with a manager name that does not contain "boss"
+		expect(buildGrid(vRefNotContains, [boss, a, b], [], []).filteredCount).toBe(0);
+
+		const vRefInByName: PersonTableView = {
+			...viewBase,
+			columns: ["builtin:name", "builtin:managerId"],
+			filters: [{ key: "builtin:managerId", op: "in", value: ["Boss"] }],
+		};
+		expect(buildGrid(vRefInByName, [boss, a, b], [], []).filteredCount).toBe(1);
 
 		const vEmpty: PersonTableView = {
 			...viewBase,
