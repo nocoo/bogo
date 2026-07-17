@@ -4,7 +4,7 @@ import {
 	DEFAULT_TABLE_VIEW_NAME,
 	fieldIdFromColumnKey,
 } from "@bogo/shared";
-import { Columns3, Plus, Trash2 } from "lucide-react";
+import { Columns3, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -69,6 +69,7 @@ export function TablePage() {
 	const [draftColumns, setDraftColumns] = useState<ColumnKey[]>([]);
 	const [filterDraft, setFilterDraft] = useState<ViewFilter[]>([]);
 	const [filterError, setFilterError] = useState<string | null>(null);
+	const [createDialogOpen, setCreateDialogOpen] = useState(false);
 	const [newViewName, setNewViewName] = useState("");
 
 	// Reset drafts only when switching views — not when sort/filter PUT refreshes activeView
@@ -143,14 +144,28 @@ export function TablePage() {
 		}
 	};
 
+	const openCreateDialog = () => {
+		setNewViewName("");
+		setCreateDialogOpen(true);
+	};
+
+	const closeCreateDialog = () => {
+		setCreateDialogOpen(false);
+		setNewViewName("");
+	};
+
 	const handleCreateView = async () => {
-		const name = newViewName.trim() || "New view";
+		const name = newViewName.trim();
+		if (!name) {
+			toast.error("View name is required");
+			return;
+		}
 		try {
 			const created = await createView({
 				name,
 				columns: [...DEFAULT_TABLE_VIEW_COLUMNS],
 			});
-			setNewViewName("");
+			closeCreateDialog();
 			setSearchParams({ view: created.id });
 		} catch (e) {
 			toast.error(e instanceof Error ? e.message : "Failed to create view");
@@ -229,28 +244,16 @@ export function TablePage() {
 						})}
 					</nav>
 
-					<div className="flex shrink-0 items-center gap-1.5">
-						<input
-							className="field field-sm w-28 sm:w-36"
-							placeholder="Name…"
-							value={newViewName}
-							onChange={(e) => setNewViewName(e.target.value)}
-							onKeyDown={(e) => {
-								if (e.key === "Enter") void handleCreateView();
-							}}
-							aria-label="New view name"
-						/>
-						<button
-							type="button"
-							className="btn-secondary btn-sm"
-							onClick={handleCreateView}
-							disabled={isSaving}
-							title="Create view"
-						>
-							<Plus className="h-3.5 w-3.5" strokeWidth={2} />
-							<span className="hidden sm:inline">New</span>
-						</button>
-					</div>
+					<button
+						type="button"
+						className="btn-icon h-7 w-7 shrink-0"
+						onClick={openCreateDialog}
+						disabled={isSaving}
+						title="New view"
+						aria-label="New view"
+					>
+						<Plus className="h-3.5 w-3.5" strokeWidth={2} />
+					</button>
 				</div>
 
 				{/* Active-view tools */}
@@ -608,6 +611,67 @@ export function TablePage() {
 					</span>
 				) : null}
 			</footer>
+
+			{createDialogOpen ? (
+				// biome-ignore lint/a11y/useKeyWithClickEvents: backdrop dismiss pattern
+				// biome-ignore lint/a11y/noStaticElementInteractions: backdrop overlay, ESC-closable
+				<div
+					className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[20vh] backdrop-blur-xs"
+					onClick={closeCreateDialog}
+				>
+					{/* biome-ignore lint/a11y/useKeyWithClickEvents: stop propagation for modal */}
+					<div
+						role="dialog"
+						aria-modal="true"
+						aria-labelledby="create-view-title"
+						className="w-full max-w-sm rounded-xl border border-border bg-card p-4 shadow-lg"
+						onClick={(e) => e.stopPropagation()}
+					>
+						<div className="mb-3 flex items-center justify-between gap-2">
+							<h3 id="create-view-title" className="text-sm font-semibold text-foreground">
+								New view
+							</h3>
+							<button
+								type="button"
+								className="btn-icon h-7 w-7"
+								onClick={closeCreateDialog}
+								aria-label="Close create view dialog"
+							>
+								<X className="h-4 w-4" strokeWidth={1.5} />
+							</button>
+						</div>
+						<label htmlFor="create-view-name" className="text-xs text-muted-foreground">
+							Name
+						</label>
+						<input
+							id="create-view-name"
+							className="field mt-1 w-full"
+							value={newViewName}
+							onChange={(e) => setNewViewName(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === "Enter") void handleCreateView();
+								if (e.key === "Escape") closeCreateDialog();
+							}}
+							placeholder="e.g. Engineering"
+							// biome-ignore lint/a11y/noAutofocus: open dialog focuses name field
+							autoFocus={true}
+						/>
+						<div className="mt-4 flex items-center justify-end gap-2">
+							<button type="button" className="btn-ghost btn-sm" onClick={closeCreateDialog}>
+								Cancel
+							</button>
+							<button
+								type="button"
+								className="btn-primary btn-sm"
+								onClick={() => void handleCreateView()}
+								disabled={isSaving || !newViewName.trim()}
+							>
+								Create
+							</button>
+						</div>
+					</div>
+				</div>
+			) : null}
 		</div>
 	);
 }
