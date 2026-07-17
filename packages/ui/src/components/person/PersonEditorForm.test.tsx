@@ -97,7 +97,7 @@ describe("PersonEditorForm", () => {
 		expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe("Alice");
 	});
 
-	it("shows custom fields section on page when defs provided", () => {
+	it("shows custom fields and reporting sections on page when defs provided", () => {
 		render(
 			<PersonEditorForm
 				person={ALICE}
@@ -112,6 +112,7 @@ describe("PersonEditorForm", () => {
 			/>,
 		);
 		expect(screen.getByText("Custom fields")).toBeTruthy();
+		expect(screen.getByText("Reporting")).toBeTruthy();
 		expect(screen.getByTestId("person-field-values")).toBeTruthy();
 	});
 

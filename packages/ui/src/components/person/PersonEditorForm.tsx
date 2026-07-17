@@ -108,150 +108,189 @@ export function PersonEditorForm({
 		? "field-select mt-1 w-full"
 		: "field-select field-sm mt-1 w-full bg-background";
 
-	return (
-		<div className={isPage ? "space-y-5" : "space-y-3"}>
-			{/* Identity */}
-			<div className={isPage ? "panel-l2 p-4 space-y-4" : "space-y-3"}>
-				{isPage && <h2 className="text-sm font-semibold text-foreground">Profile</h2>}
+	const hasCustomFields = Boolean(fieldDefs && fieldValuesVm && fieldDefs.length > 0);
 
-				<div>
-					<span className="text-xs font-medium text-muted-foreground">Avatar</span>
-					<div className="mt-1.5 flex items-center gap-3">
-						<PersonAvatar name={name || person.name} avatarUrl={avatarUrl || null} size="lg" />
-						<div className="min-w-0 flex-1 space-y-1">
-							<input
-								id="edit-avatar"
-								type="url"
-								value={avatarUrl}
-								onChange={(e) => setAvatarUrl(e.target.value)}
-								placeholder="https://… (leave empty for letter avatar)"
-								className={fieldClass}
-								aria-label="Avatar URL"
-							/>
-							<p className="text-[11px] text-muted-foreground">
-								Leave blank to use a colored letter avatar.
-							</p>
-						</div>
-					</div>
-				</div>
-
-				<div className={isPage ? "grid gap-4 sm:grid-cols-2" : "space-y-3"}>
-					<div>
-						<label htmlFor="edit-name" className="text-xs font-medium text-muted-foreground">
-							Name
-						</label>
-						<input
-							id="edit-name"
-							type="text"
-							value={name}
-							onChange={(e) => setName(e.target.value)}
-							className={fieldClass}
-						/>
-					</div>
-
-					<div>
-						<label htmlFor="edit-title" className="text-xs font-medium text-muted-foreground">
-							Title
-						</label>
-						<input
-							id="edit-title"
-							type="text"
-							value={title}
-							onChange={(e) => setTitle(e.target.value)}
-							placeholder="Job title"
-							className={fieldClass}
-						/>
-					</div>
-				</div>
-
-				<div className={isPage ? "grid gap-4 sm:grid-cols-2" : "space-y-3"}>
-					{!person.isRoot && (
-						<div>
-							<label htmlFor="edit-manager" className="text-xs font-medium text-muted-foreground">
-								Manager
-							</label>
-							<select
-								id="edit-manager"
-								value={managerId ?? ""}
-								onChange={(e) => handleManagerChange(e.target.value)}
-								className={selectClass}
-							>
-								{eligibleManagers.map((p) => (
-									<option key={p.id} value={p.id}>
-										{p.name}
-									</option>
-								))}
-							</select>
-						</div>
-					)}
-
-					<div>
-						<label htmlFor="edit-dotted" className="text-xs font-medium text-muted-foreground">
-							Dotted-line manager
-						</label>
-						<select
-							id="edit-dotted"
-							value={dottedManagerId ?? ""}
-							onChange={(e) => setDottedManagerId(e.target.value || null)}
-							className={selectClass}
-						>
-							<option value="">None</option>
-							{eligibleDottedManagers.map((p) => (
-								<option key={p.id} value={p.id}>
-									{p.name}
-								</option>
-							))}
-						</select>
-					</div>
+	const avatarBlock = (
+		<div>
+			<span className="text-xs font-medium text-muted-foreground">Avatar</span>
+			<div className="mt-1.5 flex items-center gap-3">
+				<PersonAvatar name={name || person.name} avatarUrl={avatarUrl || null} size="lg" />
+				<div className="min-w-0 flex-1 space-y-1">
+					<input
+						id="edit-avatar"
+						type="url"
+						value={avatarUrl}
+						onChange={(e) => setAvatarUrl(e.target.value)}
+						placeholder="https://… (leave empty for letter avatar)"
+						className={fieldClass}
+						aria-label="Avatar URL"
+					/>
+					<p className="text-[11px] text-muted-foreground">
+						Leave blank to use a colored letter avatar.
+					</p>
 				</div>
 			</div>
+		</div>
+	);
 
-			{/* Custom fields */}
-			{fieldDefs && fieldValuesVm && fieldDefs.length > 0 && (
-				<div className={isPage ? "panel-l2 p-4" : undefined}>
-					{isPage && <h2 className="mb-3 text-sm font-semibold text-foreground">Custom fields</h2>}
-					<PersonFieldValues defs={fieldDefs} vm={fieldValuesVm} />
+	const nameTitleBlock = (
+		<div className={isPage ? "grid gap-4 sm:grid-cols-2" : "space-y-3"}>
+			<div>
+				<label htmlFor="edit-name" className="text-xs font-medium text-muted-foreground">
+					Name
+				</label>
+				<input
+					id="edit-name"
+					type="text"
+					value={name}
+					onChange={(e) => setName(e.target.value)}
+					className={fieldClass}
+				/>
+			</div>
+			<div>
+				<label htmlFor="edit-title" className="text-xs font-medium text-muted-foreground">
+					Title
+				</label>
+				<input
+					id="edit-title"
+					type="text"
+					value={title}
+					onChange={(e) => setTitle(e.target.value)}
+					placeholder="Job title"
+					className={fieldClass}
+				/>
+			</div>
+		</div>
+	);
+
+	const managersBlock = (
+		<div className={isPage ? "grid gap-4 sm:grid-cols-2" : "space-y-3"}>
+			{!person.isRoot && (
+				<div>
+					<label htmlFor="edit-manager" className="text-xs font-medium text-muted-foreground">
+						Manager
+					</label>
+					<select
+						id="edit-manager"
+						value={managerId ?? ""}
+						onChange={(e) => handleManagerChange(e.target.value)}
+						className={selectClass}
+					>
+						{eligibleManagers.map((p) => (
+							<option key={p.id} value={p.id}>
+								{p.name}
+							</option>
+						))}
+					</select>
 				</div>
 			)}
+			<div>
+				<label htmlFor="edit-dotted" className="text-xs font-medium text-muted-foreground">
+					Dotted-line manager
+				</label>
+				<select
+					id="edit-dotted"
+					value={dottedManagerId ?? ""}
+					onChange={(e) => setDottedManagerId(e.target.value || null)}
+					className={selectClass}
+				>
+					<option value="">None</option>
+					{eligibleDottedManagers.map((p) => (
+						<option key={p.id} value={p.id}>
+							{p.name}
+						</option>
+					))}
+				</select>
+			</div>
+		</div>
+	);
 
-			{/* Tags */}
-			<div className={isPage ? "panel-l2 p-4" : undefined}>
+	const actions = (
+		<div
+			className={
+				isPage
+					? "page-toolbar border-t border-border/60 pt-3"
+					: "flex items-center justify-between border-t border-border pt-2"
+			}
+		>
+			<button type="button" onClick={handleSave} className="btn-primary">
+				<Save className="h-3.5 w-3.5" strokeWidth={2} />
+				Save
+			</button>
+
+			{!person.isRoot && (
+				<button
+					type="button"
+					onClick={() => onRemove(person.id)}
+					disabled={isRemoving}
+					className="btn-destructive ml-auto"
+					aria-label={`Delete ${person.name}`}
+				>
+					{isRemoving ? (
+						<Loader2 className="h-3.5 w-3.5 animate-spin" />
+					) : (
+						<Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+					)}
+					Delete
+				</button>
+			)}
+		</div>
+	);
+
+	if (isPage) {
+		return (
+			<div className="flex flex-col gap-4">
+				{/* Full-width two-column board — matches Settings / Table L2 panels */}
+				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+					<section className="panel-l2 space-y-4 p-4 md:p-5">
+						<h2 className="text-sm font-semibold text-foreground">Profile</h2>
+						{avatarBlock}
+						{nameTitleBlock}
+					</section>
+
+					<section className="panel-l2 space-y-4 p-4 md:p-5">
+						<h2 className="text-sm font-semibold text-foreground">Reporting</h2>
+						{managersBlock}
+					</section>
+
+					{hasCustomFields && fieldDefs && fieldValuesVm ? (
+						<section className="panel-l2 p-4 md:p-5">
+							<h2 className="mb-3 text-sm font-semibold text-foreground">Custom fields</h2>
+							<PersonFieldValues defs={fieldDefs} vm={fieldValuesVm} />
+						</section>
+					) : null}
+
+					<section className="panel-l2 p-4 md:p-5">
+						<h2 className="mb-3 text-sm font-semibold text-foreground">Tags</h2>
+						<TagPicker scope="person" entityId={person.id} assignedTags={person.tags} />
+					</section>
+				</div>
+
+				{actions}
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-3">
+			<div className="space-y-3">
+				{avatarBlock}
+				{nameTitleBlock}
+				{managersBlock}
+			</div>
+
+			{hasCustomFields && fieldDefs && fieldValuesVm ? (
+				<PersonFieldValues defs={fieldDefs} vm={fieldValuesVm} />
+			) : null}
+
+			<div>
 				<span className="text-xs font-medium text-muted-foreground">Tags</span>
 				<div className="mt-1.5">
 					<TagPicker scope="person" entityId={person.id} assignedTags={person.tags} />
 				</div>
 			</div>
 
-			{/* Actions */}
-			<div
-				className={
-					isPage
-						? "flex items-center justify-between gap-3 border-t border-border pt-4"
-						: "flex items-center justify-between border-t border-border pt-2"
-				}
-			>
-				<button type="button" onClick={handleSave} className="btn-primary">
-					<Save className="h-3.5 w-3.5" strokeWidth={2} />
-					Save
-				</button>
-
-				{!person.isRoot && (
-					<button
-						type="button"
-						onClick={() => onRemove(person.id)}
-						disabled={isRemoving}
-						className="btn-destructive"
-						aria-label={`Delete ${person.name}`}
-					>
-						{isRemoving ? (
-							<Loader2 className="h-3.5 w-3.5 animate-spin" />
-						) : (
-							<Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
-						)}
-						Delete
-					</button>
-				)}
-			</div>
+			{actions}
 		</div>
 	);
 }

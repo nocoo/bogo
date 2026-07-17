@@ -24,6 +24,16 @@ function resolveBreadcrumbs(pathname: string): BreadcrumbItem[] {
 		return [{ label: "Overview" }];
 	}
 
+	// Person editor opens from Table (name click). Trail follows that flow
+	// rather than dumping a raw id under People.
+	if (/^\/people\/[^/]+$/.test(pathname)) {
+		return [
+			{ label: "Home", href: "/" },
+			{ label: "Table", href: "/table" },
+			{ label: "Edit person" },
+		];
+	}
+
 	const items: BreadcrumbItem[] = [{ label: "Home", href: "/" }];
 
 	for (const [path, label] of Object.entries(SECTION_LABELS)) {
@@ -37,12 +47,7 @@ function resolveBreadcrumbs(pathname: string): BreadcrumbItem[] {
 		if (pathname.startsWith(`${path}/`)) {
 			items.push({ label, href: path });
 			const rest = pathname.slice(path.length + 1);
-			// People editor: /people/:id → show "Edit" rather than raw uuid
-			if (path === "/people" && rest && !rest.includes("/")) {
-				items.push({ label: "Edit" });
-			} else {
-				items.push({ label: rest });
-			}
+			items.push({ label: rest });
 			return items;
 		}
 	}

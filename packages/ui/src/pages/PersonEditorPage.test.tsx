@@ -143,8 +143,8 @@ describe("PersonEditorPage", () => {
 
 		renderAtPath("/people/missing");
 		expect(screen.getByText("Person not found.")).toBeTruthy();
-		fireEvent.click(screen.getByText("Back to People"));
-		expect(screen.getByText("People page")).toBeTruthy();
+		fireEvent.click(screen.getByText("Back to Table"));
+		expect(screen.getByText("Table page")).toBeTruthy();
 	});
 
 	it("renders editor form for found person", () => {
@@ -157,12 +157,13 @@ describe("PersonEditorPage", () => {
 		expect(screen.getByText("Engineer")).toBeTruthy();
 	});
 
-	it("omits title subtitle when person has empty title", () => {
+	it("shows No title placeholder when person has empty title", () => {
 		withWorkspace("ws-1");
 		mockUsePersonList.mockReturnValue(basePersonList({ persons: [{ ...ALICE, title: "" }] }));
 
 		renderAtPath("/people/p-alice");
 		expect(screen.getByRole("heading", { name: "Alice" })).toBeTruthy();
+		expect(screen.getByText("No title")).toBeTruthy();
 		expect(screen.queryByText("Engineer")).toBeNull();
 	});
 
@@ -175,20 +176,5 @@ describe("PersonEditorPage", () => {
 		fireEvent.click(screen.getByText("Delete mock"));
 		expect(remove).toHaveBeenCalledWith("p-alice");
 		expect(screen.getByText("Table page")).toBeTruthy();
-	});
-
-	it("back button navigates away", () => {
-		withWorkspace("ws-1");
-		mockUsePersonList.mockReturnValue(basePersonList());
-
-		renderAtPath("/people/p-alice");
-		fireEvent.click(screen.getByLabelText("Go back"));
-		// history may go back or fall through; either leaves editor form mounted path
-		// In MemoryRouter with single entry, navigate(-1) may no-op; goBack falls back to /table
-		// when history.length <= 1 — MemoryRouter usually has length >= 1.
-		// Assert button is wired (click does not throw) and form was present.
-		expect(
-			screen.queryByTestId("person-editor-form") || screen.getByText("Table page"),
-		).toBeTruthy();
 	});
 });
