@@ -4,6 +4,7 @@ import {
 	isUuidString,
 	isValidDateYmd,
 	isValidFiniteNumberString,
+	validateFilterWireShape,
 } from "@bogo/shared";
 import type { ColumnMeta } from "./column-catalog.js";
 import { isFilterOpAllowedForKind } from "./filter-ops.js";
@@ -20,6 +21,10 @@ export function validateFilterValue(
 	meta: ColumnMeta,
 	def: CustomFieldDefinition | undefined,
 ): string | null {
+	// Wire shape first: is_empty/is_not_empty must have null/omitted value, etc.
+	const wire = validateFilterWireShape(filter);
+	if (wire) return wire;
+
 	if (!meta.filterable || meta.kind === "avatar") {
 		return `Column “${meta.label}” is not filterable`;
 	}

@@ -17,7 +17,7 @@
 | # | 议题 | 决议 |
 |---|------|------|
 | 1 | 存储与归属 | **Workspace 级**，D1 持久化；同 workspace 共享 |
-| 2 | v1 交互深度 | **只读网格** + 列配置 + **排序 / 筛选**；编辑仍走 People 侧栏 |
+| 2 | v1 交互深度 | **只读网格** + 列配置 + **排序 / 筛选**；编辑走全页 **`/people/:id`**（从 Table Name 进入） |
 | 3 | 可选列 | **内置字段 + 自定义字段** |
 | 4 | 导航 | 侧栏 **第三主入口**，文案 **`Table`**，路径 `/table` |
 | 5 | View 数量 | **支持多个命名 View**；每个 workspace **有且仅有一个** default |
@@ -826,7 +826,7 @@ parallel:
 |----|--------|
 | Correctness | 恰有一个 default；PUT 不清空；stale 可改名；filter norms |
 | Isolation | workspace FK / wid |
-| UX | 共享 filters 显式 Save；EditPersonPanel |
+| UX | 共享 filters 显式 Save；Name → `/people/:id` 全页 |
 | Perf | 四请求并行 |
 | A11y | aria-sort on th |
 | Regression | workspace create batch；clip gate |
@@ -873,7 +873,7 @@ parallel:
 | 5 | `test(worker): L2 e2e table-views` | |
 | 6 | `feat(ui): table-view model + grid pure helpers` | |
 | 7 | `feat(ui): TablePage shell + nav + breadcrumb` | AppSidebar + DashboardLayout |
-| 8 | `feat(ui): column config + view switcher + EditPersonPanel` | |
+| 8 | `feat(ui): column config + view switcher + /people/:id editor` | |
 | 9 | `feat(ui): sort + filter bar` | |
 | 10 | `feat(cli): clip.yaml table-views + bridge + gate count` | **含 check-clip-yaml 49** |
 | 11 | `test(ui): L3 smoke /table` | smoke.spec.ts |

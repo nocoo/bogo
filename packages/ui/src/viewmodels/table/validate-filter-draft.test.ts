@@ -38,6 +38,35 @@ describe("validateFilterValue", () => {
 		);
 		expect(validateFilterValue({ key: numKey, op: "eq", value: "12" }, numMeta, numDef)).toBeNull();
 	});
+
+	it("rejects is_empty with non-null value via wire shape", () => {
+		expect(
+			validateFilterValue(
+				{ key: "builtin:title", op: "is_empty", value: "garbage" },
+				{
+					key: "builtin:title",
+					label: "Title",
+					sortable: true,
+					filterable: true,
+					kind: "text",
+				},
+				undefined,
+			),
+		).toMatch(/omit value|null/i);
+		expect(
+			validateFilterValue(
+				{ key: "builtin:title", op: "is_empty", value: null },
+				{
+					key: "builtin:title",
+					label: "Title",
+					sortable: true,
+					filterable: true,
+					kind: "text",
+				},
+				undefined,
+			),
+		).toBeNull();
+	});
 });
 
 describe("validateFilterDraft", () => {
@@ -50,7 +79,7 @@ describe("validateFilterDraft", () => {
 	it("rejects empty value and bad number", () => {
 		expect(
 			validateFilterDraft([{ key: "builtin:name", op: "eq", value: "  " }], [nameMeta], []),
-		).toMatch(/required/i);
+		).toMatch(/non-empty|required/i);
 		expect(
 			validateFilterDraft([{ key: numKey, op: "eq", value: "nope" }], [numMeta], [numDef]),
 		).toMatch(/number/i);
@@ -113,7 +142,7 @@ describe("validateFilterDraft", () => {
 		).toMatch(/option/i);
 		expect(
 			validateFilterDraft([{ key: selectKey, op: "in", value: [] }], [selectMeta], [selectDef]),
-		).toMatch(/at least one/i);
+		).toMatch(/non-empty|at least one/i);
 		expect(
 			validateFilterDraft(
 				[{ key: "builtin:tags", op: "in", value: ["not-a-uuid"] }],

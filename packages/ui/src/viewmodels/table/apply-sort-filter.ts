@@ -55,9 +55,14 @@ function compareRaw(
 		else if (!fb) return -1;
 		else cmp = na - nb;
 	} else if (kind === "boolean") {
-		cmp = (a === "true" ? 1 : 0) - (b === "true" ? 1 : 0);
+		const ta = (a as string).trim() === "true" ? 1 : 0;
+		const tb = (b as string).trim() === "true" ? 1 : 0;
+		cmp = ta - tb;
 	} else {
-		cmp = (a as string).localeCompare(b as string, "en-US", { sensitivity: "base" });
+		// Doc: trim both sides before text/select/date localeCompare
+		cmp = (a as string).trim().localeCompare((b as string).trim(), "en-US", {
+			sensitivity: "base",
+		});
 	}
 	return direction === "asc" ? cmp : -cmp;
 }
@@ -168,8 +173,11 @@ function matchFilter(
 	}
 
 	if (kind === "boolean") {
-		if (op === "eq") return raw === fv;
-		if (op === "neq") return raw !== fv;
+		// Worker accepts padded literals (" true "); match after trim on both sides
+		const rawT = raw.trim();
+		const fvT = fv.trim();
+		if (op === "eq") return rawT === fvT;
+		if (op === "neq") return rawT !== fvT;
 		return false;
 	}
 

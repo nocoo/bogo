@@ -176,6 +176,22 @@ describe("buildGrid", () => {
 		};
 		const g3 = buildGrid(boolView, persons, [], []);
 		expect(g3.rows[0]?.person.isRoot).toBe(true);
+
+		// text sort trims both sides (" Z" after "A", not before)
+		const spaced = [
+			person({ id: "z", name: " Z" }),
+			person({ id: "a", name: "A" }),
+			person({ id: "m", name: "M" }),
+		];
+		const vTrimSort: PersonTableView = {
+			...viewBase,
+			sort: { key: "builtin:name", direction: "asc" },
+		};
+		expect(buildGrid(vTrimSort, spaced, [], []).rows.map((r) => r.person.id)).toEqual([
+			"a",
+			"m",
+			"z",
+		]);
 	});
 
 	it("filters neq/contains/date ops and tag in", () => {
@@ -568,6 +584,24 @@ describe("buildGrid", () => {
 		const gBadNum = buildGrid(vBadNum, [a, b], [def], values);
 		expect(gBadNum.skippedFilters).toBe(1);
 		expect(gBadNum.filteredCount).toBe(2);
+
+		// boolean eq with padded value (worker accepts " true ") still matches
+		const vBoolPad: PersonTableView = {
+			...viewBase,
+			columns: ["builtin:name", "builtin:isRoot"],
+			filters: [{ key: "builtin:isRoot", op: "eq", value: " true " }],
+		};
+		expect(buildGrid(vBoolPad, [boss, a], [], []).rows.every((r) => r.person.isRoot)).toBe(true);
+		expect(buildGrid(vBoolPad, [boss, a], [], []).filteredCount).toBe(1);
+
+		// is_empty with illegal non-null value → skip (wire shape)
+		const vEmptyGarbage: PersonTableView = {
+			...viewBase,
+			filters: [{ key: "builtin:title", op: "is_empty", value: "garbage" }],
+		};
+		const gEmptyGarbage = buildGrid(vEmptyGarbage, [a, b], [], []);
+		expect(gEmptyGarbage.skippedFilters).toBe(1);
+		expect(gEmptyGarbage.filteredCount).toBe(2);
 
 		// select `in` with padded values matches stored option
 		const vSelInPad: PersonTableView = {
