@@ -26,19 +26,27 @@ Do **not** create additional `.css` files. The file is small (<200 lines today) 
 
 ## Color tokens — when to use which
 
-| Token | Luminance tier | Use for |
+Four luminance layers (aligned with pew Basalt tiers). Prefer the semantic
+component classes in `index.css` (`.panel-l2`, `.btn-*`, `.field`, `.data-table-*`)
+over ad-hoc utility soup.
+
+| Token / class | Luminance tier | Use for |
 |---|---|---|
-| `bg-background` / `text-foreground` | L0 | App shell, sidebar, root canvas |
-| `bg-card` / `text-card-foreground` | L1 | Floating "island" panels lifted off L0 |
-| `bg-secondary` / `text-secondary-foreground` | L2 | Inner panels nested inside cards (e.g., preview pane) |
-| `bg-popover` / `text-popover-foreground` | L1 (elevated) | Popovers, dropdowns, modals |
-| `bg-muted` / `text-muted-foreground` | — | De-emphasized blocks; subtle labels and metadata |
-| `bg-accent` / `text-accent-foreground` | — | Hovered/selected list items |
-| `bg-primary` / `text-primary-foreground` | — | Call-to-action buttons, active state |
-| `bg-destructive` / `text-destructive-foreground` | — | Delete/danger buttons, error toasts |
+| `bg-background` | **L0** | App shell, sidebar, root canvas |
+| `bg-card` (+ DashboardLayout island) | **L1** | Page content island lifted off L0 |
+| `bg-secondary` / `.panel-l2` | **L2** | Section panels nested in L1 (filters, config, table shell) |
+| `bg-muted` / `.panel-l3` | **L3** | Deepest nests (sticky table header, checklist rows inside L2) |
+| `bg-popover` | L1 elevated | Popovers, dropdowns, modals |
+| `bg-accent` | — | Hovered/selected list items |
+| `bg-primary` / `.btn-primary` | — | Call-to-action buttons, active state |
+| `bg-destructive` / `.btn-destructive` | — | Delete/danger buttons, error toasts |
 | `border-border` | — | Default borders (already applied to `*` in base) |
-| `border-input` | — | Form field borders |
+| `border-input` / `.field` | — | Form field borders |
 | `ring-ring` | — | Focus rings |
+
+**Controls**: use `.btn-primary` / `.btn-secondary` / `.btn-ghost` / `.btn-destructive`
+(+ optional `.btn-sm`) and `.field` / `.field-select` so height (`h-8`), radius, and
+focus rings stay consistent. Do not invent one-off `px-2 py-1 text-xs` buttons.
 
 **Never** put raw `oklch(...)`, `#...`, `rgb(...)` in `.tsx` files. If you find yourself wanting one, the token is missing — add it to `:root` + `.dark` + `@theme inline`, then use it.
 

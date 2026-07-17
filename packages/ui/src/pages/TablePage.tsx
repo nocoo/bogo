@@ -1,5 +1,6 @@
 import type { ColumnKey, ViewFilter, ViewSort } from "@bogo/shared";
 import { DEFAULT_TABLE_VIEW_COLUMNS, DEFAULT_TABLE_VIEW_NAME } from "@bogo/shared";
+import { Columns3, Plus, Star, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { EditPersonPanel } from "@/components/person/EditPersonPanel";
@@ -12,6 +13,20 @@ import { usePersonList } from "@/viewmodels/person/use-person-list";
 import { builtinColumnMetas, resolveColumnMeta } from "@/viewmodels/table/column-catalog";
 import { useTableGrid } from "@/viewmodels/table/use-table-grid";
 import { useTableViews } from "@/viewmodels/table/use-table-views";
+
+const FILTER_OPS = [
+	"eq",
+	"neq",
+	"contains",
+	"not_contains",
+	"gt",
+	"gte",
+	"lt",
+	"lte",
+	"is_empty",
+	"is_not_empty",
+	"in",
+] as const;
 
 export function TablePage() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -57,6 +72,7 @@ export function TablePage() {
 	const fieldValuesVm = useFieldValues(selectedPersonId ?? "");
 
 	const [configOpen, setConfigOpen] = useState(false);
+	const [filtersOpen, setFiltersOpen] = useState(false);
 	const [draftColumns, setDraftColumns] = useState<ColumnKey[]>([]);
 	const [filterDraft, setFilterDraft] = useState<ViewFilter[]>([]);
 	const [newViewName, setNewViewName] = useState("");
@@ -78,6 +94,8 @@ export function TablePage() {
 		const custom = defs.map((d) => resolveColumnMeta(`field:${d.id}` as ColumnKey, defs));
 		return [...builtins, ...custom];
 	}, [defs]);
+
+	const activeFilterCount = activeView?.filters.length ?? 0;
 
 	const handleSortClick = useCallback(
 		async (key: ColumnKey, sortable: boolean) => {
@@ -129,19 +147,22 @@ export function TablePage() {
 
 	if (!workspaceId) {
 		return (
-			<div className="p-6 text-muted-foreground">Select a workspace to open the people table.</div>
+			<div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
+				Select a workspace to open the people table.
+			</div>
 		);
 	}
 
 	const loading = viewsLoading || gridLoading;
 
 	return (
-		<div className="flex h-full min-h-0 flex-col gap-4 p-4 md:p-6">
-			<header className="flex flex-wrap items-center gap-3">
-				<label className="flex items-center gap-2 text-sm">
-					<span className="text-muted-foreground">View</span>
+		<div className="flex h-full min-h-0 flex-col gap-3">
+			{/* L1 toolbar — lives on page card */}
+			<header className="page-toolbar shrink-0 border-b border-border/60 pb-3">
+				<div className="flex min-w-0 flex-wrap items-center gap-2">
+					<span className="page-toolbar-label">View</span>
 					<select
-						className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+						className="field-select min-w-[10rem] max-w-[16rem]"
 						value={activeView?.id ?? ""}
 						onChange={(e) => setSearchParams({ view: e.target.value })}
 						aria-label="Table view"
@@ -153,60 +174,98 @@ export function TablePage() {
 							</option>
 						))}
 					</select>
-				</label>
-				<button
-					type="button"
-					className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent"
-					onClick={() => setConfigOpen((o) => !o)}
-				>
-					Configure columns
-				</button>
-				<button
-					type="button"
-					className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent"
-					onClick={handlePromoteDefault}
-					disabled={!activeView || activeView.isDefault || isSaving}
-				>
-					Set as default
-				</button>
-				<button
-					type="button"
-					className="rounded-md border border-border px-3 py-1.5 text-sm text-destructive hover:bg-accent"
-					onClick={handleDeleteView}
-					disabled={!activeView || activeView.isDefault || isSaving}
-				>
-					Delete view
-				</button>
+
+					<button
+						type="button"
+						className={cn("btn-secondary", configOpen && "bg-accent text-accent-foreground")}
+						onClick={() => {
+							setConfigOpen((o) => !o);
+							if (!configOpen) setFiltersOpen(false);
+						}}
+						aria-pressed={configOpen}
+					>
+						<Columns3 className="h-3.5 w-3.5" strokeWidth={1.75} />
+						Columns
+					</button>
+
+					<button
+						type="button"
+						className={cn("btn-secondary", filtersOpen && "bg-accent text-accent-foreground")}
+						onClick={() => {
+							setFiltersOpen((o) => !o);
+							if (!filtersOpen) setConfigOpen(false);
+						}}
+						aria-pressed={filtersOpen}
+					>
+						Filters
+						{activeFilterCount > 0 && (
+							<span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary/15 px-1.5 text-[11px] font-semibold text-primary">
+								{activeFilterCount}
+							</span>
+						)}
+					</button>
+
+					<button
+						type="button"
+						className="btn-ghost"
+						onClick={handlePromoteDefault}
+						disabled={!activeView || activeView.isDefault || isSaving}
+						title="Set as default view"
+					>
+						<Star className="h-3.5 w-3.5" strokeWidth={1.75} />
+						Default
+					</button>
+
+					<button
+						type="button"
+						className="btn-destructive"
+						onClick={handleDeleteView}
+						disabled={!activeView || activeView.isDefault || isSaving}
+					>
+						<Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+						Delete
+					</button>
+				</div>
+
 				<div className="ml-auto flex items-center gap-2">
 					<input
-						className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+						className="field w-36 sm:w-44"
 						placeholder="New view name"
 						value={newViewName}
 						onChange={(e) => setNewViewName(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") void handleCreateView();
+						}}
 					/>
 					<button
 						type="button"
-						className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
+						className="btn-primary"
 						onClick={handleCreateView}
 						disabled={isSaving}
 					>
+						<Plus className="h-3.5 w-3.5" strokeWidth={2} />
 						New view
 					</button>
 				</div>
 			</header>
 
+			{/* L2 — Columns config panel */}
 			{configOpen && (
-				<section className="rounded-lg border border-border bg-card p-4">
-					<h2 className="mb-2 text-sm font-medium">Columns</h2>
-					<ul className="mb-3 max-h-48 space-y-1 overflow-auto text-sm">
+				<section className="panel-l2 shrink-0 p-4">
+					<div className="mb-3 flex items-center justify-between gap-2">
+						<h2 className="text-sm font-semibold text-foreground">Columns</h2>
+						<p className="text-xs text-muted-foreground">Name is always required</p>
+					</div>
+					<ul className="panel-l3 mb-3 max-h-48 space-y-0.5 overflow-auto p-2 text-sm">
 						{availableColumns.map((col) => {
 							const checked = draftColumns.includes(col.key);
 							const locked = col.key === "builtin:name";
 							return (
 								<li key={col.key}>
-									<label className="flex items-center gap-2">
+									<label className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-accent/60">
 										<input
 											type="checkbox"
+											className="size-3.5 accent-primary"
 											checked={checked || locked}
 											disabled={locked}
 											onChange={() => {
@@ -217,148 +276,155 @@ export function TablePage() {
 												);
 											}}
 										/>
-										<span>{col.label}</span>
-										<span className="text-muted-foreground text-xs">{col.key}</span>
+										<span className="min-w-0 flex-1 font-medium text-foreground">{col.label}</span>
+										<span className="truncate font-mono text-[11px] text-muted-foreground">
+											{col.key}
+										</span>
 									</label>
 								</li>
 							);
 						})}
 					</ul>
-					<button
-						type="button"
-						className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
-						onClick={saveColumns}
-						disabled={isSaving}
-					>
-						Save columns
-					</button>
+					<div className="flex justify-end gap-2">
+						<button type="button" className="btn-ghost" onClick={() => setConfigOpen(false)}>
+							Cancel
+						</button>
+						<button type="button" className="btn-primary" onClick={saveColumns} disabled={isSaving}>
+							Save columns
+						</button>
+					</div>
 				</section>
 			)}
 
-			<section className="rounded-lg border border-border bg-card p-4">
-				<div className="mb-2 flex flex-wrap items-center gap-2">
-					<h2 className="text-sm font-medium">Filters</h2>
-					<button
-						type="button"
-						className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
-						onClick={() =>
-							setFilterDraft((d) => [...d, { key: "builtin:name", op: "contains", value: "" }])
-						}
-					>
-						Add filter
-					</button>
-					<button
-						type="button"
-						className="rounded-md bg-primary px-2 py-1 text-xs text-primary-foreground"
-						onClick={saveFilters}
-						disabled={isSaving}
-					>
-						Save filters
-					</button>
-				</div>
-				<ul className="space-y-2">
-					{filterDraft.map((f, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: draft filter rows have no stable id
-						<li key={`filter-row-${i}`} className="flex flex-wrap items-center gap-2 text-sm">
-							<select
-								className="rounded border border-border bg-background px-1 py-1"
-								value={f.key}
-								onChange={(e) => {
-									const key = e.target.value;
-									setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, key } : x)));
-								}}
-							>
-								{columnMetas
-									.filter((c) => c.filterable)
-									.map((c) => (
-										<option key={c.key} value={c.key}>
-											{c.label}
-										</option>
-									))}
-							</select>
-							<select
-								className="rounded border border-border bg-background px-1 py-1"
-								value={f.op}
-								onChange={(e) => {
-									const op = e.target.value as ViewFilter["op"];
-									setFilterDraft((d) =>
-										d.map((x, j) =>
-											j === i
-												? {
-														...x,
-														op,
-														value:
-															op === "is_empty" || op === "is_not_empty" ? null : (x.value ?? ""),
-													}
-												: x,
-										),
-									);
-								}}
-							>
-								{(
-									[
-										"eq",
-										"neq",
-										"contains",
-										"not_contains",
-										"gt",
-										"gte",
-										"lt",
-										"lte",
-										"is_empty",
-										"is_not_empty",
-										"in",
-									] as const
-								).map((op) => (
-									<option key={op} value={op}>
-										{op}
-									</option>
-								))}
-							</select>
-							{f.op !== "is_empty" && f.op !== "is_not_empty" && f.op !== "in" && (
-								<input
-									className="rounded border border-border bg-background px-2 py-1"
-									value={typeof f.value === "string" ? f.value : ""}
-									onChange={(e) => {
-										const value = e.target.value;
-										setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, value } : x)));
-									}}
-								/>
-							)}
-							{f.op === "in" && (
-								<input
-									className="rounded border border-border bg-background px-2 py-1"
-									placeholder="comma-separated ids"
-									value={Array.isArray(f.value) ? f.value.join(",") : ""}
-									onChange={(e) => {
-										const value = e.target.value
-											.split(",")
-											.map((s) => s.trim())
-											.filter(Boolean);
-										setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, value } : x)));
-									}}
-								/>
-							)}
+			{/* L2 — Filters panel */}
+			{filtersOpen && (
+				<section className="panel-l2 shrink-0 p-4">
+					<div className="mb-3 flex flex-wrap items-center gap-2">
+						<h2 className="text-sm font-semibold text-foreground">Filters</h2>
+						<span className="text-xs text-muted-foreground">AND across all rules</span>
+						<div className="ml-auto flex items-center gap-2">
 							<button
 								type="button"
-								className="text-xs text-muted-foreground hover:text-foreground"
-								onClick={() => setFilterDraft((d) => d.filter((_, j) => j !== i))}
+								className="btn-secondary btn-sm"
+								onClick={() =>
+									setFilterDraft((d) => [...d, { key: "builtin:name", op: "contains", value: "" }])
+								}
 							>
-								Remove
+								Add filter
 							</button>
-						</li>
-					))}
-				</ul>
-			</section>
+							<button
+								type="button"
+								className="btn-primary btn-sm"
+								onClick={saveFilters}
+								disabled={isSaving}
+							>
+								Save filters
+							</button>
+						</div>
+					</div>
 
-			<div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border">
-				{loading && <p className="p-4 text-sm text-muted-foreground">Loading table…</p>}
+					{filterDraft.length === 0 ? (
+						<p className="py-4 text-center text-sm text-muted-foreground">
+							No filters yet. Add one to narrow the grid.
+						</p>
+					) : (
+						<ul className="space-y-2">
+							{filterDraft.map((f, i) => (
+								<li
+									// biome-ignore lint/suspicious/noArrayIndexKey: draft filter rows have no stable id
+									key={`filter-row-${i}`}
+									className="panel-l3 flex flex-wrap items-center gap-2 p-2"
+								>
+									<select
+										className="field-select field-sm"
+										value={f.key}
+										onChange={(e) => {
+											const key = e.target.value;
+											setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, key } : x)));
+										}}
+									>
+										{columnMetas
+											.filter((c) => c.filterable)
+											.map((c) => (
+												<option key={c.key} value={c.key}>
+													{c.label}
+												</option>
+											))}
+									</select>
+									<select
+										className="field-select field-sm min-w-[7rem]"
+										value={f.op}
+										onChange={(e) => {
+											const op = e.target.value as ViewFilter["op"];
+											setFilterDraft((d) =>
+												d.map((x, j) =>
+													j === i
+														? {
+																...x,
+																op,
+																value:
+																	op === "is_empty" || op === "is_not_empty"
+																		? null
+																		: (x.value ?? ""),
+															}
+														: x,
+												),
+											);
+										}}
+									>
+										{FILTER_OPS.map((op) => (
+											<option key={op} value={op}>
+												{op}
+											</option>
+										))}
+									</select>
+									{f.op !== "is_empty" && f.op !== "is_not_empty" && f.op !== "in" && (
+										<input
+											className="field field-sm min-w-[8rem] flex-1"
+											value={typeof f.value === "string" ? f.value : ""}
+											onChange={(e) => {
+												const value = e.target.value;
+												setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, value } : x)));
+											}}
+										/>
+									)}
+									{f.op === "in" && (
+										<input
+											className="field field-sm min-w-[10rem] flex-1"
+											placeholder="comma-separated ids"
+											value={Array.isArray(f.value) ? f.value.join(",") : ""}
+											onChange={(e) => {
+												const value = e.target.value
+													.split(",")
+													.map((s) => s.trim())
+													.filter(Boolean);
+												setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, value } : x)));
+											}}
+										/>
+									)}
+									<button
+										type="button"
+										className="btn-ghost btn-sm"
+										onClick={() => setFilterDraft((d) => d.filter((_, j) => j !== i))}
+									>
+										Remove
+									</button>
+								</li>
+							))}
+						</ul>
+					)}
+				</section>
+			)}
+
+			{/* L2 table shell */}
+			<div className="data-table-shell">
+				{loading && <p className="p-6 text-sm text-muted-foreground">Loading table…</p>}
 				{!loading && grid && grid.total === 0 && (
-					<div className="p-6 text-sm text-muted-foreground">
-						No people yet.{" "}
+					<div className="flex flex-col items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+						<p>No people yet.</p>
 						<button
 							type="button"
-							className="text-primary underline"
+							className="btn-primary btn-sm"
 							onClick={() => navigate("/people")}
 						>
 							Go to People
@@ -366,8 +432,8 @@ export function TablePage() {
 					</div>
 				)}
 				{!loading && grid && grid.total > 0 && (
-					<table className="w-full min-w-max border-collapse text-sm">
-						<thead className="sticky top-0 bg-muted/80 backdrop-blur">
+					<table className="data-table">
+						<thead>
 							<tr>
 								{columnMetas.map((col) => {
 									const sort = activeView?.sort;
@@ -378,20 +444,15 @@ export function TablePage() {
 												: "descending"
 											: "none";
 									return (
-										<th
-											key={col.key}
-											scope="col"
-											aria-sort={col.sortable ? ariaSort : undefined}
-											className="border-b border-border px-3 py-2 text-left font-medium"
-										>
+										<th key={col.key} scope="col" aria-sort={col.sortable ? ariaSort : undefined}>
 											{col.sortable ? (
 												<button
 													type="button"
-													className="inline-flex items-center gap-1 hover:underline"
+													className="inline-flex items-center gap-1 text-xs font-semibold tracking-wide text-muted-foreground hover:text-foreground"
 													onClick={() => handleSortClick(col.key, true)}
 												>
 													{col.label}
-													{sort?.key === col.key ? (sort.direction === "asc" ? " ▲" : " ▼") : ""}
+													{sort?.key === col.key ? (sort.direction === "asc" ? " ↑" : " ↓") : ""}
 												</button>
 											) : (
 												col.label
@@ -399,16 +460,14 @@ export function TablePage() {
 										</th>
 									);
 								})}
-								<th scope="col" className="border-b border-border px-3 py-2 text-left">
-									Actions
-								</th>
+								<th scope="col">Actions</th>
 							</tr>
 						</thead>
 						<tbody>
 							{grid.rows.map((row) => (
 								<tr
 									key={row.person.id}
-									className="hover:bg-accent/40 cursor-pointer"
+									className="cursor-pointer"
 									onClick={() => setSelectedPersonId(row.person.id)}
 									onKeyDown={(e) => {
 										if (e.key === "Enter") setSelectedPersonId(row.person.id);
@@ -419,15 +478,12 @@ export function TablePage() {
 										return (
 											<td
 												key={col.key}
-												className={cn(
-													"border-b border-border px-3 py-2",
-													cell?.isDefault && "text-muted-foreground italic",
-												)}
+												className={cn(cell?.isDefault && "italic text-muted-foreground")}
 											>
 												{col.kind === "tags" && cell?.tags ? (
 													<span className="flex flex-wrap gap-1">
 														{cell.tags.map((t) => (
-															<TagBadge key={t.id} name={t.name} color={t.color} />
+															<TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
 														))}
 														{cell.tags.length === 0 ? "—" : null}
 													</span>
@@ -437,10 +493,10 @@ export function TablePage() {
 											</td>
 										);
 									})}
-									<td className="border-b border-border px-3 py-2">
+									<td>
 										<button
 											type="button"
-											className="text-primary text-xs underline"
+											className="btn-ghost btn-sm text-primary"
 											onClick={(e) => {
 												e.stopPropagation();
 												setSelectedPersonId(row.person.id);
@@ -456,11 +512,11 @@ export function TablePage() {
 				)}
 			</div>
 
-			<footer className="text-xs text-muted-foreground">
+			<footer className="shrink-0 text-xs text-muted-foreground">
 				{grid ? `${grid.filteredCount} of ${grid.total} people` : null}
 				{grid?.skippedSort ? " · sort column unavailable" : ""}
 				{grid && grid.skippedFilters > 0 ? ` · ${grid.skippedFilters} filter(s) skipped` : ""}
-				{activeView ? ` · view: ${activeView.name || DEFAULT_TABLE_VIEW_NAME}` : ""}
+				{activeView ? ` · ${activeView.name || DEFAULT_TABLE_VIEW_NAME}` : ""}
 			</footer>
 
 			{selectedPerson && (

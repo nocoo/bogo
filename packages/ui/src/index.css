@@ -134,6 +134,12 @@
  * 6. @layer components — reusable primitives and themed element chrome
  *    Component classes live here so utilities (mt-4, p-6, …) can still
  *    override them at call sites.
+ *
+ *    Surface stack (aligned with pew Basalt tiers):
+ *      L0  bg-background   — app shell / sidebar canvas
+ *      L1  bg-card         — page island (DashboardLayout outlet)
+ *      L2  bg-secondary    — section panels nested in L1 (filters, config)
+ *      L3  bg-muted / popover — deepest nests (table chrome, sticky headers)
  * --------------------------------------------------------------------------- */
 @layer components {
 	/* Themed <select> chrome — bare <select> elements adopt this automatically. */
@@ -147,6 +153,92 @@
 	}
 	.dark select {
 		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+	}
+
+	/* ----- Surfaces ----- */
+	.panel-l2 {
+		@apply rounded-xl bg-secondary text-secondary-foreground;
+	}
+	.panel-l3 {
+		@apply rounded-lg bg-muted/50 text-foreground;
+	}
+
+	/* ----- Controls (h-8 scale, shared radius) -----
+	 * Shared layout is duplicated on each variant so we never @apply a
+	 * custom class from another custom class (Tailwind forbids that). */
+	.btn-primary,
+	.btn-secondary,
+	.btn-ghost,
+	.btn-destructive {
+		@apply inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md px-3 text-sm font-medium whitespace-nowrap transition-colors;
+		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50;
+		@apply disabled:pointer-events-none disabled:opacity-50;
+	}
+	.btn-primary {
+		@apply bg-primary text-primary-foreground hover:bg-primary/90;
+	}
+	.btn-secondary {
+		@apply border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground;
+	}
+	.btn-ghost {
+		@apply text-muted-foreground hover:bg-accent hover:text-foreground;
+	}
+	.btn-destructive {
+		@apply border border-destructive/25 bg-destructive/5 text-destructive hover:bg-destructive/10;
+	}
+	.btn-sm {
+		@apply h-7 gap-1 px-2.5 text-xs;
+	}
+	.btn-icon {
+		@apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors;
+		@apply hover:bg-accent hover:text-foreground;
+		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50;
+		@apply disabled:pointer-events-none disabled:opacity-50;
+	}
+
+	.field,
+	.field-select {
+		@apply h-8 rounded-md border border-input bg-card px-2.5 text-sm text-foreground;
+		@apply placeholder:text-muted-foreground;
+		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40;
+		@apply disabled:cursor-not-allowed disabled:opacity-50;
+	}
+	.field-select {
+		@apply min-w-[8rem] pr-8;
+	}
+	.field-sm {
+		@apply h-7 px-2 text-xs;
+	}
+
+	/* Toolbar row inside L1 card */
+	.page-toolbar {
+		@apply flex flex-wrap items-center gap-2;
+	}
+	.page-toolbar-label {
+		@apply text-xs font-medium text-muted-foreground;
+	}
+
+	/* Data table on L2 surface */
+	.data-table-shell {
+		@apply min-h-0 flex-1 overflow-auto rounded-xl bg-secondary;
+	}
+	.data-table {
+		@apply w-full min-w-max border-collapse text-sm;
+	}
+	.data-table thead {
+		@apply sticky top-0 z-10 bg-muted/90 backdrop-blur-sm;
+	}
+	.data-table th {
+		@apply border-b border-border px-3 py-2.5 text-left text-xs font-semibold tracking-wide text-muted-foreground;
+	}
+	.data-table td {
+		@apply border-b border-border/70 px-3 py-2 align-middle text-foreground;
+	}
+	.data-table tbody tr {
+		@apply transition-colors hover:bg-accent/50;
+	}
+	.data-table tbody tr:last-child td {
+		@apply border-b-0;
 	}
 
 	/* Rendered markdown surface — used by document preview and any other
