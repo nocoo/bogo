@@ -23,18 +23,32 @@ describe("column-picker", () => {
 		]);
 	});
 
-	it("reorders selected by key to index", () => {
+	it("reorders selected by key to index (insert-before)", () => {
 		const keys = ["builtin:name", "builtin:title", "builtin:managerId"] as const;
+		// manager onto title (index 1) → before title
 		expect(reorderSelected([...keys], "builtin:managerId", 1)).toEqual([
 			"builtin:name",
 			"builtin:managerId",
 			"builtin:title",
 		]);
+		// title onto name (index 0)
 		expect(reorderSelected([...keys], "builtin:title", 0)).toEqual([
 			"builtin:title",
 			"builtin:name",
 			"builtin:managerId",
 		]);
+	});
+
+	it("adjusts index when dragging right onto a later chip", () => {
+		// name(0) dropped on manager(2) → insert before manager, not after
+		expect(
+			reorderSelected(["builtin:name", "builtin:title", "builtin:managerId"], "builtin:name", 2),
+		).toEqual(["builtin:title", "builtin:name", "builtin:managerId"]);
+
+		// name → end
+		expect(
+			reorderSelected(["builtin:name", "builtin:title", "builtin:managerId"], "builtin:name", 3),
+		).toEqual(["builtin:title", "builtin:managerId", "builtin:name"]);
 	});
 
 	it("adds and removes columns; name cannot be removed", () => {

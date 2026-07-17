@@ -1,4 +1,4 @@
-import type { ColumnKey, ViewFilter, ViewSort } from "@bogo/shared";
+import type { ColumnKey, FilterOperator, ViewFilter, ViewSort } from "@bogo/shared";
 import { DEFAULT_TABLE_VIEW_COLUMNS, DEFAULT_TABLE_VIEW_NAME } from "@bogo/shared";
 import { Columns3, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -8,25 +8,33 @@ import { TagBadge } from "@/components/TagBadge";
 import { ColumnPicker } from "@/components/table/ColumnPicker";
 import { useWorkspaceContext } from "@/contexts/workspace-context";
 import { cn } from "@/lib/utils";
-import { builtinColumnMetas, resolveColumnMeta } from "@/viewmodels/table/column-catalog";
+import {
+	builtinColumnMetas,
+	type ColumnMeta,
+	resolveColumnMeta,
+} from "@/viewmodels/table/column-catalog";
 import { ensureNameColumn } from "@/viewmodels/table/column-picker";
 import { indexPersons } from "@/viewmodels/table/resolve-cell";
 import { useTableGrid } from "@/viewmodels/table/use-table-grid";
 import { useTableViews } from "@/viewmodels/table/use-table-views";
 
-const FILTER_OPS = [
-	"eq",
-	"neq",
-	"contains",
-	"not_contains",
-	"gt",
-	"gte",
-	"lt",
-	"lte",
-	"is_empty",
-	"is_not_empty",
-	"in",
-] as const;
+/** Operators allowed per column kind — mirrors worker table-view-logic OPS. */
+const FILTER_OPS_BY_KIND: Record<ColumnMeta["kind"], readonly FilterOperator[]> = {
+	text: ["eq", "neq", "contains", "not_contains", "is_empty", "is_not_empty"],
+	number: ["eq", "neq", "gt", "gte", "lt", "lte", "is_empty", "is_not_empty"],
+	date: ["eq", "neq", "gt", "gte", "lt", "lte", "is_empty", "is_not_empty"],
+	"date-day": ["eq", "neq", "gt", "gte", "lt", "lte", "is_empty", "is_not_empty"],
+	boolean: ["eq", "neq", "is_empty", "is_not_empty"],
+	select: ["eq", "neq", "in", "is_empty", "is_not_empty"],
+	"person-ref": ["eq", "neq", "contains", "not_contains", "in", "is_empty", "is_not_empty"],
+	tags: ["in", "is_empty", "is_not_empty"],
+	avatar: [],
+};
+
+function opsForColumn(key: string, metas: ColumnMeta[]): readonly FilterOperator[] {
+	const kind = metas.find((c) => c.key === key)?.kind ?? "text";
+	return FILTER_OPS_BY_KIND[kind] ?? FILTER_OPS_BY_KIND.text;
+}
 
 export function TablePage() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -278,7 +286,16 @@ export function TablePage() {
 						onChange={setDraftColumns}
 					/>
 					<div className="mt-4 flex justify-end gap-2">
-						<button type="button" className="btn-ghost" onClick={() => setConfigOpen(false)}>
+						<button
+							type="button"
+							className="btn-ghost"
+							onClick={() => {
+								if (activeView) {
+									setDraftColumns(activeView.columns as ColumnKey[]);
+								}
+								setConfigOpen(false);
+							}}
+						>
 							Cancel
 						</button>
 						<button type="button" className="btn-primary" onClick={saveColumns} disabled={isSaving}>
@@ -332,7 +349,25 @@ export function TablePage() {
 										value={f.key}
 										onChange={(e) => {
 											const key = e.target.value;
-											setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, key } : x)));
+											const allowed = opsForColumn(key, columnMetas);
+											const op = (allowed.includes(f.op) ? f.op : allowed[0]) as ViewFilter["op"];
+											setFilterDraft((d) =>
+												d.map((x, j) =>
+													j === i
+														? {
+																...x,
+																key,
+																op,
+																value:
+																	op === "is_empty" || op === "is_not_empty"
+																		? null
+																		: op === "in"
+																			? []
+																			: "",
+															}
+														: x,
+												),
+											);
 										}}
 									>
 										{columnMetas
@@ -345,7 +380,11 @@ export function TablePage() {
 									</select>
 									<select
 										className="field-select field-sm min-w-[7rem]"
-										value={f.op}
+										value={
+											opsForColumn(f.key, columnMetas).includes(f.op)
+												? f.op
+												: (opsForColumn(f.key, columnMetas)[0] ?? "eq")
+										}
 										onChange={(e) => {
 											const op = e.target.value as ViewFilter["op"];
 											setFilterDraft((d) =>
@@ -357,14 +396,18 @@ export function TablePage() {
 																value:
 																	op === "is_empty" || op === "is_not_empty"
 																		? null
-																		: (x.value ?? ""),
+																		: op === "in"
+																			? []
+																			: typeof x.value === "string"
+																				? x.value
+																				: "",
 															}
 														: x,
 												),
 											);
 										}}
 									>
-										{FILTER_OPS.map((op) => (
+										{opsForColumn(f.key, columnMetas).map((op) => (
 											<option key={op} value={op}>
 												{op}
 											</option>
@@ -377,7 +420,10 @@ export function TablePage() {
 											placeholder={
 												columnMetas.find((c) => c.key === f.key)?.kind === "person-ref"
 													? "Person name, e.g. Zheng Li"
-													: undefined
+													: columnMetas.find((c) => c.key === f.key)?.kind === "date-day" ||
+															columnMetas.find((c) => c.key === f.key)?.kind === "date"
+														? "YYYY-MM-DD"
+														: undefined
 											}
 											onChange={(e) => {
 												const value = e.target.value;
@@ -388,7 +434,11 @@ export function TablePage() {
 									{f.op === "in" && (
 										<input
 											className="field field-sm min-w-[10rem] flex-1"
-											placeholder="comma-separated ids"
+											placeholder={
+												columnMetas.find((c) => c.key === f.key)?.kind === "person-ref"
+													? "Names or ids, comma-separated"
+													: "comma-separated values"
+											}
 											value={Array.isArray(f.value) ? f.value.join(",") : ""}
 											onChange={(e) => {
 												const value = e.target.value

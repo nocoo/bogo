@@ -111,15 +111,8 @@ export function ColumnPicker({
 									{overIndex === index && drag ? (
 										<span className="h-7 w-0.5 shrink-0 rounded-full bg-primary" aria-hidden />
 									) : null}
-									{/* biome-ignore lint/a11y/noStaticElementInteractions: HTML5 DnD chip */}
+									{/* biome-ignore lint/a11y/noStaticElementInteractions: HTML5 DnD drop target */}
 									<div
-										draggable
-										onDragStart={(e) => {
-											e.dataTransfer.effectAllowed = "move";
-											e.dataTransfer.setData(`${dndId}/key`, key);
-											onDragStart(key, "selected");
-										}}
-										onDragEnd={clearDrag}
 										onDragOver={(e) => {
 											e.preventDefault();
 											e.stopPropagation();
@@ -132,16 +125,26 @@ export function ColumnPicker({
 											dropOnSelected(index);
 										}}
 										className={cn(
-											"group inline-flex h-8 max-w-[12rem] cursor-grab items-center gap-1 rounded-md border border-border bg-card px-1.5 text-sm active:cursor-grabbing",
+											"group inline-flex h-8 max-w-[12rem] items-center gap-1 rounded-md border border-border bg-card px-1.5 text-sm",
 											drag?.key === key && "opacity-50",
 											locked && "border-primary/25 bg-primary/5",
 										)}
 									>
-										<GripVertical
-											className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-											strokeWidth={1.75}
-											aria-hidden
-										/>
+										{/* Drag handle only — other chip controls stay clickable */}
+										<button
+											type="button"
+											draggable
+											onDragStart={(e) => {
+												e.dataTransfer.effectAllowed = "move";
+												e.dataTransfer.setData(`${dndId}/key`, key);
+												onDragStart(key, "selected");
+											}}
+											onDragEnd={clearDrag}
+											className="inline-flex cursor-grab items-center rounded-sm text-muted-foreground active:cursor-grabbing"
+											aria-label={`Drag ${labelOf(key)}`}
+										>
+											<GripVertical className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+										</button>
 										<span className="min-w-0 truncate font-medium text-foreground">
 											{labelOf(key)}
 										</span>
@@ -225,6 +228,11 @@ export function ColumnPicker({
 								<div
 									draggable
 									onDragStart={(e) => {
+										// Ignore drags that started on the add button
+										if ((e.target as HTMLElement).closest("button")) {
+											e.preventDefault();
+											return;
+										}
 										e.dataTransfer.effectAllowed = "move";
 										e.dataTransfer.setData(`${dndId}/key`, col.key);
 										onDragStart(col.key, "available");

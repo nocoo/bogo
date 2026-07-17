@@ -6,19 +6,35 @@ export function isLockedColumn(key: ColumnKey): boolean {
 	return key === LOCKED_COLUMN_KEY;
 }
 
-/** Ensure locked name column is present (append front if missing). */
+/** Ensure locked name column is present (prepend if missing). */
 export function ensureNameColumn(keys: ColumnKey[]): ColumnKey[] {
 	if (keys.includes(LOCKED_COLUMN_KEY)) return keys;
 	return [LOCKED_COLUMN_KEY, ...keys];
 }
 
-/** Move `key` from any position to `toIndex` within selected (0-based). */
+/**
+ * Move `key` to `toIndex` using insert-before semantics on the original list
+ * (`toIndex === keys.length` means append).
+ *
+ * Adjusts the index when moving right so dropping onto item C places the
+ * dragged item *before* C (or at end when dropping past the last chip).
+ */
 export function reorderSelected(keys: ColumnKey[], key: ColumnKey, toIndex: number): ColumnKey[] {
 	const from = keys.indexOf(key);
 	if (from < 0) return keys;
+
 	const next = keys.filter((k) => k !== key);
-	const clamped = Math.max(0, Math.min(toIndex, next.length));
-	next.splice(clamped, 0, key);
+	let insertAt = toIndex;
+	// Removing an earlier item shifts later indices down by one.
+	if (from < toIndex) {
+		insertAt = toIndex - 1;
+	}
+	insertAt = Math.max(0, Math.min(insertAt, next.length));
+	next.splice(insertAt, 0, key);
+
+	if (next.length === keys.length && next.every((k, i) => k === keys[i])) {
+		return keys;
+	}
 	return next;
 }
 
