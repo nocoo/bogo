@@ -5,9 +5,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { PersonAvatar } from "@/components/person/PersonAvatar";
 import { TagBadge } from "@/components/TagBadge";
+import { ColumnPicker } from "@/components/table/ColumnPicker";
 import { useWorkspaceContext } from "@/contexts/workspace-context";
 import { cn } from "@/lib/utils";
 import { builtinColumnMetas, resolveColumnMeta } from "@/viewmodels/table/column-catalog";
+import { ensureNameColumn } from "@/viewmodels/table/column-picker";
 import { indexPersons } from "@/viewmodels/table/resolve-cell";
 import { useTableGrid } from "@/viewmodels/table/use-table-grid";
 import { useTableViews } from "@/viewmodels/table/use-table-views";
@@ -102,10 +104,7 @@ export function TablePage() {
 
 	const saveColumns = async () => {
 		if (!activeView) return;
-		const cols = draftColumns.includes("builtin:name")
-			? draftColumns
-			: (["builtin:name", ...draftColumns] as ColumnKey[]);
-		await updateView(activeView.id, { columns: cols });
+		await updateView(activeView.id, { columns: ensureNameColumn(draftColumns) });
 		setConfigOpen(false);
 	};
 
@@ -266,43 +265,19 @@ export function TablePage() {
 				</div>
 			</header>
 
-			{/* L2 — Columns config panel */}
+			{/* L2 — Columns config panel (selected top / available bottom, drag reorder) */}
 			{configOpen && (
 				<section className="panel-l2 shrink-0 p-4">
 					<div className="mb-3 flex items-center justify-between gap-2">
 						<h2 className="text-sm font-semibold text-foreground">Columns</h2>
 						<p className="text-xs text-muted-foreground">Name is always required</p>
 					</div>
-					<ul className="panel-l3 mb-3 max-h-48 space-y-0.5 overflow-auto p-2 text-sm">
-						{availableColumns.map((col) => {
-							const checked = draftColumns.includes(col.key);
-							const locked = col.key === "builtin:name";
-							return (
-								<li key={col.key}>
-									<label className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-accent/60">
-										<input
-											type="checkbox"
-											className="size-3.5 accent-primary"
-											checked={checked || locked}
-											disabled={locked}
-											onChange={() => {
-												setDraftColumns((prev) =>
-													prev.includes(col.key)
-														? prev.filter((k) => k !== col.key)
-														: [...prev, col.key],
-												);
-											}}
-										/>
-										<span className="min-w-0 flex-1 font-medium text-foreground">{col.label}</span>
-										<span className="truncate font-mono text-[11px] text-muted-foreground">
-											{col.key}
-										</span>
-									</label>
-								</li>
-							);
-						})}
-					</ul>
-					<div className="flex justify-end gap-2">
+					<ColumnPicker
+						selected={draftColumns}
+						catalog={availableColumns}
+						onChange={setDraftColumns}
+					/>
+					<div className="mt-4 flex justify-end gap-2">
 						<button type="button" className="btn-ghost" onClick={() => setConfigOpen(false)}>
 							Cancel
 						</button>
