@@ -218,6 +218,30 @@
 		@apply text-xs font-medium text-muted-foreground;
 	}
 
+	/* Horizontal view switcher (table multi-view, etc.) */
+	.view-switcher {
+		@apply flex min-w-0 items-center gap-0.5 overflow-x-auto rounded-lg bg-muted/70 p-1;
+	}
+	.view-tab {
+		@apply inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium;
+		@apply text-muted-foreground transition-colors;
+		@apply hover:bg-card/60 hover:text-foreground;
+		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50;
+	}
+	.view-tab-active {
+		@apply bg-card text-foreground shadow-sm ring-1 ring-border/70;
+		@apply hover:bg-card hover:text-foreground;
+	}
+	/* Soft status chip — e.g. "Default" on a view tab */
+	.badge-soft {
+		@apply inline-flex items-center rounded px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide;
+		@apply bg-primary/10 text-primary;
+	}
+	.badge-soft-muted {
+		@apply inline-flex items-center rounded px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide;
+		@apply bg-muted text-muted-foreground;
+	}
+
 	/* Data table on L2 surface */
 	.data-table-shell {
 		@apply min-h-0 flex-1 overflow-auto rounded-xl bg-secondary;

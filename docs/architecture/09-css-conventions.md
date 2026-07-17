@@ -48,6 +48,10 @@ over ad-hoc utility soup.
 (+ optional `.btn-sm`) and `.field` / `.field-select` so height (`h-8`), radius, and
 focus rings stay consistent. Do not invent one-off `px-2 py-1 text-xs` buttons.
 
+**View switcher**: multi-named configs (e.g. Table views) use `.view-switcher` +
+`.view-tab` / `.view-tab-active`. Mark the workspace default with `.badge-soft`
+(active) / `.badge-soft-muted` (inactive) — never a star glyph or icon-only “Default” button.
+
 **Never** put raw `oklch(...)`, `#...`, `rgb(...)` in `.tsx` files. If you find yourself wanting one, the token is missing — add it to `:root` + `.dark` + `@theme inline`, then use it.
 
 ## When to abstract into a component class

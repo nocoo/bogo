@@ -1,6 +1,6 @@
 import type { ColumnKey, ViewFilter, ViewSort } from "@bogo/shared";
 import { DEFAULT_TABLE_VIEW_COLUMNS, DEFAULT_TABLE_VIEW_NAME } from "@bogo/shared";
-import { Columns3, Plus, Star, Trash2 } from "lucide-react";
+import { Columns3, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { PersonAvatar } from "@/components/person/PersonAvatar";
@@ -147,24 +147,56 @@ export function TablePage() {
 
 	return (
 		<div className="flex h-full min-h-0 flex-col gap-3">
-			{/* L1 toolbar — lives on page card */}
-			<header className="page-toolbar shrink-0 border-b border-border/60 pb-3">
-				<div className="flex min-w-0 flex-wrap items-center gap-2">
-					<span className="page-toolbar-label">View</span>
-					<select
-						className="field-select min-w-[10rem] max-w-[16rem]"
-						value={activeView?.id ?? ""}
-						onChange={(e) => setSearchParams({ view: e.target.value })}
-						aria-label="Table view"
-					>
-						{views.map((v) => (
-							<option key={v.id} value={v.id}>
-								{v.name}
-								{v.isDefault ? " ★" : ""}
-							</option>
-						))}
-					</select>
+			{/* L1 toolbar — view switcher + tools */}
+			<header className="shrink-0 space-y-2.5 border-b border-border/60 pb-3">
+				{/* View strip: segmented tabs + create */}
+				<div className="flex min-w-0 items-center gap-2">
+					<nav className="view-switcher min-w-0 flex-1" aria-label="Table views">
+						{views.map((v) => {
+							const active = activeView?.id === v.id;
+							return (
+								<button
+									key={v.id}
+									type="button"
+									className={cn("view-tab", active && "view-tab-active")}
+									onClick={() => setSearchParams({ view: v.id })}
+									aria-current={active ? "page" : undefined}
+								>
+									<span className="max-w-[9rem] truncate">{v.name}</span>
+									{v.isDefault ? (
+										<span className={cn(active ? "badge-soft" : "badge-soft-muted")}>Default</span>
+									) : null}
+								</button>
+							);
+						})}
+					</nav>
 
+					<div className="flex shrink-0 items-center gap-1.5">
+						<input
+							className="field field-sm w-28 sm:w-36"
+							placeholder="Name…"
+							value={newViewName}
+							onChange={(e) => setNewViewName(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === "Enter") void handleCreateView();
+							}}
+							aria-label="New view name"
+						/>
+						<button
+							type="button"
+							className="btn-secondary btn-sm"
+							onClick={handleCreateView}
+							disabled={isSaving}
+							title="Create view"
+						>
+							<Plus className="h-3.5 w-3.5" strokeWidth={2} />
+							<span className="hidden sm:inline">New</span>
+						</button>
+					</div>
+				</div>
+
+				{/* Active-view tools */}
+				<div className="page-toolbar">
 					<button
 						type="button"
 						className={cn("btn-secondary", configOpen && "bg-accent text-accent-foreground")}
@@ -195,46 +227,41 @@ export function TablePage() {
 						)}
 					</button>
 
-					<button
-						type="button"
-						className="btn-ghost"
-						onClick={handlePromoteDefault}
-						disabled={!activeView || activeView.isDefault || isSaving}
-						title="Set as default view"
-					>
-						<Star className="h-3.5 w-3.5" strokeWidth={1.75} />
-						Default
-					</button>
+					<div className="mx-1 hidden h-4 w-px bg-border sm:block" aria-hidden />
+
+					{activeView?.isDefault ? (
+						<span
+							className="inline-flex h-8 items-center gap-1.5 px-1 text-xs text-muted-foreground"
+							title="This view opens when you visit Table"
+						>
+							<span className="badge-soft">Default</span>
+							<span className="hidden sm:inline">Opens first</span>
+						</span>
+					) : (
+						<button
+							type="button"
+							className="btn-ghost"
+							onClick={handlePromoteDefault}
+							disabled={!activeView || isSaving}
+							title="Open this view first when visiting Table"
+						>
+							Make default
+						</button>
+					)}
 
 					<button
 						type="button"
 						className="btn-destructive"
 						onClick={handleDeleteView}
 						disabled={!activeView || activeView.isDefault || isSaving}
+						title={
+							activeView?.isDefault
+								? "The default view cannot be deleted — promote another first"
+								: "Delete this view"
+						}
 					>
 						<Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
 						Delete
-					</button>
-				</div>
-
-				<div className="ml-auto flex items-center gap-2">
-					<input
-						className="field w-36 sm:w-44"
-						placeholder="New view name"
-						value={newViewName}
-						onChange={(e) => setNewViewName(e.target.value)}
-						onKeyDown={(e) => {
-							if (e.key === "Enter") void handleCreateView();
-						}}
-					/>
-					<button
-						type="button"
-						className="btn-primary"
-						onClick={handleCreateView}
-						disabled={isSaving}
-					>
-						<Plus className="h-3.5 w-3.5" strokeWidth={2} />
-						New view
 					</button>
 				</div>
 			</header>
@@ -501,11 +528,18 @@ export function TablePage() {
 				)}
 			</div>
 
-			<footer className="shrink-0 text-xs text-muted-foreground">
-				{grid ? `${grid.filteredCount} of ${grid.total} people` : null}
-				{grid?.skippedSort ? " · sort column unavailable" : ""}
-				{grid && grid.skippedFilters > 0 ? ` · ${grid.skippedFilters} filter(s) skipped` : ""}
-				{activeView ? ` · ${activeView.name || DEFAULT_TABLE_VIEW_NAME}` : ""}
+			<footer className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+				<span>{grid ? `${grid.filteredCount} of ${grid.total} people` : null}</span>
+				{grid?.skippedSort ? <span>· sort column unavailable</span> : null}
+				{grid && grid.skippedFilters > 0 ? (
+					<span>· {grid.skippedFilters} filter(s) skipped</span>
+				) : null}
+				{activeView ? (
+					<span className="inline-flex items-center gap-1.5">
+						· {activeView.name || DEFAULT_TABLE_VIEW_NAME}
+						{activeView.isDefault ? <span className="badge-soft-muted">Default</span> : null}
+					</span>
+				) : null}
 			</footer>
 		</div>
 	);
