@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.6.0] - 2026-07-17
+
+### Added
+- **People Table** — full page for browsing people as a configurable grid
+  (views, columns, sort, filters). Spec: `docs/features/05-people-table-views.md`.
+- **Table Views API** — CRUD for workspace-scoped named views on
+  `person_table_views` (columns layout, sort, filters, default flag).
+- **Shared table-view schemas** — wire types and validation in `@bogo/shared`
+  for worker + UI.
+- **Full-page person editor** — open a person from the table name link
+  (replaces table-only Open); breadcrumbs + PageBack navigation.
+- **Dual-list Columns picker** — drag between available / visible columns
+  with cancel restore.
+- **Date cell distance** — table date columns show calendar distance
+  (e.g. `1y 2m 25d`) alongside the date.
+- **Avatars** in Name and Manager table columns.
+
+### Changed
+- Default view label **Default → All People** (UI + seed + migration rename).
+- Table surface polish (L0–L3 control system); default view no longer
+  uses a star affordance — view tabs + badge instead.
+- Manager filter matches by **person name** (not only id).
+- CLI base package: `@nocoo/cli-base` → `@nocoo/base-cli` `^0.3.0`.
+
+### Fixed
+- Filter/sort edge cases from review: trim on text/select/boolean/sort
+  compare; default Name ASC (`sort: null`) reuses `compareRaw` trim;
+  skip illegal filter values; skip `is_empty`/`is_not_empty` when a value
+  is present; toast on view mutations; column drag order off-by-one;
+  filter ops restricted by column kind.
+
+### Migrations
+- `0008_person_table_views.sql` — create `person_table_views`, unique
+  default per workspace, backfill **All People** for existing workspaces.
+- `0009_rename_default_view.sql` — rename workspace default view named
+  `Default` → `All People` when no name conflict.
+
 ## [0.5.3] - 2026-07-15
 
 ### Changed
