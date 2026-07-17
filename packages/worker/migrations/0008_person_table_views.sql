@@ -24,7 +24,7 @@ CREATE UNIQUE INDEX idx_ptv_workspace_default
   ON person_table_views(workspace_id)
   WHERE is_default = 1;
 
--- Backfill Default view for existing workspaces that have none.
+-- Backfill All People view for existing workspaces that have none.
 INSERT INTO person_table_views (
   id, workspace_id, name, columns_json, sort_json, filters_json,
   is_default, sort_order, created_at, updated_at
@@ -38,7 +38,7 @@ SELECT
     hex(randomblob(6))
   ),
   w.id,
-  'Default',
+  'All People',
   '["builtin:name","builtin:title","builtin:managerId"]',
   NULL,
   '[]',

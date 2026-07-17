@@ -22,7 +22,7 @@
 | 4 | 导航 | 侧栏 **第三主入口**，文案 **`Table`**，路径 `/table` |
 | 5 | View 数量 | **支持多个命名 View**；每个 workspace **有且仅有一个** default |
 | 6 | 行点击 | 打开 **`EditPersonPanel`**（与 People 同组件；不跳转 `/people`） |
-| 7 | 默认 View 名 | 固定 **`Default`** |
+| 7 | 默认 View 名 | 固定 **`All People`** |
 | 8 | manager 列排序 | 按 **resolved 姓名**（`localeCompare`），不是 person id |
 | 9 | CLI | 与 API **同期上线**；必须补齐 CSV/JSON bridge + `check-clip-yaml` 计数 |
 
@@ -377,7 +377,7 @@ DB partial unique index 只保证 **至多一个** default。应用层闭环：
 ### 保证「至少一个」
 
 1. **Seed**：`POST /workspaces` 的 `DB.batch` 插入 root person 的同时插入
-   `name=Default`, `is_default=1`, `sort_order=0` 的 view（见 §Seed）。
+   `name=All People`, `is_default=1`, `sort_order=0` 的 view（见 §Seed）。
 2. **Backfill**：migration `0008` 为每个尚无 view 的 workspace 插入同样的 Default。
 3. **DELETE 约束**：
    - workspace 内仅剩 1 条 view → `400 CANNOT_DELETE_LAST_VIEW`（无论是否 default）。
@@ -416,7 +416,7 @@ UPDATE person_table_views SET is_default = 1, updated_at = ?
 
 | 字段 | 值 |
 |------|-----|
-| name | `Default` |
+| name | `All People` |
 | columns | `["builtin:name","builtin:title","builtin:managerId"]` |
 | sort | `null`（网格默认 name ASC） |
 | filters | `[]` |
@@ -442,7 +442,7 @@ SELECT
     hex(randomblob(6))
   ),
   w.id,
-  'Default',
+  'All People',
   '["builtin:name","builtin:title","builtin:managerId"]',
   NULL,
   '[]',
@@ -725,7 +725,7 @@ Icon：`Table2`（lucide）。
 5. **Sort**：列头变更后 **立即 PUT** `sort`（merge 算法，不传 filters 则保留）。
 6. **行点击 / Open 按钮**：打开 **`EditPersonPanel`**（与 People 页同组件、同
    viewmodel 能力）；不 `navigate('/people')`。
-7. **空状态**：无 people → CTA「Go to People」；始终至少有 Default view。
+7. **空状态**：无 people → CTA「Go to People」；始终至少有 All People view。
 
 ### MVVM / 文件清单（完整）
 
@@ -901,7 +901,7 @@ parallel:
 | createdAt 筛选 | UTC 日历日 vs `YYYY-MM-DD` | 避免 ISO eq 永不命中 |
 | 侧栏 | `Table` / `/table` | 拍板 |
 | 行点击 | EditPersonPanel | 拍板 |
-| 默认名 | `Default` | 拍板 |
+| 默认名 | `All People` | 拍板 |
 | manager sort | resolved 姓名 | 拍板 |
 | CLI | 同期 + CSV/JSON bridge + gate 49 | 可实现、可 CI |
 | 新 view 序 | MAX(sort_order)+1，GET 稳定排序 | 避免并列 0 |

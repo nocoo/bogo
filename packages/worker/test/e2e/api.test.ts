@@ -361,14 +361,14 @@ describe("workspace CRUD (real D1)", () => {
 		let defaultViewId: string;
 		let extraViewId: string;
 
-		it("GET /api/w/:wid/table-views lists seeded Default view", async () => {
+		it("GET /api/w/:wid/table-views lists seeded All People view", async () => {
 			const res = await api(`/api/w/${wsId}/table-views`);
 			expect(res.status).toBe(200);
 			const json = await res.json();
 			expect(json.data.length).toBeGreaterThanOrEqual(1);
 			const def = json.data.find((v: { isDefault: boolean }) => v.isDefault);
 			expect(def).toBeDefined();
-			expect(def.name).toBe("Default");
+			expect(def.name).toBe("All People");
 			expect(def.columns).toContain("builtin:name");
 			defaultViewId = def.id;
 		});
@@ -413,7 +413,7 @@ describe("workspace CRUD (real D1)", () => {
 			expect(promote.status).toBe(200);
 			expect((await promote.json()).data.isDefault).toBe(true);
 
-			// original Default is no longer default — can delete it later after re-promote if needed
+			// original All People is no longer default — can delete it later after re-promote if needed
 			const list = await (await api(`/api/w/${wsId}/table-views`)).json();
 			const defaults = list.data.filter((v: { isDefault: boolean }) => v.isDefault);
 			expect(defaults).toHaveLength(1);

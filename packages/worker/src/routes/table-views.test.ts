@@ -18,7 +18,7 @@ const BASE = `/api/w/${WID}/table-views`;
 const VIEW_ROW = {
 	id: "view-1",
 	workspace_id: WID,
-	name: "Default",
+	name: "All People",
 	columns_json: '["builtin:name","builtin:title"]',
 	sort_json: null,
 	filters_json: "[]",
@@ -37,7 +37,7 @@ describe("table-views routes", () => {
 			expect(res.status).toBe(200);
 			const json = await res.json();
 			expect(json.data).toHaveLength(1);
-			expect(json.data[0].name).toBe("Default");
+			expect(json.data[0].name).toBe("All People");
 			expect(json.data[0].isDefault).toBe(true);
 			expect(json.data[0].columns).toEqual(["builtin:name", "builtin:title"]);
 		});

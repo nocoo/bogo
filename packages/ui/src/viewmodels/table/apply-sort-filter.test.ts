@@ -21,7 +21,7 @@ function person(partial: Partial<Person> & { id: string; name: string }): Person
 const viewBase: PersonTableView = {
 	id: "v1",
 	workspaceId: "ws",
-	name: "Default",
+	name: "All People",
 	columns: ["builtin:name", "builtin:title"],
 	sort: null,
 	filters: [],

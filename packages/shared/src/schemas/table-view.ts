@@ -173,11 +173,11 @@ export function validateFilterWireShape(filter: ViewFilter): string | null {
 	return null;
 }
 
-/** Default columns for the seeded Default view. */
+/** Default columns for the seeded All People view. */
 export const DEFAULT_TABLE_VIEW_COLUMNS: ColumnKey[] = [
 	"builtin:name",
 	"builtin:title",
 	"builtin:managerId",
 ];
 
-export const DEFAULT_TABLE_VIEW_NAME = "Default";
+export const DEFAULT_TABLE_VIEW_NAME = "All People";

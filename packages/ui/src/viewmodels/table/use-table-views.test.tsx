@@ -44,7 +44,7 @@ const WS = {
 const VIEW = {
 	id: "v1",
 	workspaceId: "ws-1",
-	name: "Default",
+	name: "All People",
 	columns: ["builtin:name"],
 	sort: null,
 	filters: [],
