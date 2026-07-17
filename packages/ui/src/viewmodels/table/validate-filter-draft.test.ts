@@ -1,7 +1,7 @@
 import type { CustomFieldDefinition } from "@bogo/shared";
 import { describe, expect, it } from "vitest";
 import type { ColumnMeta } from "./column-catalog.js";
-import { validateFilterDraft } from "./validate-filter-draft.js";
+import { validateFilterDraft, validateFilterValue } from "./validate-filter-draft.js";
 
 const nameMeta: ColumnMeta = {
 	key: "builtin:name",
@@ -30,6 +30,15 @@ const numDef: CustomFieldDefinition = {
 	showOnChart: false,
 	createdAt: "2026-01-01T00:00:00Z",
 };
+
+describe("validateFilterValue", () => {
+	it("rejects non-numeric eq on number columns", () => {
+		expect(validateFilterValue({ key: numKey, op: "eq", value: "abc" }, numMeta, numDef)).toMatch(
+			/finite number/,
+		);
+		expect(validateFilterValue({ key: numKey, op: "eq", value: "12" }, numMeta, numDef)).toBeNull();
+	});
+});
 
 describe("validateFilterDraft", () => {
 	it("accepts valid text filter", () => {
@@ -69,7 +78,8 @@ describe("validateFilterDraft", () => {
 			filterable: true,
 			kind: "boolean",
 		};
-		const selectKey = "field:019a0000-0000-7000-8000-0000000000s1" as const;
+		const selectId = "019a0000-0000-7000-8000-0000000000bb";
+		const selectKey = `field:${selectId}` as const;
 		const selectMeta: ColumnMeta = {
 			key: selectKey,
 			label: "Lvl",
@@ -79,7 +89,7 @@ describe("validateFilterDraft", () => {
 		};
 		const selectDef: CustomFieldDefinition = {
 			...numDef,
-			id: "019a0000-0000-7000-8000-0000000000s1",
+			id: selectId,
 			name: "Lvl",
 			fieldType: "select",
 			options: ["A", "B"],

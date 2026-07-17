@@ -179,12 +179,13 @@ describe("buildGrid", () => {
 	});
 
 	it("filters neq/contains/date ops and tag in", () => {
+		const tagId = "019a0000-0000-7000-8000-0000000000aa";
 		const persons = [
 			person({
 				id: "a",
 				name: "Alice",
 				title: "Engineer",
-				tags: [{ id: "t1", name: "X", color: null }],
+				tags: [{ id: tagId, name: "X", color: null }],
 			}),
 			person({ id: "b", name: "Bob", title: "PM", tags: [] }),
 		];
@@ -197,7 +198,7 @@ describe("buildGrid", () => {
 		const v2: PersonTableView = {
 			...viewBase,
 			columns: ["builtin:name", "builtin:tags"],
-			filters: [{ key: "builtin:tags", op: "in", value: ["t1"] }],
+			filters: [{ key: "builtin:tags", op: "in", value: [tagId] }],
 		};
 		expect(buildGrid(v2, persons, [], []).filteredCount).toBe(1);
 
@@ -557,6 +558,16 @@ describe("buildGrid", () => {
 		const gIllegalOp = buildGrid(vStaleOp, [a, b], [def], values);
 		expect(gIllegalOp.skippedFilters).toBe(1);
 		expect(gIllegalOp.filteredCount).toBe(2);
+
+		// illegal value shape for kind (eq "abc" on number) → skip, keep all rows
+		const vBadNum: PersonTableView = {
+			...viewBase,
+			columns: ["builtin:name", key],
+			filters: [{ key, op: "eq", value: "abc" }],
+		};
+		const gBadNum = buildGrid(vBadNum, [a, b], [def], values);
+		expect(gBadNum.skippedFilters).toBe(1);
+		expect(gBadNum.filteredCount).toBe(2);
 
 		// select `in` with padded values matches stored option
 		const vSelInPad: PersonTableView = {

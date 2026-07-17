@@ -378,7 +378,7 @@ DB partial unique index 只保证 **至多一个** default。应用层闭环：
 
 1. **Seed**：`POST /workspaces` 的 `DB.batch` 插入 root person 的同时插入
    `name=All People`, `is_default=1`, `sort_order=0` 的 view（见 §Seed）。
-2. **Backfill**：migration `0008` 为每个尚无 view 的 workspace 插入同样的 Default。
+2. **Backfill**：migration `0008` 为每个尚无 view 的 workspace 插入同样的 **All People**。
 3. **DELETE 约束**：
    - workspace 内仅剩 1 条 view → `400 CANNOT_DELETE_LAST_VIEW`（无论是否 default）。
    - 目标 `is_default=1` 且还有其他 view → `400 CANNOT_DELETE_DEFAULT`
@@ -412,7 +412,7 @@ UPDATE person_table_views SET is_default = 1, updated_at = ?
 
 ---
 
-## Seed Default View
+## Seed All People View
 
 | 字段 | 值 |
 |------|-----|
@@ -803,7 +803,7 @@ parallel:
 
 ## Workspace Create Hook
 
-`workspaces.ts` 创建路径：`DB.batch` 含 workspace + root person + Default table view。
+`workspaces.ts` 创建路径：`DB.batch` 含 workspace + root person + **All People** table view。
 任一条失败整批回滚。
 
 ---
@@ -815,7 +815,7 @@ parallel:
 | L1 shared | create vs update schema：`parse({})` on update **不得**注入 filters/isDefault；columnKey |
 | L1 worker | merge PUT；rename 含 stale sort/filter 成功；PUT 新 sort/filter 拒 stale；value shape（in/empty/eq）；CANNOT_CLEAR_DEFAULT；default 转移；DELETE last/default；UNKNOWN_FIELD 仅新 key；remove column 清 sort/filter；POST sort_order MAX+1；CLI bridge |
 | L1 ui | resolve-cell；UTC day filter for createdAt；comparison norms；stale skip；manager 按姓名 sort；invalid `?view=` replace |
-| L2 | table-views CRUD；workspace create 带 Default |
+| L2 | table-views CRUD；workspace create 带 All People |
 | L3 | smoke `/table` + breadcrumb；打开 panel |
 | G1 | typecheck + biome |
 | clip | `EXPECTED_COMMAND_FILES === 49` |
@@ -915,7 +915,7 @@ parallel:
 |---|------|
 | 侧栏文案 | **Table** |
 | 行点击 | **`/people/:id` 全页**（from Table view） |
-| 默认 View 名 | **Default** |
+| 默认 View 名 | **All People** |
 | manager 排序 | **resolved 姓名** |
 | CLI | **与 API 同期**；columns=CSV query，sort/filters=JSON query string；`EXPECTED_COMMAND_FILES=49` |
 

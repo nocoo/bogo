@@ -108,7 +108,11 @@ export function TablePage() {
 			if (!cur || cur.key !== key) next = { key, direction: "asc" };
 			else if (cur.direction === "asc") next = { key, direction: "desc" };
 			else next = null;
-			await updateView(activeView.id, { sort: next });
+			try {
+				await updateView(activeView.id, { sort: next });
+			} catch (e) {
+				toast.error(e instanceof Error ? e.message : "Failed to update sort");
+			}
 		},
 		[activeView, updateView],
 	);
@@ -141,23 +145,35 @@ export function TablePage() {
 
 	const handleCreateView = async () => {
 		const name = newViewName.trim() || "New view";
-		const created = await createView({
-			name,
-			columns: [...DEFAULT_TABLE_VIEW_COLUMNS],
-		});
-		setNewViewName("");
-		setSearchParams({ view: created.id });
+		try {
+			const created = await createView({
+				name,
+				columns: [...DEFAULT_TABLE_VIEW_COLUMNS],
+			});
+			setNewViewName("");
+			setSearchParams({ view: created.id });
+		} catch (e) {
+			toast.error(e instanceof Error ? e.message : "Failed to create view");
+		}
 	};
 
 	const handleDeleteView = async () => {
 		if (!activeView || activeView.isDefault) return;
-		await deleteView(activeView.id);
-		if (defaultView) setSearchParams({ view: defaultView.id });
+		try {
+			await deleteView(activeView.id);
+			if (defaultView) setSearchParams({ view: defaultView.id });
+		} catch (e) {
+			toast.error(e instanceof Error ? e.message : "Failed to delete view");
+		}
 	};
 
 	const handlePromoteDefault = async () => {
 		if (!activeView || activeView.isDefault) return;
-		await updateView(activeView.id, { isDefault: true });
+		try {
+			await updateView(activeView.id, { isDefault: true });
+		} catch (e) {
+			toast.error(e instanceof Error ? e.message : "Failed to set default view");
+		}
 	};
 
 	if (!workspaceId) {

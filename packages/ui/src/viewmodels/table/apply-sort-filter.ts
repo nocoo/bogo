@@ -7,9 +7,8 @@ import type {
 	ViewFilter,
 	ViewSort,
 } from "@bogo/shared";
-import { isValidFiniteNumberString } from "@bogo/shared";
+import { fieldIdFromColumnKey, isValidFiniteNumberString } from "@bogo/shared";
 import { resolveColumnMeta } from "./column-catalog.js";
-import { isFilterOpAllowedForKind } from "./filter-ops.js";
 import {
 	indexFieldValues,
 	indexPersons,
@@ -18,6 +17,7 @@ import {
 	resolveCell,
 	utcDay,
 } from "./resolve-cell.js";
+import { validateFilterValue } from "./validate-filter-draft.js";
 
 export type GridRow = {
 	person: Person;
@@ -241,8 +241,12 @@ export function buildGrid(
 			skippedFilters++;
 			continue;
 		}
-		// Field type change (e.g. text→number) leaves illegal ops; skip instead of matching none
-		if (!isFilterOpAllowedForKind(meta.kind, f.op)) {
+		// Stale op or illegal value after type change (eq "abc" on number) → skip, keep all rows
+		const fieldId = fieldIdFromColumnKey(f.key);
+		const def: CustomFieldDefinition | undefined = fieldId
+			? defs.find((d) => d.id === fieldId)
+			: undefined;
+		if (validateFilterValue(f, meta, def) !== null) {
 			skippedFilters++;
 			continue;
 		}
