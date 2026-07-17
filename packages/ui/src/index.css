@@ -218,6 +218,14 @@
 		@apply text-xs font-medium text-muted-foreground;
 	}
 
+	/* Detail-page back control (← Label). Icon-only uses .btn-icon instead. */
+	.page-back {
+		@apply inline-flex h-7 shrink-0 items-center gap-1.5 self-start rounded-md px-1;
+		@apply text-xs font-medium text-muted-foreground transition-colors;
+		@apply hover:text-foreground;
+		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50;
+	}
+
 	/* Horizontal view switcher (table multi-view, etc.) */
 	.view-switcher {
 		@apply flex min-w-0 items-center gap-0.5 overflow-x-auto rounded-lg bg-muted/70 p-1;

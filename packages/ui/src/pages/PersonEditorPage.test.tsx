@@ -143,11 +143,11 @@ describe("PersonEditorPage", () => {
 
 		renderAtPath("/people/missing");
 		expect(screen.getByText("Person not found.")).toBeTruthy();
-		fireEvent.click(screen.getByText("Back to Table"));
+		fireEvent.click(screen.getByLabelText("Back to Table"));
 		expect(screen.getByText("Table page")).toBeTruthy();
 	});
 
-	it("renders editor form for found person", () => {
+	it("renders editor form for found person with back control", () => {
 		withWorkspace("ws-1");
 		mockUsePersonList.mockReturnValue(basePersonList());
 
@@ -155,6 +155,16 @@ describe("PersonEditorPage", () => {
 		expect(screen.getByTestId("person-editor-form")).toBeTruthy();
 		expect(screen.getByRole("heading", { name: "Alice" })).toBeTruthy();
 		expect(screen.getByText("Engineer")).toBeTruthy();
+		expect(screen.getByLabelText("Back to Table")).toBeTruthy();
+	});
+
+	it("back link returns to Table", () => {
+		withWorkspace("ws-1");
+		mockUsePersonList.mockReturnValue(basePersonList());
+
+		renderAtPath("/people/p-alice");
+		fireEvent.click(screen.getByLabelText("Back to Table"));
+		expect(screen.getByText("Table page")).toBeTruthy();
 	});
 
 	it("shows No title placeholder when person has empty title", () => {

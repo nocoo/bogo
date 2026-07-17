@@ -52,6 +52,13 @@ focus rings stay consistent. Do not invent one-off `px-2 py-1 text-xs` buttons.
 `.view-tab` / `.view-tab-active`. Mark the workspace default with `.badge-soft`
 (active) / `.badge-soft-muted` (inactive) — never a star glyph or icon-only “Default” button.
 
+**Detail navigation** (document / person editors):
+
+1. Shell **breadcrumbs**: `Home › Parent list › Edit …` (no raw ids).
+2. In-page **`PageBackLink`** to the same parent — icon-only left of the title /
+   identity row, or `.page-back` text variant when a label is needed.
+3. Do not invent a third back control; list parents are `/documents` and `/table`.
+
 **Never** put raw `oklch(...)`, `#...`, `rgb(...)` in `.tsx` files. If you find yourself wanting one, the token is missing — add it to `:root` + `.dark` + `@theme inline`, then use it.
 
 ## When to abstract into a component class

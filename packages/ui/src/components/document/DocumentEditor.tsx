@@ -4,10 +4,11 @@ import type {
 	Person,
 	UpdateDocumentInput,
 } from "@bogo/shared";
-import { ArrowLeft, GitCompareArrows, Loader2, Pencil, Save } from "lucide-react";
+import { GitCompareArrows, Loader2, Pencil, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { renderMarkdown } from "../../lib/markdown.js";
 import type { DocumentVM } from "../../viewmodels/document/use-document.js";
+import { PageBackLink } from "../layout/PageBackLink.js";
 import { TagPicker } from "../TagPicker.js";
 import { DocTypePicker } from "./DocTypePicker.js";
 import { DocumentPersons } from "./DocumentPersons.js";
@@ -110,31 +111,23 @@ export function DocumentEditor({
 		<div className="flex h-full overflow-hidden">
 			{/* Main column — header strip + editor/preview */}
 			<div className="flex-1 min-w-0 flex flex-col overflow-hidden gap-2">
-				{/* Back link — own row, low-weight */}
-				<button
-					type="button"
-					onClick={onBack}
-					className="shrink-0 inline-flex items-center gap-1.5 self-start text-xs text-muted-foreground hover:text-foreground transition-colors -ml-0.5"
-					aria-label="Back to documents"
-				>
-					<ArrowLeft className="h-3.5 w-3.5" />
-					All documents
-				</button>
-
-				{/* Title row: title fills width, save floats right */}
-				<div className="shrink-0 flex items-center gap-3">
-					<TitleField title={title} onChange={handleTitleChange} />
+				{/* Title row: standard back (left) + title + save */}
+				<div className="shrink-0 flex items-center gap-2">
+					<PageBackLink onClick={onBack} ariaLabel="Back to documents" />
+					<div className="min-w-0 flex-1">
+						<TitleField title={title} onChange={handleTitleChange} />
+					</div>
 					<button
 						type="button"
 						onClick={handleSave}
 						disabled={!dirty || vm.isUpdating}
-						className="shrink-0 inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+						className="btn-primary shrink-0"
 						aria-label="Save document"
 					>
 						{vm.isUpdating ? (
 							<Loader2 className="h-4 w-4 animate-spin" />
 						) : (
-							<Save className="h-4 w-4" />
+							<Save className="h-4 w-4" strokeWidth={2} />
 						)}
 						Save
 					</button>

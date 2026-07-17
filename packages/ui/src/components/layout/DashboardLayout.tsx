@@ -19,18 +19,47 @@ const SECTION_LABELS: Record<string, string> = {
 	"/settings": "Settings",
 };
 
+const SETTINGS_CHILD_LABELS: Record<string, string> = {
+	"doc-types": "Doc types",
+	fields: "Fields",
+	tags: "Tags",
+};
+
+/**
+ * Detail / nested routes: Home › Parent › Current (never raw uuids).
+ * In-page PageBackLink always points at the same Parent href.
+ */
 function resolveBreadcrumbs(pathname: string): BreadcrumbItem[] {
 	if (pathname === "/") {
 		return [{ label: "Overview" }];
 	}
 
-	// Person editor opens from Table (name click). Trail follows that flow
-	// rather than dumping a raw id under People.
+	// Person editor — opened from Table name click
 	if (/^\/people\/[^/]+$/.test(pathname)) {
 		return [
 			{ label: "Home", href: "/" },
 			{ label: "Table", href: "/table" },
 			{ label: "Edit person" },
+		];
+	}
+
+	// Document editor
+	if (/^\/documents\/[^/]+$/.test(pathname)) {
+		return [
+			{ label: "Home", href: "/" },
+			{ label: "Documents", href: "/documents" },
+			{ label: "Edit document" },
+		];
+	}
+
+	// Settings children
+	const settingsChild = pathname.match(/^\/settings\/([^/]+)$/);
+	if (settingsChild) {
+		const slug = settingsChild[1] ?? "";
+		return [
+			{ label: "Home", href: "/" },
+			{ label: "Settings", href: "/settings" },
+			{ label: SETTINGS_CHILD_LABELS[slug] ?? slug },
 		];
 	}
 
