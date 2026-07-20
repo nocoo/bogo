@@ -69,9 +69,9 @@ export function VersionDiff({
 			{oldV.title !== newV.title && (
 				<div className="rounded-md border border-border p-2 text-xs">
 					<span className="text-muted-foreground">Title: </span>
-					<span className="line-through text-red-400">{oldV.title}</span>
+					<span className="line-through text-destructive">{oldV.title}</span>
 					<span className="mx-1">→</span>
-					<span className="text-green-400">{newV.title}</span>
+					<span className="text-success">{newV.title}</span>
 				</div>
 			)}
 			<Suspense

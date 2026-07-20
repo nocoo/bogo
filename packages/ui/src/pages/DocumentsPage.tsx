@@ -41,7 +41,7 @@ export function DocumentsPage() {
 
 	if (vm.error) {
 		return (
-			<div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
+			<div className="rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
 				Failed to load documents: {vm.error.message}
 			</div>
 		);
@@ -300,7 +300,7 @@ function DocumentRow({
 					type="button"
 					onClick={() => onRemove(doc.id)}
 					disabled={isRemoving}
-					className="shrink-0 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-red-500 disabled:opacity-50 transition-all"
+					className="shrink-0 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-destructive disabled:opacity-50 transition-all"
 					aria-label={`Delete ${doc.title}`}
 				>
 					{isRemoving ? (

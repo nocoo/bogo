@@ -87,7 +87,7 @@ function TagList({ scope }: { scope: TagScope }) {
 				) : deletingId === tag.id ? (
 					<div
 						key={tag.id}
-						className="flex items-center gap-3 py-2 px-3 rounded-md bg-red-500/5 border border-red-500/20"
+						className="flex items-center gap-3 py-2 px-3 rounded-md bg-destructive/10"
 					>
 						<span className="text-sm text-foreground flex-1">Delete &quot;{tag.name}&quot;?</span>
 						<button
@@ -96,7 +96,7 @@ function TagList({ scope }: { scope: TagScope }) {
 								vm.remove(tag.id);
 								setDeletingId(null);
 							}}
-							className="text-xs font-medium text-red-400 hover:text-red-300"
+							className="text-xs font-medium text-destructive hover:text-destructive/80"
 						>
 							Confirm
 						</button>
@@ -126,7 +126,7 @@ function TagList({ scope }: { scope: TagScope }) {
 						<button
 							type="button"
 							onClick={() => setDeletingId(tag.id)}
-							className="text-muted-foreground hover:text-red-400 transition-colors"
+							className="text-muted-foreground hover:text-destructive transition-colors"
 							aria-label={`Delete ${tag.name}`}
 						>
 							<Trash2 className="h-3.5 w-3.5" />

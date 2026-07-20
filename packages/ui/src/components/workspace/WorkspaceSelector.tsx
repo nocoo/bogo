@@ -46,7 +46,7 @@ export function WorkspaceSelector() {
 				aria-label="Select workspace"
 			>
 				{error ? (
-					<AlertCircle className="h-3.5 w-3.5 text-red-500" strokeWidth={1.5} />
+					<AlertCircle className="h-3.5 w-3.5 text-destructive" strokeWidth={1.5} />
 				) : (
 					<Building2 className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
 				)}
@@ -70,7 +70,7 @@ export function WorkspaceSelector() {
 
 			{open && (
 				<div className="absolute top-full right-0 mt-1 z-50 w-56 rounded-lg bg-popover shadow-lg py-1">
-					{error && <p className="px-3 py-2 text-xs text-red-500">Failed to load workspaces</p>}
+					{error && <p className="px-3 py-2 text-xs text-destructive">Failed to load workspaces</p>}
 					{!error && workspaces.length === 0 && !isLoading && (
 						<p className="px-3 py-2 text-xs text-muted-foreground">No workspaces</p>
 					)}

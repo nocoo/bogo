@@ -58,7 +58,7 @@ export function PersonChip({
 					type="button"
 					onClick={onRemove}
 					disabled={isRemoving}
-					className="shrink-0 ml-auto text-muted-foreground hover:text-red-400 disabled:opacity-50 transition-colors"
+					className="shrink-0 ml-auto text-muted-foreground hover:text-destructive disabled:opacity-50 transition-colors"
 					aria-label={`Remove ${name}`}
 				>
 					<X className="h-3.5 w-3.5" strokeWidth={1.8} />

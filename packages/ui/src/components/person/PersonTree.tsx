@@ -140,8 +140,8 @@ function PersonTreeInner() {
 	if (vm.error) {
 		return (
 			<div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-				<AlertCircle className="h-8 w-8 text-red-500" strokeWidth={1.5} />
-				<p className="mt-2 text-sm text-red-500">Failed to load people</p>
+				<AlertCircle className="h-8 w-8 text-destructive" strokeWidth={1.5} />
+				<p className="mt-2 text-sm text-destructive">Failed to load people</p>
 				<p className="mt-1 text-xs text-muted-foreground">{vm.error.message}</p>
 			</div>
 		);
@@ -215,14 +215,14 @@ function PersonTreeInner() {
 
 			{vm.dropError && (
 				<div className="absolute bottom-3 left-3 right-3 z-10">
-					<div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-2 flex items-center justify-between">
-						<p className="text-xs text-red-500">{vm.dropError}</p>
+					<div className="rounded-lg bg-destructive/10 px-4 py-2 flex items-center justify-between">
+						<p className="text-xs text-destructive">{vm.dropError}</p>
 						<button
 							type="button"
 							onClick={() => {
 								vm.clearDropError();
 							}}
-							className="text-red-500 hover:text-red-400 ml-2"
+							className="text-destructive hover:text-destructive/80 ml-2"
 							aria-label="Dismiss error"
 						>
 							<AlertCircle className="h-3.5 w-3.5" />

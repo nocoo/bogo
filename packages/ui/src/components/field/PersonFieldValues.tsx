@@ -20,7 +20,7 @@ export function PersonFieldValues({
 
 	if (vm.error) {
 		return (
-			<div className="rounded-md border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-400">
+			<div className="rounded-md bg-destructive/10 p-3 text-xs text-destructive">
 				Failed to load field values: {vm.error.message}
 			</div>
 		);
@@ -76,7 +76,7 @@ function FieldValueRow({ def, vm }: { def: CustomFieldDefinition; vm: FieldValue
 			<label htmlFor={`field-${def.id}`} className="text-xs text-muted-foreground">
 				{def.name}
 				{def.required && (
-					<span className="text-amber-500 ml-1" aria-hidden="true">
+					<span className="text-warning ml-1" aria-hidden="true">
 						*
 					</span>
 				)}
@@ -89,7 +89,7 @@ function FieldValueRow({ def, vm }: { def: CustomFieldDefinition; vm: FieldValue
 				onBlur={handleBlur}
 			/>
 			{validationError && (
-				<p className="mt-0.5 text-xs text-red-400" role="alert">
+				<p className="mt-0.5 text-xs text-destructive" role="alert">
 					{validationError}
 				</p>
 			)}

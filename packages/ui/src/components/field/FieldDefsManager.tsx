@@ -24,7 +24,7 @@ export function FieldDefsManager({ vm }: { vm: FieldDefsVM }) {
 
 	if (vm.error) {
 		return (
-			<div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
+			<div className="rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
 				Failed to load field definitions: {vm.error.message}
 			</div>
 		);
@@ -384,7 +384,7 @@ function FieldDefRow({
 					type="button"
 					onClick={() => onRemove(def.id)}
 					disabled={isRemoving}
-					className="shrink-0 text-muted-foreground hover:text-red-500 disabled:opacity-50 transition-colors"
+					className="shrink-0 text-muted-foreground hover:text-destructive disabled:opacity-50 transition-colors"
 					aria-label={`Delete ${def.name}`}
 				>
 					{isRemoving ? (

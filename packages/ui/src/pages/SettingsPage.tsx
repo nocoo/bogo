@@ -15,7 +15,7 @@ export function SettingsPage() {
 					</div>
 					<div className="flex items-center justify-between py-2 border-b border-border">
 						<span className="text-sm text-muted-foreground">SSL</span>
-						<span className="text-sm text-green-600 font-medium">Active</span>
+						<span className="text-sm text-success font-medium">Active</span>
 					</div>
 					<div className="flex items-center justify-between py-2">
 						<span className="text-sm text-muted-foreground">DNS Provider</span>
@@ -40,7 +40,7 @@ export function SettingsPage() {
 					</div>
 					<div className="flex items-center justify-between py-2">
 						<span className="text-sm text-muted-foreground">JWT Validation</span>
-						<span className="text-sm text-green-600 font-medium">Enabled</span>
+						<span className="text-sm text-success font-medium">Enabled</span>
 					</div>
 				</div>
 			</div>
@@ -74,11 +74,11 @@ export function SettingsPage() {
 				<div className="space-y-3">
 					<div className="flex items-center justify-between py-2 border-b border-border">
 						<span className="text-sm text-muted-foreground">Deploy Alerts</span>
-						<span className="text-sm text-green-600 font-medium">On</span>
+						<span className="text-sm text-success font-medium">On</span>
 					</div>
 					<div className="flex items-center justify-between py-2 border-b border-border">
 						<span className="text-sm text-muted-foreground">Error Alerts</span>
-						<span className="text-sm text-green-600 font-medium">On</span>
+						<span className="text-sm text-success font-medium">On</span>
 					</div>
 					<div className="flex items-center justify-between py-2">
 						<span className="text-sm text-muted-foreground">Channel</span>

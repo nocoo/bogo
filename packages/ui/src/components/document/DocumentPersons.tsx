@@ -57,13 +57,13 @@ export function DocumentPersons({
 			{!compact && <h3 className="text-sm font-semibold text-foreground">Associated People</h3>}
 
 			{personsError && (
-				<div className="rounded-md border border-red-500/20 bg-red-500/5 p-2 text-xs text-red-400">
+				<div className="rounded-md bg-destructive/10 p-2 text-xs text-destructive">
 					Failed to load associations: {personsError.message}
 				</div>
 			)}
 
 			{allPersonsError && (
-				<div className="rounded-md border border-red-500/20 bg-red-500/5 p-2 text-xs text-red-400">
+				<div className="rounded-md bg-destructive/10 p-2 text-xs text-destructive">
 					Failed to load people: {allPersonsError.message}
 				</div>
 			)}

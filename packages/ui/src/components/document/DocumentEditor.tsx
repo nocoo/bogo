@@ -93,7 +93,7 @@ export function DocumentEditor({
 
 	if (vm.error) {
 		return (
-			<div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
+			<div className="rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
 				Failed to load document: {vm.error.message}
 			</div>
 		);
@@ -238,8 +238,8 @@ function DirtyChip({ dirty }: { dirty: boolean }) {
 		);
 	}
 	return (
-		<span className="inline-flex items-center gap-1.5 text-amber-500 font-medium">
-			<span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true" />
+		<span className="inline-flex items-center gap-1.5 text-warning font-medium">
+			<span className="h-1.5 w-1.5 rounded-full bg-warning" aria-hidden="true" />
 			Unsaved changes
 		</span>
 	);

@@ -91,7 +91,7 @@ function WorkspaceItem({
 							e.stopPropagation();
 							onDelete();
 						}}
-						className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-red-500 hover:bg-background transition-colors"
+						className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-background transition-colors"
 						aria-label={`Delete ${workspace.name}`}
 					>
 						<Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
@@ -126,8 +126,8 @@ export function WorkspaceList() {
 
 	if (vm.error) {
 		return (
-			<div className="rounded-xl bg-red-500/10 p-6 text-center">
-				<p className="text-sm text-red-500">Failed to load workspaces</p>
+			<div className="rounded-xl bg-destructive/10 p-6 text-center">
+				<p className="text-sm text-destructive">Failed to load workspaces</p>
 				<p className="mt-1 text-xs text-muted-foreground">{vm.error.message}</p>
 			</div>
 		);
