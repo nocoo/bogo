@@ -75,10 +75,10 @@ const MOCK_LOGS: LogEntry[] = [
 ];
 
 const LEVEL_CONFIG: Record<LogLevel, { icon: React.ElementType; className: string }> = {
-	info: { icon: Info, className: "text-blue-500" },
-	warn: { icon: AlertCircle, className: "text-yellow-500" },
-	error: { icon: AlertCircle, className: "text-red-500" },
-	success: { icon: CheckCircle, className: "text-green-500" },
+	info: { icon: Info, className: "text-info" },
+	warn: { icon: AlertCircle, className: "text-warning" },
+	error: { icon: AlertCircle, className: "text-destructive" },
+	success: { icon: CheckCircle, className: "text-success" },
 };
 
 export function OverviewPage() {
@@ -98,7 +98,7 @@ export function OverviewPage() {
 					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
 						Online
 					</h3>
-					<span className="text-xs font-medium text-green-600">Healthy</span>
+					<span className="text-xs font-medium text-success">Healthy</span>
 				</div>
 				<div className="rounded-card bg-secondary p-4 md:p-5">
 					<p className="text-xs md:text-sm text-muted-foreground mb-1">Version</p>
@@ -119,7 +119,7 @@ export function OverviewPage() {
 					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
 						Active
 					</h3>
-					<span className="text-xs font-medium text-green-600">CF Access</span>
+					<span className="text-xs font-medium text-success">CF Access</span>
 				</div>
 			</div>
 
@@ -137,7 +137,7 @@ export function OverviewPage() {
 							{stat.value}
 						</h3>
 						<span
-							className={`inline-flex items-center gap-1 text-xs font-medium ${stat.up ? "text-green-600" : "text-red-500"}`}
+							className={`inline-flex items-center gap-1 text-xs font-medium ${stat.up ? "text-success" : "text-destructive"}`}
 						>
 							{stat.up ? (
 								<ArrowUpRight className="h-3 w-3" />
