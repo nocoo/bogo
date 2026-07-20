@@ -624,7 +624,7 @@ export function TablePage() {
 						role="dialog"
 						aria-modal="true"
 						aria-labelledby="create-view-title"
-						className="w-full max-w-sm rounded-xl border border-border bg-card p-4 shadow-lg"
+						className="w-full max-w-sm rounded-xl bg-card p-4 shadow-lg"
 						onClick={(e) => e.stopPropagation()}
 					>
 						<div className="mb-3 flex items-center justify-between gap-2">

@@ -270,7 +270,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 					{/* biome-ignore lint/a11y/useKeyWithClickEvents: stop propagation for modal */}
 					{/* biome-ignore lint/a11y/noStaticElementInteractions: modal container, focus held by input child */}
 					<div
-						className="w-full max-w-md rounded-xl bg-card border border-border shadow-lg p-2"
+						className="w-full max-w-md rounded-xl bg-card shadow-lg p-2"
 						onClick={(e) => e.stopPropagation()}
 					>
 						<input

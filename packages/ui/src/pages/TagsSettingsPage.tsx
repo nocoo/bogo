@@ -294,7 +294,7 @@ function ColorPicker({
 				aria-label="Pick color"
 			/>
 			{open && (
-				<div className="absolute top-7 left-0 z-10 rounded-lg border border-border bg-popover p-2 shadow-md">
+				<div className="absolute top-7 left-0 z-10 rounded-lg bg-popover p-2 shadow-md">
 					<div className="grid grid-cols-6 gap-1">
 						<button
 							type="button"

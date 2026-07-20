@@ -69,7 +69,7 @@ export function WorkspaceSelector() {
 			</button>
 
 			{open && (
-				<div className="absolute top-full right-0 mt-1 z-50 w-56 rounded-lg border border-border bg-secondary shadow-lg py-1">
+				<div className="absolute top-full right-0 mt-1 z-50 w-56 rounded-lg bg-popover shadow-lg py-1">
 					{error && <p className="px-3 py-2 text-xs text-red-500">Failed to load workspaces</p>}
 					{!error && workspaces.length === 0 && !isLoading && (
 						<p className="px-3 py-2 text-xs text-muted-foreground">No workspaces</p>

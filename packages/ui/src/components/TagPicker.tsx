@@ -68,7 +68,7 @@ export function TagPicker({ scope, entityId, assignedTags }: TagPickerProps) {
 			</button>
 
 			{open && (
-				<div className="absolute top-full left-0 z-20 mt-1 w-52 rounded-lg border border-border bg-popover p-1 shadow-md">
+				<div className="absolute top-full left-0 z-20 mt-1 w-52 rounded-lg bg-popover p-1 shadow-md">
 					{(!allTags || allTags.length === 0) && (
 						<p className="px-2 py-1.5 text-xs text-muted-foreground">No tags available</p>
 					)}

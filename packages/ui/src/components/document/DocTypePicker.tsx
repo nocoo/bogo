@@ -64,7 +64,7 @@ export function DocTypePicker({ types, value, onChange, disabled }: DocTypePicke
 			</button>
 
 			{open && (
-				<div className="absolute top-full left-0 z-20 mt-1 w-56 rounded-lg border border-border bg-popover p-1 shadow-md">
+				<div className="absolute top-full left-0 z-20 mt-1 w-56 rounded-lg bg-popover p-1 shadow-md">
 					{types.length === 0 ? (
 						<p className="px-2 py-1.5 text-xs text-muted-foreground">No types defined</p>
 					) : (

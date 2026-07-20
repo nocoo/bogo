@@ -29,7 +29,7 @@ export function EditPersonPanel({
 	fieldValuesVm?: FieldValuesVM;
 }) {
 	return (
-		<div className="w-80 max-h-[min(85vh,40rem)] overflow-y-auto rounded-xl bg-secondary p-4 shadow-lg ring-1 ring-border/60">
+		<div className="w-80 max-h-[min(85vh,40rem)] overflow-y-auto rounded-xl bg-card p-4 shadow-lg">
 			<div className="mb-3 flex items-center justify-between">
 				<h3 className="text-sm font-semibold text-foreground">Edit Person</h3>
 				<button

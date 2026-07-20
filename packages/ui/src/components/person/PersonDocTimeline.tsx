@@ -45,7 +45,7 @@ export function PersonDocTimeline({
 	}, [documents]);
 
 	return (
-		<div className="w-72 rounded-xl border border-border bg-secondary p-4 shadow-lg">
+		<div className="w-72 rounded-xl bg-card p-4 shadow-lg">
 			<div className="flex items-center justify-between mb-4">
 				<h3 className="text-sm font-semibold text-foreground">Documents</h3>
 				<button

@@ -78,7 +78,7 @@ export function DocumentFilters({
 	);
 
 	return (
-		<div className="rounded-xl border border-border bg-secondary shadow-sm">
+		<div className="rounded-card bg-secondary">
 			{/* Collapsed bar */}
 			<div className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-foreground">
 				<button

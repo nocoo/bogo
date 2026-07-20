@@ -254,7 +254,7 @@ function DocumentRow({
 	isRemoving: boolean;
 }) {
 	return (
-		<div className="group rounded-xl border border-border bg-secondary p-4 shadow-sm hover:border-primary/40 transition-colors">
+		<div className="group rounded-card bg-secondary p-4 transition-colors hover:bg-secondary/80">
 			<div className="flex items-center gap-3">
 				<Link
 					to={`/documents/${doc.id}`}
