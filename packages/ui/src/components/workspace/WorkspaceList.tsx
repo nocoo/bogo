@@ -192,7 +192,7 @@ export function WorkspaceList() {
 			)}
 
 			{vm.workspaces.length === 0 ? (
-				<div className="rounded-xl bg-secondary p-12 text-center">
+				<div className="rounded-card bg-secondary p-12 text-center">
 					<Building2 className="mx-auto h-10 w-10 text-muted-foreground" strokeWidth={1} />
 					<p className="mt-3 text-sm text-muted-foreground">No workspaces yet</p>
 					<p className="mt-1 text-xs text-muted-foreground">

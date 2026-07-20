@@ -9,7 +9,7 @@ export function TagsSettingsPage() {
 	const [scope, setScope] = useState<TagScope>("document");
 
 	return (
-		<div className="rounded-xl bg-secondary p-5">
+		<div className="rounded-card bg-secondary p-5">
 			<div className="flex items-center justify-between mb-4">
 				<h2 className="font-semibold text-foreground text-lg">Tags</h2>
 			</div>

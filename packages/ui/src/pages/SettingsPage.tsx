@@ -3,7 +3,7 @@ import { Bell, Globe, Settings as SettingsIcon, Shield } from "lucide-react";
 export function SettingsPage() {
 	return (
 		<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-			<div className="rounded-xl bg-secondary p-5">
+			<div className="rounded-card bg-secondary p-5">
 				<div className="flex items-center gap-3 mb-4">
 					<Globe className="h-5 w-5 text-muted-foreground" />
 					<h3 className="font-semibold text-foreground">Domain</h3>
@@ -24,7 +24,7 @@ export function SettingsPage() {
 				</div>
 			</div>
 
-			<div className="rounded-xl bg-secondary p-5">
+			<div className="rounded-card bg-secondary p-5">
 				<div className="flex items-center gap-3 mb-4">
 					<Shield className="h-5 w-5 text-muted-foreground" />
 					<h3 className="font-semibold text-foreground">Authentication</h3>
@@ -45,7 +45,7 @@ export function SettingsPage() {
 				</div>
 			</div>
 
-			<div className="rounded-xl bg-secondary p-5">
+			<div className="rounded-card bg-secondary p-5">
 				<div className="flex items-center gap-3 mb-4">
 					<SettingsIcon className="h-5 w-5 text-muted-foreground" />
 					<h3 className="font-semibold text-foreground">Worker</h3>
@@ -66,7 +66,7 @@ export function SettingsPage() {
 				</div>
 			</div>
 
-			<div className="rounded-xl bg-secondary p-5">
+			<div className="rounded-card bg-secondary p-5">
 				<div className="flex items-center gap-3 mb-4">
 					<Bell className="h-5 w-5 text-muted-foreground" />
 					<h3 className="font-semibold text-foreground">Notifications</h3>

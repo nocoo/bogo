@@ -5,7 +5,7 @@ export function DocTypesSettingsPage() {
 	const vm = useDocTypes();
 
 	return (
-		<div className="rounded-xl bg-secondary p-5">
+		<div className="rounded-card bg-secondary p-5">
 			<DocTypeManager vm={vm} />
 		</div>
 	);

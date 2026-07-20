@@ -5,7 +5,7 @@ export function FieldsSettingsPage() {
 	const vm = useFieldDefs();
 
 	return (
-		<div className="rounded-xl bg-secondary p-5">
+		<div className="rounded-card bg-secondary p-5">
 			<FieldDefsManager vm={vm} />
 		</div>
 	);

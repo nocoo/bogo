@@ -93,28 +93,28 @@ export function OverviewPage() {
 		<>
 			{/* Status cards */}
 			<div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-				<div className="rounded-xl bg-secondary p-4 md:p-5">
+				<div className="rounded-card bg-secondary p-4 md:p-5">
 					<p className="text-xs md:text-sm text-muted-foreground mb-1">Status</p>
 					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
 						Online
 					</h3>
 					<span className="text-xs font-medium text-green-600">Healthy</span>
 				</div>
-				<div className="rounded-xl bg-secondary p-4 md:p-5">
+				<div className="rounded-card bg-secondary p-4 md:p-5">
 					<p className="text-xs md:text-sm text-muted-foreground mb-1">Version</p>
 					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
 						{BOGO_VERSION}
 					</h3>
 					<span className="text-xs font-medium text-muted-foreground">Latest</span>
 				</div>
-				<div className="rounded-xl bg-secondary p-4 md:p-5">
+				<div className="rounded-card bg-secondary p-4 md:p-5">
 					<p className="text-xs md:text-sm text-muted-foreground mb-1">Runtime</p>
 					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
 						Edge
 					</h3>
 					<span className="text-xs font-medium text-muted-foreground">CF Workers</span>
 				</div>
-				<div className="rounded-xl bg-secondary p-4 md:p-5">
+				<div className="rounded-card bg-secondary p-4 md:p-5">
 					<p className="text-xs md:text-sm text-muted-foreground mb-1">Auth</p>
 					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
 						Active
@@ -131,7 +131,7 @@ export function OverviewPage() {
 					{ label: "Error Rate", value: "0.02%", change: "+0.01%", up: false },
 					{ label: "Cache Hit", value: "94.2%", change: "+2.1%", up: true },
 				].map((stat) => (
-					<div key={stat.label} className="rounded-xl bg-secondary p-4 md:p-5">
+					<div key={stat.label} className="rounded-card bg-secondary p-4 md:p-5">
 						<p className="text-xs md:text-sm text-muted-foreground mb-1">{stat.label}</p>
 						<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
 							{stat.value}
@@ -152,7 +152,7 @@ export function OverviewPage() {
 
 			{/* Analytics: charts */}
 			<div className="grid grid-cols-1 gap-4 mt-4 lg:grid-cols-2">
-				<div className="rounded-xl bg-secondary p-5">
+				<div className="rounded-card bg-secondary p-5">
 					<div className="flex items-center gap-3 mb-4">
 						<BarChart3 className="h-5 w-5 text-muted-foreground" />
 						<h3 className="font-semibold text-foreground">Requests by Endpoint</h3>
@@ -176,7 +176,7 @@ export function OverviewPage() {
 					</div>
 				</div>
 
-				<div className="rounded-xl bg-secondary p-5">
+				<div className="rounded-card bg-secondary p-5">
 					<div className="flex items-center gap-3 mb-4">
 						<TrendingUp className="h-5 w-5 text-muted-foreground" />
 						<h3 className="font-semibold text-foreground">Response Times</h3>
@@ -203,7 +203,7 @@ export function OverviewPage() {
 			{/* System metrics */}
 			<div className="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
 				{systemMetrics.map((m) => (
-					<div key={m.label} className="rounded-xl bg-secondary p-5">
+					<div key={m.label} className="rounded-card bg-secondary p-5">
 						<div className="flex items-center gap-3 mb-3">
 							<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
 								<m.icon className="h-5 w-5 text-primary" />
@@ -224,7 +224,7 @@ export function OverviewPage() {
 			</div>
 
 			{/* Runtime information */}
-			<div className="mt-4 rounded-xl bg-secondary p-5">
+			<div className="mt-4 rounded-card bg-secondary p-5">
 				<h3 className="font-semibold text-foreground mb-4">Runtime Information</h3>
 				<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 					{[
@@ -247,7 +247,7 @@ export function OverviewPage() {
 			</div>
 
 			{/* Recent logs */}
-			<div className="mt-4 rounded-xl bg-secondary p-5">
+			<div className="mt-4 rounded-card bg-secondary p-5">
 				<div className="flex items-center gap-3 mb-4">
 					<ScrollText className="h-5 w-5 text-muted-foreground" />
 					<h3 className="font-semibold text-foreground">Recent Logs</h3>
