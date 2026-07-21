@@ -232,7 +232,7 @@ function DirtyChip({ dirty }: { dirty: boolean }) {
 	if (!dirty) {
 		return (
 			<span className="inline-flex items-center gap-1.5 text-muted-foreground">
-				<span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+				<span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
 				All changes saved
 			</span>
 		);

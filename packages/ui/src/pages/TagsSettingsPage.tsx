@@ -289,8 +289,8 @@ function ColorPicker({
 			<button
 				type="button"
 				onClick={() => setOpen(!open)}
-				className="h-5 w-5 rounded-full border border-border shrink-0"
-				style={{ backgroundColor: value ?? "#d1d5db" }}
+				className={`h-5 w-5 rounded-full border border-border shrink-0 ${value ? "" : "bg-muted"}`}
+				style={value ? { backgroundColor: value } : undefined}
 				aria-label="Pick color"
 			/>
 			{open && (
@@ -302,7 +302,7 @@ function ColorPicker({
 								onChange(null);
 								setOpen(false);
 							}}
-							className="h-5 w-5 rounded-full border border-border bg-gray-200"
+							className="h-5 w-5 rounded-full border border-border bg-muted"
 							aria-label="No color"
 						/>
 						{PRESET_HEX_VALUES.map((hex) => (
