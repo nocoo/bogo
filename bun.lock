@@ -16,7 +16,7 @@
     },
     "packages/cli": {
       "name": "@nocoo/bogo",
-      "version": "0.5.3",
+      "version": "0.7.0",
       "bin": {
         "bogo": "dist/index.js",
       },
@@ -27,7 +27,7 @@
     },
     "packages/shared": {
       "name": "@bogo/shared",
-      "version": "0.5.3",
+      "version": "0.7.0",
       "dependencies": {
         "zod": "^4",
       },
@@ -37,7 +37,7 @@
     },
     "packages/ui": {
       "name": "@bogo/ui",
-      "version": "0.5.3",
+      "version": "0.7.0",
       "dependencies": {
         "@bogo/shared": "workspace:*",
         "@dagrejs/dagre": "^3.0.0",
@@ -46,7 +46,7 @@
         "@xyflow/react": "^12.11.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "js-yaml": "^4.1.0",
+        "js-yaml": "^4.3.0",
         "lucide-react": "^1.17.0",
         "marked": "^17.0.6",
         "react": "^19.2.7",
@@ -76,7 +76,7 @@
     },
     "packages/worker": {
       "name": "@bogo/worker",
-      "version": "0.5.3",
+      "version": "0.7.0",
       "dependencies": {
         "@bogo/shared": "workspace:*",
         "hono": "^4.12.23",
@@ -696,7 +696,7 @@
 
     "js-tokens": ["js-tokens@10.0.0", "", {}, "sha512-lM/UBzQmfJRo9ABXbPWemivdCW8V2G8FHaHdypQaIy523snUjog0W71ayWXTjiR+ixeMyVHN2XcpnTd/liPg/Q=="],
 
-    "js-yaml": ["js-yaml@4.2.0", "", { "dependencies": { "argparse": "^2.0.1" }, "bin": { "js-yaml": "bin/js-yaml.js" } }, "sha512-ePWsvanv0DWuDRsW8dnt+R4jQ31SCRCQ7hhNcPXZPsoBZiemuZNYGf7adZdqX2D86j6rvKp3RpCxVTSb8WQlOw=="],
+    "js-yaml": ["js-yaml@4.3.0", "", { "dependencies": { "argparse": "^2.0.1" }, "bin": { "js-yaml": "bin/js-yaml.js" } }, "sha512-1td788aAnnZ5qs7V2QIRl1owjtYpbKt749Y3xauqQgwIIGF/xXWz1wMTEBx5O3LK3lXLVuqXPdPxj2BoFHaW9Q=="],
 
     "jsesc": ["jsesc@3.1.0", "", { "bin": { "jsesc": "bin/jsesc" } }, "sha512-/sM3dO2FOzXjKQhJuo0Q173wf2KOo8t4I8vHy6lF9poUp7bKT0/NHE8fPX23PwfhnykfqnC2xRxOnVw5XuGIaA=="],
 
