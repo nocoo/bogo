@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.7.0] - 2026-07-21
+
+### Added
+- **Extended design tokens** — `--success` / `--warning` / `--info` (with
+  matching foregrounds), full `--sidebar-*` palette (8), `--chart-1..8`
+  plus `--chart-axis` / `--chart-muted`. Prepares the ground for future
+  charts / heatmaps without ad-hoc raw colors.
+- **`--radius-card` (14px) and `--radius-widget` (10px)** — matches pew
+  basalt's card radii.
+
+### Changed
+- **Dark-mode luminance ladder aligned with pew basalt**: bg 0.135,
+  card 0.175, secondary 0.21; popover collapses onto the card tier.
+  Deep-navy hue 250 preserved.
+- **Surface semantics aligned with pew basalt** across 13 components:
+  L2 tiled cards (bg-secondary) carry no border and no shadow; floating
+  chrome (popovers, dropdowns, dialogs) uses bg-popover / bg-card +
+  shadow-*, never border. Covers DocumentsPage, DocumentFilters,
+  PersonNode, EditPersonPanel, PersonDocTimeline, CreatePersonDialog,
+  TablePage new-view modal, TagsSettingsPage swatch popover,
+  DocTypeManager palette, DocTypePicker / TagPicker /
+  WorkspaceSelector dropdowns, AppSidebar search modal.
+- **`rounded-xl bg-secondary` → `rounded-card bg-secondary`** in 21
+  places, so L2 cards render at 14px instead of tailwind's default xl.
+- **PersonNode** drops its border chrome; idle state uses
+  `hover:bg-secondary/80`, selected state uses `ring-2 ring-primary`.
+
+### Fixed
+- **`@custom-variant dark`** now matches `.dark` root itself (was
+  descendants-only), so `dark:` utilities on `<html>` no longer no-op.
+- **Light-mode `--warning` contrast** raised from ~2.4:1 to 5.1–6.0:1
+  (WCAG AA) so 12-14px warning text is readable on L1/L2 surfaces.
+- **Dark-mode `--destructive` contrast** raised from ~3.3:1 to
+  5.3–6.1:1 on `bg-destructive/10` error banners.
+- **Dark-mode `--destructive-foreground`** repaired to pair 6.6:1
+  with the brightened `--destructive`, keeping future solid
+  `bg-destructive` buttons AA-compliant.
+- **Raw color leaks purged from `.tsx`** — 13 files migrated from
+  `text-red-*` / `bg-red-*` / `text-green-*` / `text-amber-*` /
+  `bg-emerald-500` / `#d1d5db` / `bg-gray-200` to
+  `text-destructive` / `bg-destructive/10` / `text-success` /
+  `text-warning` / `bg-muted` tokens.
+- **Table `New view` name dialog** now opens from the compact `+`
+  button as well as the full-width version.
+
+### Security
+- **`js-yaml` bumped to `^4.3.0`** (fixes GHSA-52cp-r559-cp3m, CVSS 7.5).
+
 ## [0.6.0] - 2026-07-17
 
 ### Added
