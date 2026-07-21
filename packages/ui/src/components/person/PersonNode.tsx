@@ -11,8 +11,8 @@ export const PersonNode = memo(function PersonNode({
 }: NodeProps & { data: PersonNodeData }) {
 	return (
 		<div
-			className={`group flex w-[240px] items-center gap-3 rounded-card border bg-secondary px-4 py-3 transition-colors ${
-				selected ? "border-primary" : "border-border hover:border-primary/40"
+			className={`group flex w-[240px] items-center gap-3 rounded-card bg-secondary px-4 py-3 transition-colors ${
+				selected ? "ring-2 ring-primary" : "hover:bg-secondary/80"
 			}`}
 		>
 			<Handle type="target" position={Position.Top} className="!bg-primary !w-2 !h-2" />
