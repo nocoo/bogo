@@ -184,7 +184,11 @@
 	 * bg-destructive/10 (a 10% mix onto card/secondary); L=0.55 only
 	 * reached ~3.1-3.5:1 and failed AA. L=0.7 clears 5.2-6.1:1. */
 	--destructive: oklch(0.7 0.2 25);
-	--destructive-foreground: oklch(0.98 0.005 230);
+	/* Label on solid bg-destructive must clear AA. A near-white foreground
+	 * pairs with the brightened dark --destructive at only 2.82:1 — flip
+	 * to a deep foreground for 6.6:1. Light mode still uses near-white
+	 * because its --destructive stays at L=0.55. */
+	--destructive-foreground: oklch(0.15 0.005 25);
 	--border: oklch(0.265 0.02 250);
 	--input: oklch(0.29 0.02 250);
 	--ring: oklch(0.55 0.2 250);
