@@ -131,8 +131,12 @@
 	/* Status */
 	--success: oklch(0.55 0.15 145);
 	--success-foreground: oklch(0.98 0.005 145);
-	--warning: oklch(0.72 0.16 75);
-	--warning-foreground: oklch(0.2 0.02 75);
+	/* Warning must clear 4.5:1 as text on light card/secondary — 0.72 was
+	 * only ~2.4:1. Darken to 0.5 (≈5.5:1 on bg-background / 6.3:1 on
+	 * bg-card). Dot / chip usage still visible; solid button pairs with
+	 * --warning-foreground below. */
+	--warning: oklch(0.5 0.15 75);
+	--warning-foreground: oklch(0.98 0.005 75);
 	--info: oklch(0.6 0.15 240);
 	--info-foreground: oklch(0.98 0.005 230);
 
