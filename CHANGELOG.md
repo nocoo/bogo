@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.8.0] - 2026-08-20
+
+### Added
+- **People refs and hover cards** — person names across chips, org tree,
+  avatar clusters, documents, people, person editor, and table wrap in a
+  preview card (avatar, title, manager, chart fields, tags, Open profile).
+- **Local Northwind Labs seed** — `bun run seed:local` applies local D1
+  migrations and loads a 10-person fixture (org tree, custom fields, docs,
+  tags, table views). Local-only; refuses `--remote`.
+
+### Changed
+- **Vite 8** — `vite` 6.3 → 8.2, `@vitejs/plugin-react` 4 → 6, Tailwind
+  4.1 → 4.3, vitest 4.1.8 → 4.1.10. Config uses `import.meta.dirname`.
+- **Table person links** use foreground color instead of primary underline.
+
+### Fixed
+- **Person hover keyboard path** — non-interactive triggers are tabbable;
+  Tab enters the profile link and continues to the next page control;
+  Shift-Tab returns to the trigger's last control; closing the card
+  restores document tab order.
+- **Restore `packages/worker/static/.gitkeep`** after Vite empties the
+  assets directory.
+- **Reseed wipes `document_types`** so Northwind Labs reloads cleanly.
+
 ## [0.7.0] - 2026-07-21
 
 ### Added
