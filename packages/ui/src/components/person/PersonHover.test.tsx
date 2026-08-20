@@ -329,7 +329,12 @@ describe("PersonHover", () => {
 		const profile = screen.getByRole("link", { name: "Open profile" });
 		expect(document.activeElement).toBe(profile);
 
-		fireEvent.keyDown(profile, { key: "Tab" });
+		fireEvent.keyDown(profile, { key: "Tab", shiftKey: true });
+		expect(document.activeElement).toBe(remove);
+
+		remove.focus();
+		fireEvent.keyDown(remove, { key: "Tab" });
+		fireEvent.keyDown(screen.getByRole("link", { name: "Open profile" }), { key: "Tab" });
 		expect(document.activeElement).toBe(screen.getByRole("button", { name: "After" }));
 	});
 

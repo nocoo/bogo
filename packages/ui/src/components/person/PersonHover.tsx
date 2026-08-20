@@ -25,12 +25,6 @@ function tabbables(root: ParentNode): HTMLElement[] {
 	return [...root.querySelectorAll<HTMLElement>(TABBABLE)].filter((el) => el.tabIndex >= 0);
 }
 
-function firstTabbableIn(root: HTMLElement | null): HTMLElement | null {
-	if (!root) return null;
-	if (root.tabIndex >= 0) return root;
-	return tabbables(root)[0] ?? null;
-}
-
 function lastTabbableOf(root: HTMLElement): HTMLElement {
 	const inner = tabbables(root);
 	return inner[inner.length - 1] ?? root;
@@ -164,8 +158,7 @@ function PersonHoverBound({ personId, children }: { personId: string; children: 
 		}
 
 		if (event.shiftKey && inCard) {
-			const prev = firstTabbableIn(trigger);
-			if (!prev) return;
+			const prev = lastTabbableOf(trigger);
 			event.preventDefault();
 			prev.focus();
 		}
