@@ -562,7 +562,7 @@ export function TablePage() {
 													<PersonHover personId={row.person.id}>
 														<Link
 															to={`/people/${row.person.id}?from=${encodeURIComponent(tableReturnPath)}`}
-															className="inline-flex max-w-full items-center gap-2 font-medium text-primary hover:underline"
+															className="inline-flex max-w-full items-center gap-2 font-medium text-foreground"
 														>
 															<PersonAvatar
 																name={row.person.name}
@@ -576,7 +576,7 @@ export function TablePage() {
 													<PersonHover personId={cell.refId}>
 														<Link
 															to={`/people/${cell.refId}?from=${encodeURIComponent(tableReturnPath)}`}
-															className="inline-flex max-w-full items-center gap-2 font-medium text-primary hover:underline"
+															className="inline-flex max-w-full items-center gap-2 text-foreground"
 														>
 															<PersonAvatar
 																name={cell.display}
