@@ -100,6 +100,7 @@ function PersonHoverBound({ personId, children }: { personId: string; children: 
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		if (event.key !== "Tab" || event.shiftKey || !open) return;
+		if (cardRef.current?.contains(event.target as Node)) return;
 		const link = cardRef.current?.querySelector("a");
 		if (!(link instanceof HTMLElement)) return;
 		event.preventDefault();

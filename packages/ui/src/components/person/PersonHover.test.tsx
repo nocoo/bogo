@@ -209,7 +209,9 @@ describe("PersonHover", () => {
 		expect(screen.getByRole("tooltip")).toBeTruthy();
 
 		fireEvent.keyDown(trigger as HTMLElement, { key: "Tab" });
-		expect(document.activeElement).toBe(screen.getByRole("link", { name: "Open profile" }));
+		const profile = screen.getByRole("link", { name: "Open profile" });
+		expect(document.activeElement).toBe(profile);
+		expect(fireEvent.keyDown(profile, { key: "Tab" })).toBe(true);
 	});
 
 	it("opens a preview card after hover delay", async () => {
