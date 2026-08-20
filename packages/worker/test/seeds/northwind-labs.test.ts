@@ -34,6 +34,7 @@ describe("northwind-labs seed sql", () => {
 		expect(sql).toContain("PRAGMA foreign_keys = OFF");
 		expect(sql).toContain("PRAGMA foreign_keys = ON");
 		expect(sql).toContain("DELETE FROM workspaces");
+		expect(sql).toContain("DELETE FROM document_types");
 		expect(sql).toContain("Northwind Labs");
 		expect(sql).toContain("--remote");
 		expect(sql).not.toMatch(/wrangler d1 .*--remote/);

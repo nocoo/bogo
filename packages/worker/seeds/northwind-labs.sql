@@ -23,6 +23,9 @@ DELETE FROM document_versions WHERE document_id IN (
 DELETE FROM documents WHERE workspace_id IN (
   SELECT id FROM workspaces WHERE id = '00000000-0000-4000-a000-000000000001' OR name = 'Northwind Labs'
 );
+DELETE FROM document_types WHERE workspace_id IN (
+  SELECT id FROM workspaces WHERE id = '00000000-0000-4000-a000-000000000001' OR name = 'Northwind Labs'
+);
 DELETE FROM tags WHERE workspace_id IN (
   SELECT id FROM workspaces WHERE id = '00000000-0000-4000-a000-000000000001' OR name = 'Northwind Labs'
 );
