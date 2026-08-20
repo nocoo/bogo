@@ -173,7 +173,7 @@ describe("PersonHover", () => {
 		expect(screen.queryByRole("tooltip")).toBeNull();
 	});
 
-	it("makes the trigger keyboard-focusable", () => {
+	it("makes a static trigger keyboard-focusable", () => {
 		renderHover(
 			<PersonHover personId="p-mina">
 				<span>Mina</span>
@@ -181,6 +181,35 @@ describe("PersonHover", () => {
 		);
 		const trigger = screen.getByText("Mina").closest("span[tabindex]");
 		expect(trigger?.getAttribute("tabindex")).toBe("0");
+	});
+
+	it("does not add a wrapper tab stop around a button child", () => {
+		renderHover(
+			<PersonHover personId="p-mina">
+				<button type="button">Mina</button>
+			</PersonHover>,
+		);
+		expect(
+			screen.getByRole("button", { name: "Mina" }).parentElement?.getAttribute("tabindex"),
+		).toBeNull();
+	});
+
+	it("moves focus from the trigger into the profile link", async () => {
+		renderHover(
+			<PersonHover personId="p-mina">
+				<span>Mina</span>
+			</PersonHover>,
+		);
+		const trigger = screen.getByText("Mina").closest("span[tabindex]");
+		expect(trigger).toBeTruthy();
+		(trigger as HTMLElement).focus();
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(200);
+		});
+		expect(screen.getByRole("tooltip")).toBeTruthy();
+
+		fireEvent.keyDown(trigger as HTMLElement, { key: "Tab" });
+		expect(document.activeElement).toBe(screen.getByRole("link", { name: "Open profile" }));
 	});
 
 	it("opens a preview card after hover delay", async () => {

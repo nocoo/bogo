@@ -1,4 +1,14 @@
-import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+	Children,
+	type FocusEvent,
+	isValidElement,
+	type KeyboardEvent,
+	type ReactNode,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router";
 import { useOptionalWorkspaceContext } from "../../contexts/workspace-context.js";
@@ -22,12 +32,22 @@ export function PersonHover({ personId, children }: PersonHoverProps) {
 	return <PersonHoverBound personId={personId}>{children}</PersonHoverBound>;
 }
 
+function isInteractiveChild(children: ReactNode): boolean {
+	return Children.toArray(children).some((child) => {
+		if (!isValidElement<{ href?: unknown; tabIndex?: number }>(child)) return false;
+		if (child.type === "a" || child.type === "button" || child.type === Link) return true;
+		return typeof child.props.href === "string" || child.props.tabIndex === 0;
+	});
+}
+
 function PersonHoverBound({ personId, children }: { personId: string; children: ReactNode }) {
 	const [open, setOpen] = useState(false);
 	const [pos, setPos] = useState({ top: 0, left: 0 });
 	const triggerRef = useRef<HTMLSpanElement>(null);
+	const cardRef = useRef<HTMLDivElement>(null);
 	const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const interactive = isInteractiveChild(children);
 
 	useEffect(() => {
 		return () => {
@@ -68,27 +88,48 @@ function PersonHoverBound({ personId, children }: { personId: string; children: 
 		hideTimer.current = setTimeout(() => setOpen(false), HIDE_MS);
 	};
 
+	const staysInside = (next: EventTarget | null) => {
+		if (!(next instanceof Node)) return false;
+		return Boolean(triggerRef.current?.contains(next) || cardRef.current?.contains(next));
+	};
+
+	const onBlur = (event: FocusEvent<HTMLElement>) => {
+		if (staysInside(event.relatedTarget)) return;
+		hide();
+	};
+
+	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+		if (event.key !== "Tab" || event.shiftKey || !open) return;
+		const link = cardRef.current?.querySelector("a");
+		if (!(link instanceof HTMLElement)) return;
+		event.preventDefault();
+		link.focus();
+	};
+
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: hover card trigger wraps arbitrary children
 		<span
 			ref={triggerRef}
 			className="relative inline-flex max-w-full"
-			// biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard users need a focus target around avatars
-			tabIndex={0}
+			tabIndex={interactive ? undefined : 0}
 			onMouseEnter={show}
 			onMouseLeave={hide}
 			onFocus={show}
-			onBlur={hide}
+			onBlur={onBlur}
+			onKeyDown={onKeyDown}
 		>
 			{children}
 			{open
 				? createPortal(
 						<div
+							ref={cardRef}
 							role="tooltip"
 							className="fixed z-50 w-64"
 							style={{ top: pos.top, left: pos.left }}
 							onMouseEnter={show}
 							onMouseLeave={hide}
+							onFocus={show}
+							onBlur={onBlur}
 						>
 							<PersonHoverPanel personId={personId} />
 						</div>,
