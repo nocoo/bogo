@@ -73,6 +73,8 @@ function PersonHoverBound({ personId, children }: { personId: string; children: 
 		<span
 			ref={triggerRef}
 			className="relative inline-flex max-w-full"
+			// biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard users need a focus target around avatars
+			tabIndex={0}
 			onMouseEnter={show}
 			onMouseLeave={hide}
 			onFocus={show}

@@ -173,6 +173,16 @@ describe("PersonHover", () => {
 		expect(screen.queryByRole("tooltip")).toBeNull();
 	});
 
+	it("makes the trigger keyboard-focusable", () => {
+		renderHover(
+			<PersonHover personId="p-mina">
+				<span>Mina</span>
+			</PersonHover>,
+		);
+		const trigger = screen.getByText("Mina").closest("span[tabindex]");
+		expect(trigger?.getAttribute("tabindex")).toBe("0");
+	});
+
 	it("opens a preview card after hover delay", async () => {
 		renderHover(
 			<PersonHover personId="p-mina">
