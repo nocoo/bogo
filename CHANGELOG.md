@@ -24,6 +24,11 @@
   assets directory.
 - **Reseed wipes `document_types`** so Northwind Labs reloads cleanly.
 
+### Security
+- **`hono` bumped to `^4.12.34`**, **`js-yaml` to `^4.3.1`**, **`react-router`
+  to `^7.18.2`**. Override miniflare-pinned **`sharp` 0.35.2** and
+  **`undici` 7.29.0**.
+
 ## [0.7.0] - 2026-07-21
 
 ### Added

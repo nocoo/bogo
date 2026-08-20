@@ -16,7 +16,7 @@
 	},
 	"dependencies": {
 		"@bogo/shared": "workspace:*",
-		"hono": "^4.12.23",
+		"hono": "^4.12.34",
 		"jose": "^6.2.2"
 	},
 	"devDependencies": {
