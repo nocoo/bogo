@@ -18,6 +18,35 @@ import { PersonAvatar } from "./PersonAvatar.js";
 
 const SHOW_MS = 160;
 const HIDE_MS = 160;
+const TABBABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function tabbables(root: ParentNode): HTMLElement[] {
+	return [...root.querySelectorAll<HTMLElement>(TABBABLE)].filter((el) => el.tabIndex >= 0);
+}
+
+function firstTabbableIn(root: HTMLElement | null): HTMLElement | null {
+	if (!root) return null;
+	if (root.tabIndex >= 0) return root;
+	return tabbables(root)[0] ?? null;
+}
+
+function lastTabbableIn(root: HTMLElement | null): HTMLElement | null {
+	if (!root) return null;
+	const inner = tabbables(root);
+	if (inner.length > 0) return inner[inner.length - 1];
+	return root.tabIndex >= 0 ? root : null;
+}
+
+function nextTabbableAfter(from: HTMLElement, skip: HTMLElement | null): HTMLElement | null {
+	const all = tabbables(document);
+	const start = all.indexOf(from);
+	if (start === -1) return null;
+	for (let i = start + 1; i < all.length; i++) {
+		if (skip?.contains(all[i])) continue;
+		return all[i];
+	}
+	return null;
+}
 
 type PersonHoverProps = {
 	personId?: string | null;
@@ -88,6 +117,18 @@ function PersonHoverBound({ personId, children }: { personId: string; children: 
 		hideTimer.current = setTimeout(() => setOpen(false), HIDE_MS);
 	};
 
+	const hideNow = () => {
+		if (showTimer.current) {
+			clearTimeout(showTimer.current);
+			showTimer.current = null;
+		}
+		if (hideTimer.current) {
+			clearTimeout(hideTimer.current);
+			hideTimer.current = null;
+		}
+		setOpen(false);
+	};
+
 	const staysInside = (next: EventTarget | null) => {
 		if (!(next instanceof Node)) return false;
 		return Boolean(triggerRef.current?.contains(next) || cardRef.current?.contains(next));
@@ -99,12 +140,33 @@ function PersonHoverBound({ personId, children }: { personId: string; children: 
 	};
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-		if (event.key !== "Tab" || event.shiftKey || !open) return;
-		if (cardRef.current?.contains(event.target as Node)) return;
-		const link = cardRef.current?.querySelector("a");
-		if (!(link instanceof HTMLElement)) return;
-		event.preventDefault();
-		link.focus();
+		if (event.key !== "Tab" || !open) return;
+		const inCard = Boolean(cardRef.current?.contains(event.target as Node));
+
+		if (!event.shiftKey && !inCard) {
+			const link = cardRef.current?.querySelector("a");
+			if (!(link instanceof HTMLElement)) return;
+			event.preventDefault();
+			link.focus();
+			return;
+		}
+
+		if (!event.shiftKey && inCard) {
+			const origin = lastTabbableIn(triggerRef.current);
+			const next = origin ? nextTabbableAfter(origin, cardRef.current) : null;
+			if (!next) return;
+			event.preventDefault();
+			hideNow();
+			next.focus();
+			return;
+		}
+
+		if (event.shiftKey && inCard) {
+			const prev = firstTabbableIn(triggerRef.current);
+			if (!prev) return;
+			event.preventDefault();
+			prev.focus();
+		}
 	};
 
 	return (

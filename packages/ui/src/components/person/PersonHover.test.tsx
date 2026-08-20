@@ -2,7 +2,7 @@ import type { Person } from "@bogo/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { type ReactNode, useEffect } from "react";
-import { MemoryRouter } from "react-router";
+import { Link, MemoryRouter } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { PersonHover } from "./PersonHover.js";
@@ -194,11 +194,14 @@ describe("PersonHover", () => {
 		).toBeNull();
 	});
 
-	it("moves focus from the trigger into the profile link", async () => {
+	it("tabs through the card then the next page control", async () => {
 		renderHover(
-			<PersonHover personId="p-mina">
-				<span>Mina</span>
-			</PersonHover>,
+			<>
+				<PersonHover personId="p-mina">
+					<span>Mina</span>
+				</PersonHover>
+				<button type="button">After</button>
+			</>,
 		);
 		const trigger = screen.getByText("Mina").closest("span[tabindex]");
 		expect(trigger).toBeTruthy();
@@ -211,7 +214,90 @@ describe("PersonHover", () => {
 		fireEvent.keyDown(trigger as HTMLElement, { key: "Tab" });
 		const profile = screen.getByRole("link", { name: "Open profile" });
 		expect(document.activeElement).toBe(profile);
+
+		fireEvent.keyDown(profile, { key: "Tab", shiftKey: true });
+		expect(document.activeElement).toBe(trigger);
+
+		fireEvent.keyDown(trigger as HTMLElement, { key: "Tab" });
+		expect(document.activeElement).toBe(profile);
+
+		fireEvent.keyDown(profile, { key: "Tab" });
+		expect(document.activeElement).toBe(screen.getByRole("button", { name: "After" }));
+		expect(screen.queryByRole("tooltip")).toBeNull();
+	});
+
+	it("does not add a wrapper tab stop around a link child", () => {
+		renderHover(
+			<PersonHover personId="p-mina">
+				<Link to="/people/p-mina">Mina</Link>
+			</PersonHover>,
+		);
+		expect(
+			screen.getByRole("link", { name: "Mina" }).parentElement?.getAttribute("tabindex"),
+		).toBeNull();
+	});
+
+	it("cancels a pending hide when the pointer returns", async () => {
+		renderHover(
+			<PersonHover personId="p-mina">
+				<button type="button">Mina</button>
+			</PersonHover>,
+		);
+		const trigger = screen.getByText("Mina");
+		fireEvent.mouseEnter(trigger);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(200);
+		});
+		fireEvent.mouseLeave(trigger);
+		fireEvent.mouseEnter(trigger);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(200);
+		});
+		expect(screen.getByRole("tooltip")).toBeTruthy();
+	});
+
+	it("tabs from a button child and ignores tab when the card is closed", async () => {
+		renderHover(
+			<>
+				<PersonHover personId="p-mina">
+					<button type="button">Mina</button>
+				</PersonHover>
+				<button type="button">After</button>
+			</>,
+		);
+		const trigger = screen.getByRole("button", { name: "Mina" });
+		fireEvent.keyDown(trigger, { key: "Tab" });
+		expect(screen.queryByRole("tooltip")).toBeNull();
+
+		trigger.focus();
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(200);
+		});
+		fireEvent.keyDown(trigger, { key: "Tab" });
+		const profile = screen.getByRole("link", { name: "Open profile" });
+		expect(document.activeElement).toBe(profile);
+
+		fireEvent.mouseLeave(trigger);
+		fireEvent.keyDown(profile, { key: "Tab" });
+		expect(document.activeElement).toBe(screen.getByRole("button", { name: "After" }));
+		expect(screen.queryByRole("tooltip")).toBeNull();
+	});
+
+	it("leaves native tab alone when nothing follows the trigger", async () => {
+		renderHover(
+			<PersonHover personId="p-mina">
+				<span>Mina</span>
+			</PersonHover>,
+		);
+		const trigger = screen.getByText("Mina").closest("span[tabindex]") as HTMLElement;
+		trigger.focus();
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(200);
+		});
+		fireEvent.keyDown(trigger, { key: "Tab" });
+		const profile = screen.getByRole("link", { name: "Open profile" });
 		expect(fireEvent.keyDown(profile, { key: "Tab" })).toBe(true);
+		expect(screen.getByRole("tooltip")).toBeTruthy();
 	});
 
 	it("opens a preview card after hover delay", async () => {
