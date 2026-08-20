@@ -78,6 +78,7 @@ export function DocumentPersons({
 					return (
 						<PersonChip
 							key={dp.personId}
+							personId={dp.personId}
 							name={person?.name ?? dp.personId}
 							avatarUrl={person?.avatarUrl}
 							subtitle={person?.title || undefined}

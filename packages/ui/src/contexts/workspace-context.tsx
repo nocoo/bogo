@@ -67,8 +67,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 	);
 }
 
+export function useOptionalWorkspaceContext(): WorkspaceContextValue | null {
+	return useContext(WorkspaceContext);
+}
+
 export function useWorkspaceContext(): WorkspaceContextValue {
-	const ctx = useContext(WorkspaceContext);
+	const ctx = useOptionalWorkspaceContext();
 	if (!ctx) {
 		throw new Error("useWorkspaceContext must be used within WorkspaceProvider");
 	}

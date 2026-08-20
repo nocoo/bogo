@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DocumentsPage } from "./DocumentsPage.js";
 
 vi.mock("../viewmodels/document/use-doc-types.js", () => ({
@@ -12,20 +12,7 @@ vi.mock("../viewmodels/document/use-documents.js", () => ({
 }));
 
 vi.mock("../viewmodels/person/use-person-list.js", () => ({
-	usePersonList: vi.fn(() => ({
-		persons: [],
-		isLoading: false,
-		error: null,
-		create: vi.fn(),
-		update: vi.fn(),
-		move: vi.fn(),
-		remove: vi.fn(),
-		isCreating: false,
-		isMoving: false,
-		isRemoving: false,
-		mutationError: null,
-		clearMutationError: vi.fn(),
-	})),
+	usePersonList: vi.fn(),
 }));
 
 vi.mock("../components/TagFilter.js", () => ({
@@ -63,10 +50,12 @@ vi.mock("../contexts/workspace-context.js", async (importOriginal) => {
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
 import { useDocTypes } from "../viewmodels/document/use-doc-types.js";
 import { useDocuments } from "../viewmodels/document/use-documents.js";
+import { usePersonList } from "../viewmodels/person/use-person-list.js";
 
 const mockUseWorkspaceContext = vi.mocked(useWorkspaceContext);
 const mockUseDocTypes = vi.mocked(useDocTypes);
 const mockUseDocuments = vi.mocked(useDocuments);
+const mockUsePersonList = vi.mocked(usePersonList);
 
 const DOC_A = {
 	id: "doc-1",
@@ -79,6 +68,7 @@ const DOC_A = {
 	createdAt: "2026-01-01",
 	updatedAt: "2026-01-01",
 	tags: [],
+	personIds: ["p-mina", "p-theo"],
 };
 
 const DOC_B = {
@@ -118,6 +108,34 @@ function baseDocTypesVm() {
 	};
 }
 
+function basePersonListVm(persons: { id: string; name: string; avatarUrl: string | null }[] = []) {
+	return {
+		persons: persons.map((p) => ({
+			...p,
+			workspaceId: "ws-1",
+			title: "",
+			managerId: null,
+			dottedManagerId: null,
+			isRoot: false,
+			sortOrder: 0,
+			createdAt: "2026-01-01",
+			updatedAt: "2026-01-01",
+			tags: [],
+		})),
+		isLoading: false,
+		error: null,
+		create: vi.fn(),
+		update: vi.fn(),
+		move: vi.fn(),
+		remove: vi.fn(),
+		isCreating: false,
+		isMoving: false,
+		isRemoving: false,
+		mutationError: null,
+		clearMutationError: vi.fn(),
+	};
+}
+
 function baseDocumentsVm() {
 	return {
 		documents: [DOC_A, DOC_B],
@@ -133,6 +151,10 @@ function baseDocumentsVm() {
 }
 
 describe("DocumentsPage", () => {
+	beforeEach(() => {
+		mockUsePersonList.mockReturnValue(basePersonListVm());
+	});
+
 	it("shows workspace gate when no workspace selected", () => {
 		mockUseWorkspaceContext.mockReturnValue({
 			workspaceId: null,
@@ -340,6 +362,34 @@ describe("DocumentsPage", () => {
 			personIds: [],
 			typeId: "dt-1",
 		});
+	});
+
+	it("shows associated people on each document row", () => {
+		mockUseWorkspaceContext.mockReturnValue({
+			workspaceId: "ws-1",
+			workspace: null,
+			switchWorkspace: vi.fn(),
+			pendingId: null,
+			hydrate: vi.fn(),
+		});
+		mockUseDocTypes.mockReturnValue(baseDocTypesVm());
+		mockUseDocuments.mockReturnValue(baseDocumentsVm());
+		mockUsePersonList.mockReturnValue(
+			basePersonListVm([
+				{ id: "p-mina", name: "Mina Park", avatarUrl: null },
+				{ id: "p-theo", name: "Theo Alvarez", avatarUrl: null },
+			]),
+		);
+
+		render(
+			<MemoryRouter>
+				<DocumentsPage />
+			</MemoryRouter>,
+		);
+		expect(screen.getByText("People on Q1 Report")).toBeTruthy();
+		expect(screen.getByLabelText("Avatar for Mina Park")).toBeTruthy();
+		expect(screen.getByLabelText("Avatar for Theo Alvarez")).toBeTruthy();
+		expect(screen.queryByText("People on Draft Notes")).toBeNull();
 	});
 
 	it("document row links to detail page", () => {

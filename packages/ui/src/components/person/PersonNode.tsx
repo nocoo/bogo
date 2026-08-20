@@ -2,6 +2,7 @@ import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { GripVertical } from "lucide-react";
 import { memo } from "react";
 import { PersonAvatar } from "@/components/person/PersonAvatar";
+import { PersonHover } from "@/components/person/PersonHover";
 import { TagBadge } from "@/components/TagBadge.js";
 import type { PersonNodeData } from "@/viewmodels/person/person-tree-layout.js";
 
@@ -17,7 +18,9 @@ export const PersonNode = memo(function PersonNode({
 		>
 			<Handle type="target" position={Position.Top} className="!bg-primary !w-2 !h-2" />
 
-			<PersonAvatar name={data.person.name} avatarUrl={data.person.avatarUrl} size="lg" />
+			<PersonHover personId={data.person.id}>
+				<PersonAvatar name={data.person.name} avatarUrl={data.person.avatarUrl} size="lg" />
+			</PersonHover>
 
 			<div className="flex-1 min-w-0">
 				<p className="text-sm font-medium text-foreground truncate">{data.person.name}</p>

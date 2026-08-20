@@ -4,6 +4,7 @@ import { FileText, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { DocumentFilters, EMPTY_FILTERS } from "../components/DocumentFilters.js";
+import { PersonAvatarCluster } from "../components/person/PersonAvatarCluster.js";
 import { TagBadge } from "../components/TagBadge.js";
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
 import { tagModel } from "../models/tag.model.js";
@@ -22,6 +23,10 @@ export function DocumentsPage() {
 	const [filters, setFilters] = useState(EMPTY_FILTERS);
 
 	const filteredDocs = useMemo(() => applyFilters(vm.documents, filters), [vm.documents, filters]);
+	const personsById = useMemo(
+		() => new Map(personListVM.persons.map((p) => [p.id, p])),
+		[personListVM.persons],
+	);
 
 	if (!workspaceId) {
 		return (
@@ -102,6 +107,9 @@ export function DocumentsPage() {
 						doc={doc}
 						typeName={docTypesVm.types.find((t) => t.id === doc.typeId)?.name ?? null}
 						typeColor={docTypesVm.types.find((t) => t.id === doc.typeId)?.color ?? null}
+						people={(doc.personIds ?? [])
+							.map((id) => personsById.get(id))
+							.filter((p): p is NonNullable<typeof p> => Boolean(p))}
 						onRemove={vm.remove}
 						isRemoving={vm.isRemoving}
 					/>
@@ -244,12 +252,14 @@ function DocumentRow({
 	doc,
 	typeName,
 	typeColor,
+	people,
 	onRemove,
 	isRemoving,
 }: {
 	doc: DocumentSummary;
 	typeName: string | null;
 	typeColor: string | null;
+	people: { id: string; name: string; avatarUrl?: string | null }[];
 	onRemove: (id: string) => void;
 	isRemoving: boolean;
 }) {
@@ -296,6 +306,12 @@ function DocumentRow({
 						</div>
 					</div>
 				</Link>
+				{people.length > 0 && (
+					<span className="shrink-0">
+						<span className="sr-only">People on {doc.title}</span>
+						<PersonAvatarCluster people={people} max={4} size="sm" />
+					</span>
+				)}
 				<button
 					type="button"
 					onClick={() => onRemove(doc.id)}

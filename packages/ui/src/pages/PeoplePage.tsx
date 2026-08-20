@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router";
 import { PersonAvatar } from "@/components/person/PersonAvatar";
+import { PersonHover } from "@/components/person/PersonHover";
 import { PersonTree } from "@/components/person/PersonTree";
 import { TagBadge } from "@/components/TagBadge";
 import { TagFilter } from "@/components/TagFilter";
@@ -35,13 +37,22 @@ export function PeoplePage() {
 									key={person.id}
 									className="flex items-center gap-3 rounded-lg border border-border bg-secondary px-4 py-3"
 								>
-									<PersonAvatar name={person.name} avatarUrl={person.avatarUrl} size="lg" />
-									<div className="flex-1 min-w-0">
-										<p className="text-sm font-medium text-foreground truncate">{person.name}</p>
-										{person.title && (
-											<p className="text-xs text-muted-foreground truncate">{person.title}</p>
-										)}
-									</div>
+									<PersonHover personId={person.id}>
+										<Link
+											to={`/people/${person.id}`}
+											className="flex min-w-0 flex-1 items-center gap-3"
+										>
+											<PersonAvatar name={person.name} avatarUrl={person.avatarUrl} size="lg" />
+											<div className="flex-1 min-w-0">
+												<p className="text-sm font-medium text-foreground truncate">
+													{person.name}
+												</p>
+												{person.title && (
+													<p className="text-xs text-muted-foreground truncate">{person.title}</p>
+												)}
+											</div>
+										</Link>
+									</PersonHover>
 									{person.tags.length > 0 && (
 										<div className="flex gap-1 flex-wrap">
 											{person.tags.map((tag) => (

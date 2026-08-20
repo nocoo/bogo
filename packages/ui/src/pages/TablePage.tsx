@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { PersonAvatar } from "@/components/person/PersonAvatar";
+import { PersonHover } from "@/components/person/PersonHover";
 import { TagBadge } from "@/components/TagBadge";
 import { ColumnPicker } from "@/components/table/ColumnPicker";
 import { FilterValueInput } from "@/components/table/FilterValueInput";
@@ -558,26 +559,33 @@ export function TablePage() {
 												className={cn(cell?.isDefault && "italic text-muted-foreground")}
 											>
 												{isName ? (
-													<Link
-														to={`/people/${row.person.id}?from=${encodeURIComponent(tableReturnPath)}`}
-														className="inline-flex max-w-full items-center gap-2 font-medium text-primary hover:underline"
-													>
-														<PersonAvatar
-															name={row.person.name}
-															avatarUrl={row.person.avatarUrl}
-															size="xs"
-														/>
-														<span className="truncate">{cell?.display ?? "—"}</span>
-													</Link>
+													<PersonHover personId={row.person.id}>
+														<Link
+															to={`/people/${row.person.id}?from=${encodeURIComponent(tableReturnPath)}`}
+															className="inline-flex max-w-full items-center gap-2 font-medium text-primary hover:underline"
+														>
+															<PersonAvatar
+																name={row.person.name}
+																avatarUrl={row.person.avatarUrl}
+																size="xs"
+															/>
+															<span className="truncate">{cell?.display ?? "—"}</span>
+														</Link>
+													</PersonHover>
 												) : isPersonRef && cell?.refId && cell.raw ? (
-													<span className="inline-flex max-w-full items-center gap-2">
-														<PersonAvatar
-															name={cell.display}
-															avatarUrl={personsById.get(cell.refId)?.avatarUrl}
-															size="xs"
-														/>
-														<span className="truncate">{cell.display}</span>
-													</span>
+													<PersonHover personId={cell.refId}>
+														<Link
+															to={`/people/${cell.refId}?from=${encodeURIComponent(tableReturnPath)}`}
+															className="inline-flex max-w-full items-center gap-2 font-medium text-primary hover:underline"
+														>
+															<PersonAvatar
+																name={cell.display}
+																avatarUrl={personsById.get(cell.refId)?.avatarUrl}
+																size="xs"
+															/>
+															<span className="truncate">{cell.display}</span>
+														</Link>
+													</PersonHover>
 												) : col.kind === "tags" && cell?.tags ? (
 													<span className="flex flex-wrap items-center gap-1">
 														{cell.tags.map((t) => (

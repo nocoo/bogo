@@ -1,5 +1,6 @@
 import { cn } from "../../lib/utils.js";
 import { PersonAvatar } from "./PersonAvatar.js";
+import { PersonHover } from "./PersonHover.js";
 
 interface PersonItem {
 	id: string;
@@ -47,13 +48,14 @@ export function PersonAvatarCluster({
 			title={`${people.length} ${people.length === 1 ? "person" : "people"} associated`}
 		>
 			{visible.map((p, i) => (
-				<PersonAvatar
-					key={p.id}
-					name={p.name}
-					avatarUrl={p.avatarUrl}
-					size={size}
-					className={cn("ring-card", i === 0 ? "ml-0" : ringOffset)}
-				/>
+				<PersonHover key={p.id} personId={p.id}>
+					<PersonAvatar
+						name={p.name}
+						avatarUrl={p.avatarUrl}
+						size={size}
+						className={cn("ring-card", i === 0 ? "ml-0" : ringOffset)}
+					/>
+				</PersonHover>
 			))}
 			{overflow > 0 && (
 				<span

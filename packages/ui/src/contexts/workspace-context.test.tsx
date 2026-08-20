@@ -1,7 +1,11 @@
 import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { useWorkspaceContext, WorkspaceProvider } from "./workspace-context.js";
+import {
+	useOptionalWorkspaceContext,
+	useWorkspaceContext,
+	WorkspaceProvider,
+} from "./workspace-context.js";
 
 function createWrapper() {
 	return function Wrapper({ children }: { children: ReactNode }) {
@@ -63,6 +67,11 @@ describe("WorkspaceContext", () => {
 		expect(() => {
 			renderHook(() => useWorkspaceContext());
 		}).toThrow("useWorkspaceContext must be used within WorkspaceProvider");
+	});
+
+	it("optional hook returns null outside provider", () => {
+		const { result } = renderHook(() => useOptionalWorkspaceContext());
+		expect(result.current).toBeNull();
 	});
 
 	describe("localStorage persistence", () => {

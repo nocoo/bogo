@@ -2,6 +2,7 @@ import type { DocumentType, Person, Tag } from "@bogo/shared";
 import { ChevronDown, Filter, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { PersonAvatar } from "./person/PersonAvatar.js";
+import { PersonHover } from "./person/PersonHover.js";
 import { TagBadge } from "./TagBadge.js";
 
 export interface DocumentFiltersValue {
@@ -213,21 +214,22 @@ export function DocumentFilters({
 								{allPersons.map((p) => {
 									const isActive = value.personIds.includes(p.id);
 									return (
-										<button
-											key={p.id}
-											type="button"
-											onClick={() => togglePerson(p.id)}
-											className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs transition-colors ${
-												isActive
-													? "border-primary bg-primary/10 text-foreground"
-													: "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-											}`}
-											aria-pressed={isActive}
-											aria-label={`${isActive ? "Remove" : "Add"} person filter ${p.name}`}
-										>
-											<PersonAvatar name={p.name} avatarUrl={p.avatarUrl} size="xs" />
-											<span className="truncate max-w-[120px]">{p.name}</span>
-										</button>
+										<PersonHover key={p.id} personId={p.id}>
+											<button
+												type="button"
+												onClick={() => togglePerson(p.id)}
+												className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs transition-colors ${
+													isActive
+														? "border-primary bg-primary/10 text-foreground"
+														: "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+												}`}
+												aria-pressed={isActive}
+												aria-label={`${isActive ? "Remove" : "Add"} person filter ${p.name}`}
+											>
+												<PersonAvatar name={p.name} avatarUrl={p.avatarUrl} size="xs" />
+												<span className="truncate max-w-[120px]">{p.name}</span>
+											</button>
+										</PersonHover>
 									);
 								})}
 							</div>

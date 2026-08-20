@@ -4,6 +4,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router";
 import { PageBackLink } from "@/components/layout/PageBackLink";
 import { PersonAvatar } from "@/components/person/PersonAvatar";
 import { PersonEditorForm } from "@/components/person/PersonEditorForm";
+import { PersonHover } from "@/components/person/PersonHover";
 import { useWorkspaceContext } from "@/contexts/workspace-context";
 import { useFieldDefs } from "@/viewmodels/field/use-field-defs";
 import { useFieldValues } from "@/viewmodels/field/use-field-values";
@@ -79,19 +80,21 @@ export function PersonEditorPage() {
 		<div className="flex h-full min-h-0 flex-col gap-4">
 			<header className="page-toolbar shrink-0 border-b border-border/60 pb-3">
 				<PageBackLink to={backTo} ariaLabel="Back to Table" />
-				<div className="flex min-w-0 items-center gap-3">
-					<PersonAvatar name={person.name} avatarUrl={person.avatarUrl} size="lg" />
-					<div className="min-w-0">
-						<h1 className="truncate text-lg font-semibold tracking-tight text-foreground">
-							{person.name}
-						</h1>
-						{person.title ? (
-							<p className="truncate text-sm text-muted-foreground">{person.title}</p>
-						) : (
-							<p className="truncate text-sm text-muted-foreground/70">No title</p>
-						)}
+				<PersonHover personId={person.id}>
+					<div className="flex min-w-0 items-center gap-3">
+						<PersonAvatar name={person.name} avatarUrl={person.avatarUrl} size="lg" />
+						<div className="min-w-0">
+							<h1 className="truncate text-lg font-semibold tracking-tight text-foreground">
+								{person.name}
+							</h1>
+							{person.title ? (
+								<p className="truncate text-sm text-muted-foreground">{person.title}</p>
+							) : (
+								<p className="truncate text-sm text-muted-foreground/70">No title</p>
+							)}
+						</div>
 					</div>
-				</div>
+				</PersonHover>
 			</header>
 
 			<div className="min-h-0 min-w-0 flex-1">
