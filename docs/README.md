@@ -31,6 +31,7 @@ Bogo 的设计与规范文档。按主题分两个二级目录，每个目录内
 | 03 | [self-hosting](./features/03-self-hosting.md) | 自部署指南 |
 | 04 | [org-tree-advanced](./features/04-org-tree-advanced.md) | People 组织架构图高级交互（折叠/拖拽/Minimap） |
 | 05 | [people-table-views](./features/05-people-table-views.md) | People 多维表格 View（列配置 + 排序/筛选） |
+| 06 | [local-dev-seed](./features/06-local-dev-seed.md) | 本地 D1 fixture（`bun run seed:local`） |
 
 ## 约定
 

@@ -297,6 +297,12 @@ migrations/
 
 Applied via `wrangler d1 migrations apply bogo` (local dev) and `wrangler d1 migrations apply bogo --remote` (production). Each migration is idempotent where possible (`CREATE TABLE IF NOT EXISTS`).
 
+Local debug rows are **not** migrations. They live in
+`packages/worker/seeds/northwind-labs.sql` and are applied only to local
+D1 via `bun run seed:local`. See
+[`docs/features/06-local-dev-seed.md`](../features/06-local-dev-seed.md).
+The `.wrangler/` SQLite file stays gitignored.
+
 ## Future Extensions
 
 ### Multi-user (post-MVP)

@@ -12,8 +12,12 @@
 
 ```bash
 bun install
-bun run dev        # UI on :5173, Worker on :8787
+bun run seed:local # local D1 migrations + Northwind Labs fixture
+bun run dev        # UI on :7036, Worker on :8787
 ```
+
+`seed:local` writes to gitignored `.wrangler/` only. See
+[`docs/features/06-local-dev-seed.md`](./docs/features/06-local-dev-seed.md).
 
 ## Stack
 
@@ -34,6 +38,7 @@ bun run dev        # UI on :5173, Worker on :8787
 | `bun run typecheck` | TypeScript check all packages |
 | `bun run lint` | Biome lint + format check |
 | `bun run test` | Run all tests |
+| `bun run seed:local` | Apply local D1 migrations + Northwind Labs fixture |
 
 ## CLI
 

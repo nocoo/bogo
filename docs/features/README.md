@@ -11,6 +11,7 @@
 | 03 | [self-hosting.md](./03-self-hosting.md) | 操作 | 自部署指南：worker 部署 + CF Access 配置 + 两条 CLI 路径（`CLIP_BASE_URL` 重定向已发布的 `@nocoo/bogo`，或 fork 重 generate 自有品牌 CLI） |
 | 04 | [org-tree-advanced.md](./04-org-tree-advanced.md) | 规格 | People 组织架构图高级交互：折叠/展开子树（chevron chip + localStorage 持久化）+ Minimap + 画布快捷键；拖拽仅调整视觉位置、不改经理（经理改动只走 EditPanel 下拉框）；沿用 `@xyflow/react` 原生能力，零后端改动 |
 | 05 | [people-table-views.md](./05-people-table-views.md) | 已实现 | People 多维表格：workspace 级命名 View（列配置 + 排序/筛选），侧栏 Table `/table`，只读网格 + EditPersonPanel，CLI CSV/JSON bridge |
+| 06 | [local-dev-seed.md](./06-local-dev-seed.md) | 操作 | 本地 D1 fixture：`bun run seed:local` 灌 Northwind Labs；只写 `.wrangler/`，不提交库文件 |
 
 ## 维护约定
 

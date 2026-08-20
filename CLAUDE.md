@@ -59,8 +59,14 @@ DNS: `*.dev.hexly.ai` 通配符 A→127.0.0.1（Cloudflare），无需 /etc/host
 
 **日常开发：UI 本地 + 直连 prod worker（推荐）**
 ```bash
-bun dev   # 启动 vite (7036) + 本地 wrangler dev (8787, 仅供 E2E)
+bun run seed:local   # 本地 D1 迁移 + Northwind Labs fixture（不提交库文件）
+bun dev              # 启动 vite (7036) + 本地 wrangler dev (8787, 仅供 E2E)
 ```
+
+新机器一键恢复 mock 数据：`bun run seed:local`。SQL 在
+`packages/worker/seeds/northwind-labs.sql`，脚本 `scripts/seed-local.ts`。
+只写 gitignored 的 `.wrangler/`，禁止 `--remote`。详见
+[`docs/features/06-local-dev-seed.md`](./docs/features/06-local-dev-seed.md)。
 - 访问 `http://localhost:7036` 或 `https://bogo.dev.hexly.ai`（Caddy 反代 → 7036）
 - `/api/*` 由 vite proxy 转发到本地 wrangler (8787) 或远程 worker
 - localhost/dev.hexly.ai 请求跳过 Access JWT 校验

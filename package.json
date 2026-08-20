@@ -22,6 +22,7 @@
 		"gate:clip-yaml": "bun run scripts/check-clip-yaml.ts",
 		"gate:security": "bun run scripts/run-security.ts",
 		"test:cli-e2e": "cd tests/cli-e2e && bun test",
+		"seed:local": "bun run scripts/seed-local.ts",
 		"prepare": "husky"
 	},
 	"trustedDependencies": [
