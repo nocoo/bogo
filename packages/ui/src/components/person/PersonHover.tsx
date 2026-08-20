@@ -18,7 +18,8 @@ import { PersonAvatar } from "./PersonAvatar.js";
 
 const SHOW_MS = 160;
 const HIDE_MS = 160;
-const TABBABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const TABBABLE =
+	'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 function tabbables(root: ParentNode): HTMLElement[] {
 	return [...root.querySelectorAll<HTMLElement>(TABBABLE)].filter((el) => el.tabIndex >= 0);
@@ -30,11 +31,9 @@ function firstTabbableIn(root: HTMLElement | null): HTMLElement | null {
 	return tabbables(root)[0] ?? null;
 }
 
-function lastTabbableIn(root: HTMLElement | null): HTMLElement | null {
-	if (!root) return null;
+function lastTabbableOf(root: HTMLElement): HTMLElement {
 	const inner = tabbables(root);
-	if (inner.length > 0) return inner[inner.length - 1];
-	return root.tabIndex >= 0 ? root : null;
+	return inner[inner.length - 1] ?? root;
 }
 
 function nextTabbableAfter(from: HTMLElement, skip: HTMLElement | null): HTMLElement | null {
@@ -140,10 +139,14 @@ function PersonHoverBound({ personId, children }: { personId: string; children: 
 	};
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-		if (event.key !== "Tab" || !open) return;
+		if (event.key !== "Tab" || !open || !triggerRef.current) return;
+		const trigger = triggerRef.current;
 		const inCard = Boolean(cardRef.current?.contains(event.target as Node));
 
 		if (!event.shiftKey && !inCard) {
+			const from = event.target instanceof HTMLElement ? event.target : trigger;
+			const next = nextTabbableAfter(from, cardRef.current);
+			if (next && trigger.contains(next)) return;
 			const link = cardRef.current?.querySelector("a");
 			if (!(link instanceof HTMLElement)) return;
 			event.preventDefault();
@@ -152,8 +155,7 @@ function PersonHoverBound({ personId, children }: { personId: string; children: 
 		}
 
 		if (!event.shiftKey && inCard) {
-			const origin = lastTabbableIn(triggerRef.current);
-			const next = origin ? nextTabbableAfter(origin, cardRef.current) : null;
+			const next = nextTabbableAfter(lastTabbableOf(trigger), cardRef.current);
 			if (!next) return;
 			event.preventDefault();
 			hideNow();
@@ -162,7 +164,7 @@ function PersonHoverBound({ personId, children }: { personId: string; children: 
 		}
 
 		if (event.shiftKey && inCard) {
-			const prev = firstTabbableIn(triggerRef.current);
+			const prev = firstTabbableIn(trigger);
 			if (!prev) return;
 			event.preventDefault();
 			prev.focus();

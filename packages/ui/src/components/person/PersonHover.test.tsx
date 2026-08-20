@@ -277,8 +277,12 @@ describe("PersonHover", () => {
 		const profile = screen.getByRole("link", { name: "Open profile" });
 		expect(document.activeElement).toBe(profile);
 
+		fireEvent.keyDown(profile, { key: "Tab", shiftKey: true });
+		expect(document.activeElement).toBe(trigger);
+
+		fireEvent.keyDown(trigger, { key: "Tab" });
 		fireEvent.mouseLeave(trigger);
-		fireEvent.keyDown(profile, { key: "Tab" });
+		fireEvent.keyDown(screen.getByRole("link", { name: "Open profile" }), { key: "Tab" });
 		expect(document.activeElement).toBe(screen.getByRole("button", { name: "After" }));
 		expect(screen.queryByRole("tooltip")).toBeNull();
 	});
@@ -298,6 +302,58 @@ describe("PersonHover", () => {
 		const profile = screen.getByRole("link", { name: "Open profile" });
 		expect(fireEvent.keyDown(profile, { key: "Tab" })).toBe(true);
 		expect(screen.getByRole("tooltip")).toBeTruthy();
+	});
+
+	it("lets tab reach a nested control before the card", async () => {
+		renderHover(
+			<>
+				<PersonHover personId="p-mina">
+					<div>
+						<span>Mina</span>
+						<button type="button">Remove Mina</button>
+					</div>
+				</PersonHover>
+				<button type="button">After</button>
+			</>,
+		);
+		const trigger = screen.getByText("Mina").closest("span[tabindex]") as HTMLElement;
+		trigger.focus();
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(200);
+		});
+		expect(fireEvent.keyDown(trigger, { key: "Tab" })).toBe(true);
+
+		const remove = screen.getByRole("button", { name: "Remove Mina" });
+		remove.focus();
+		fireEvent.keyDown(remove, { key: "Tab" });
+		const profile = screen.getByRole("link", { name: "Open profile" });
+		expect(document.activeElement).toBe(profile);
+
+		fireEvent.keyDown(profile, { key: "Tab" });
+		expect(document.activeElement).toBe(screen.getByRole("button", { name: "After" }));
+	});
+
+	it("tabs from the card onto the next form field", async () => {
+		renderHover(
+			<>
+				<PersonHover personId="p-mina">
+					<span>Mina</span>
+				</PersonHover>
+				<label>
+					Name
+					<input />
+				</label>
+			</>,
+		);
+		const trigger = screen.getByText("Mina").closest("span[tabindex]") as HTMLElement;
+		trigger.focus();
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(200);
+		});
+		fireEvent.keyDown(trigger, { key: "Tab" });
+		fireEvent.keyDown(screen.getByRole("link", { name: "Open profile" }), { key: "Tab" });
+		expect(document.activeElement).toBe(screen.getByRole("textbox", { name: "Name" }));
+		expect(screen.queryByRole("tooltip")).toBeNull();
 	});
 
 	it("opens a preview card after hover delay", async () => {
