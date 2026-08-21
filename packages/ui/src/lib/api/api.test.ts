@@ -20,6 +20,22 @@ function sentBody(): unknown {
 	return body ? JSON.parse(body) : undefined;
 }
 
+describe("meApi", () => {
+	const { me } = createApi();
+
+	it("get fetches GET /api/me", async () => {
+		const payload = {
+			email: "architie@gmail.com",
+			name: "Zheng Li",
+			avatar: "https://cdn.example/avatar-80.jpg",
+		};
+		mockFetch.mockResolvedValue(ok(payload));
+		const result = await me.get();
+		expect(result).toEqual(payload);
+		expect(mockFetch).toHaveBeenCalledWith("/api/me", expect.objectContaining({ body: undefined }));
+	});
+});
+
 describe("workspaceApi", () => {
 	const { workspaces } = createApi();
 

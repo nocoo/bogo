@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
+import { PersonAvatar } from "@/components/person/PersonAvatar";
 import { useUserInfo } from "@/hooks/use-user-info";
 import { cn } from "@/lib/utils";
 
@@ -140,9 +141,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 						</nav>
 
 						<div className="py-3 flex justify-center w-full">
-							<div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-xs font-medium text-primary-foreground">
-								{userInfo.initials}
-							</div>
+							<PersonAvatar name={userInfo.displayName} avatarUrl={userInfo.avatarUrl} size="lg" />
 						</div>
 					</div>
 				) : (
@@ -236,9 +235,11 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
 						<div className="px-4 py-3">
 							<div className="flex items-center gap-3">
-								<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-medium text-primary-foreground">
-									{userInfo.initials}
-								</div>
+								<PersonAvatar
+									name={userInfo.displayName}
+									avatarUrl={userInfo.avatarUrl}
+									size="lg"
+								/>
 								<div className="flex-1 min-w-0">
 									<p className="text-sm font-medium text-foreground truncate">
 										{userInfo.displayName}
