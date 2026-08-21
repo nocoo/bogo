@@ -7,8 +7,14 @@ describe("GET /api/me", () => {
 		const res = await fetch(`${BASE}/api/me`);
 		expect(res.status).toBe(200);
 
-		const body = (await res.json()) as { data: { email: string | null } };
+		const body = (await res.json()) as {
+			data: { email: string | null; name: string | null; avatar: string | null };
+		};
 		expect(body.data).toBeDefined();
 		expect(typeof body.data.email).toBe("string");
+		expect("name" in body.data).toBe(true);
+		expect("avatar" in body.data).toBe(true);
+		expect(body.data.name === null || typeof body.data.name === "string").toBe(true);
+		expect(body.data.avatar === null || typeof body.data.avatar === "string").toBe(true);
 	});
 });
