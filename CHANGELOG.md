@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.1] - 2026-08-21
+
+### Added
+- **Sidebar author avatar** — `/api/me` hashes the signed-in email
+  (SHA-256 of trimmed lowercase UTF-8) and looks up the public author
+  profile; the sidebar renders the returned photo via `PersonAvatar`
+  and falls back to the letter avatar on a miss.
+
+### Fixed
+- **Deduplicate bun.lock package paths** so frozen installs resolve
+  a single copy of each workspace package.
+
 ## [0.8.0] - 2026-08-20
 
 ### Added
