@@ -2,6 +2,11 @@ name = "bogo"
 main = "src/index.ts"
 compatibility_date = "2025-03-14"
 
+# Sidecar worker: main UI 7036 + 30000. Do not use wrangler default 8787.
+[dev]
+port = 37036
+ip = "127.0.0.1"
+
 # D1 database binding
 [[d1_databases]]
 binding = "DB"

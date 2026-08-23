@@ -31,7 +31,7 @@ export default defineConfig({
 		allowedHosts: ["bogo.dev.hexly.ai"],
 		proxy: {
 			"/api": {
-				target: "http://localhost:8787",
+				target: "http://localhost:37036",
 				changeOrigin: true,
 			},
 		},

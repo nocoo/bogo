@@ -1072,7 +1072,7 @@ Gate:pre-push(条件性)
 
 **手测 checklist**(PR 描述里勾):
 
-- [ ] 本地 dev:`bun dev` 后 `curl -i 'http://localhost:8787/api/auth/cli?callback=http://127.0.0.1:9999/callback'` → **200 HTML consent 页 + Set-Cookie: bogo_cli_csrf=…; HttpOnly; SameSite=Strict**(不再是 302)
+- [ ] 本地 dev:`bun dev` 后 `curl -i 'http://localhost:37036/api/auth/cli?callback=http://127.0.0.1:9999/callback'` → **200 HTML consent 页 + Set-Cookie: bogo_cli_csrf=…; HttpOnly; SameSite=Strict**(不再是 302)
 - [ ] consent 页表单 hidden `confirm=<csrf>` 与 Set-Cookie 的 token 一致;手动 follow form → 302 含 api_key
 - [ ] **drive-by 模拟**:用 stage 1 拿到的 cookie 但传**不同** `confirm=…` → 403,DB 无新 row
 - [ ] **drive-by 模拟**:不带 cookie,传任意 `confirm=…` → 403

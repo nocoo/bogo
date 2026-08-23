@@ -37,7 +37,7 @@ clip 生成的 `bogo` CLI 走 `Authorization: Bearer bogo_*`。详见
 | Port  | Purpose           | Domain                  |
 |-------|-------------------|-------------------------|
 | 7036  | Vite dev server   | bogo.dev.hexly.ai      |
-| 8787  | Wrangler dev      | localhost:8787          |
+| 37036 | Wrangler dev      | localhost:37036         |
 | 17036 | L2 E2E tests      | localhost:17036         |
 | 27036 | L3 Playwright     | localhost:27036         |
 
@@ -60,7 +60,7 @@ DNS: `*.dev.hexly.ai` 通配符 A→127.0.0.1（Cloudflare），无需 /etc/host
 **日常开发：UI 本地 + 直连 prod worker（推荐）**
 ```bash
 bun run seed:local   # 本地 D1 迁移 + Northwind Labs fixture（不提交库文件）
-bun dev              # 启动 vite (7036) + 本地 wrangler dev (8787, 仅供 E2E)
+bun dev              # 启动 vite (7036) + 本地 wrangler dev (37036, 仅供 E2E)
 ```
 
 新机器一键恢复 mock 数据：`bun run seed:local`。SQL 在
@@ -68,7 +68,7 @@ bun dev              # 启动 vite (7036) + 本地 wrangler dev (8787, 仅供 E2
 只写 gitignored 的 `.wrangler/`，禁止 `--remote`。详见
 [`docs/features/06-local-dev-seed.md`](./docs/features/06-local-dev-seed.md)。
 - 访问 `http://localhost:7036` 或 `https://bogo.dev.hexly.ai`（Caddy 反代 → 7036）
-- `/api/*` 由 vite proxy 转发到本地 wrangler (8787) 或远程 worker
+- `/api/*` 由 vite proxy 转发到本地 wrangler (37036) 或远程 worker
 - localhost/dev.hexly.ai 请求跳过 Access JWT 校验
 
 **方式 2：接近生产的测试**
@@ -76,7 +76,7 @@ bun dev              # 启动 vite (7036) + 本地 wrangler dev (8787, 仅供 E2
 bun turbo build --filter=@bogo/ui   # 构建到 worker/static/
 cd packages/worker && bun dev       # wrangler dev 服务静态资源
 ```
-- 访问 `localhost:8787`（wrangler 端口）
+- 访问 `localhost:37036`（wrangler 端口）
 - 测试 wrangler assets 配置、SPA fallback 等
 
 ## Testing

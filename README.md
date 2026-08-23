@@ -13,7 +13,7 @@
 ```bash
 bun install
 bun run seed:local # local D1 migrations + Northwind Labs fixture
-bun run dev        # UI on :7036, Worker on :8787
+bun run dev        # UI on :7036, Worker on :37036
 ```
 
 `seed:local` writes to gitignored `.wrangler/` only. See
