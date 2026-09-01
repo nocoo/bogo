@@ -37,7 +37,7 @@ bunx wrangler d1 migrations apply your-bogo --remote
 
 # First deploy
 bunx wrangler deploy --env production
-# Note the *.workers.dev URL or set up a custom domain
+# Attach two custom domains (SPA + api.*) — not a single *.workers.dev host
 ```
 
 `wrangler.toml` must list the same D1 binding name (`DB`) the worker code

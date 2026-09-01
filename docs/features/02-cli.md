@@ -899,10 +899,10 @@ beforeAll:
      chmodSync(`${FAKE_BIN}/open`, 0o755);
      chmodSync(`${FAKE_BIN}/xdg-open`, 0o755);
      // 之后所有 spawn 都用 env.PATH = `${FAKE_BIN}:${process.env.PATH}`
-  6. 生成测试 schema(关键步骤——绕开 _login.ts 硬编码 baseUrl):
-     const yaml = readFileSync(REPO_ROOT/clip.yaml, "utf-8").replace(
-       /baseUrl:.*$/m,
-       `baseUrl: "http://127.0.0.1:${PORT}"`);
+  6. 生成测试 schema(关键步骤——绕开 _login.ts 硬编码 baseUrl **和** loginUrl):
+     let yaml = readFileSync(REPO_ROOT/clip.yaml, "utf-8")
+       .replace(/baseUrl:.*$/m, `baseUrl: "http://127.0.0.1:${PORT}"`)
+       .replace(/loginUrl:.*$/m, `loginUrl: "http://127.0.0.1:${PORT}/api/auth/cli"`);
      writeFileSync(`${TMP}/clip.yaml`, yaml);
   7. 跑 clip generate:
      execSync(`clip generate ${TMP}/clip.yaml --output ${TMP}/bogo-cli`);
@@ -986,7 +986,7 @@ afterAll:
 **实现细节**:
 - 端口分配:`getPort()` 或固定 `27036`(与 worker e2e 的 17036 错开)
 - `readLineMatching` 用 readline 包 stdout 直至匹配并 return 第一个捕获组之外的整行 URL;5s 超时,超时则 dump stdout 给报错信息
-- 测试 schema 替换用正则 `/baseUrl:.*$/m` 比硬字符串替换稳
+- 测试 schema 替换 `baseUrl` **和** `loginUrl` 都改到 `http://127.0.0.1:${PORT}`
 - 不**`bun link`** 全局,避免污染开发环境;全程 `bun src/index.ts <cmd>` 调用
 - **不**测 `bogo live`(生成 CLI 任何子命令都先 `loadConfig()`,无法做"无凭据健康检查",见 §3.1)
 - **所有 spawn 必须** `env.PATH = <FAKE_BIN>:...`(login 用到 fake open;其他子命令不调 open 但保持一致便于 review)
