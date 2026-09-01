@@ -81,15 +81,10 @@ for the same account — one active token per identity.
 
 ### Self-hosting
 
-`@nocoo/bogo` defaults to `https://bogo.hexly.ai` (the maintainer's
-deployment, gated by their CF Access policy). If you want to run your
-own bogo:
-
-- **Quick path** — `CLIP_BASE_URL` overrides **API `baseUrl` only**, not
-  `loginUrl` (baked at `clip generate`). Split-hostname self-host still
-  logs in at `bogo.hexly.ai`.
-- **Branded path** — fork, edit `clip.yaml` (`baseUrl` + `loginUrl`),
-  regenerate, publish under your own scope.
+`@nocoo/bogo` defaults: login `https://bogo.hexly.ai/api/auth/cli`, API
+`https://api.bogo.hexly.ai`. Self-host: fork, edit `clip.yaml`
+(`loginUrl` + `baseUrl`), regenerate. `CLIP_BASE_URL` cannot retarget
+login; tokens minted on upstream D1 will 401 on your worker.
 
 Full operator walkthrough in
 [`docs/features/03-self-hosting.md`](./docs/features/03-self-hosting.md).

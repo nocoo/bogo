@@ -8,16 +8,14 @@ maintainer's Cloudflare Access policy — so a fresh `npm i -g @nocoo/bogo`
 **will not** let an external user log in without help.
 
 This document is the operator's guide for someone who wants to run their
-own bogo: stand up a worker, configure auth, point the CLI at it. Two
-supported paths are described:
+own bogo: stand up a worker, configure auth, point the CLI at it.
 
-- **A — quick:** use the published CLI, redirect at runtime via env var.
-  Zero codegen, depends on clip ≥1.1 baked into the upstream build.
-- **B — clean:** fork the repo, regenerate the CLI from your edited
-  `clip.yaml`, publish under your own scope.
+**Supported CLI path:** fork, edit `clip.yaml` (`loginUrl` + `baseUrl`),
+`clip generate`, publish under your own scope.
 
-Path A is enough for an internal team or a personal homelab. Path B is
-right if you want a branded CLI on your team's npm scope.
+Do **not** treat `CLIP_BASE_URL` + published `@nocoo/bogo` as self-hosting.
+`loginUrl` is baked at generate time; `bogo login` still mints a token in
+upstream D1, then API calls to your worker 401.
 
 ## 2. Worker deployment
 
@@ -101,55 +99,16 @@ See `docs/features/02-cli.md` §7 for the threat model and why the
 public `api.*` host is safe under it (worker's bearer middleware is
 the trust boundary, not CF Access).
 
-## 4. Path A — point @nocoo/bogo at your worker
+## 4. Why `CLIP_BASE_URL` is not self-hosting
 
-Use the published CLI, redirect with env vars. Two URLs to override
-(one for login, one for business calls — see §3 split-hostname model).
+`CLIP_BASE_URL` only overrides business `baseUrl`. `bogo login` still
+hits baked `loginUrl` (`https://bogo.hexly.ai/api/auth/cli`), mints a
+token in **upstream** D1, then your worker's `api_tokens` lookup 401s.
 
-```bash
-npm i -g @nocoo/bogo
-export CLIP_BASE_URL=https://api.your-bogo.example.com
-# CLIP_BASE_URL overrides business calls only. loginUrl is locked at
-# codegen time to bogo.hexly.ai. Split-hostname self-host needs path B.
+There is no supported “quick path” with published `@nocoo/bogo`. Fork
+and regenerate.
 
-bogo login         # still opens bogo.hexly.ai consent
-bogo me            # CLIP_BASE_URL host
-```
-
-### When path A is enough
-
-- You can put `/api/auth/cli` behind a CF Access app that lets you in
-  *and* expose the rest of the API publicly under the same hostname —
-  header Bypass is gone, so that means a reverse-proxy (or path B), not
-  a CF Access Bypass policy.
-- You're OK with the published `bogo.hexly.ai` login redirect (e.g.,
-  you have an account on the maintainer's deployment too) and only
-  want business calls to hit your own data store.
-
-### When you need path B instead
-
-- You want `bogo login` to open *your* SPA hostname's consent page
-- You want a different command alias (not `bogo`)
-- You're publishing a branded CLI to your team's npm scope
-
-Persistence options for the env var:
-
-- Export `CLIP_BASE_URL` in `~/.zshrc` for permanent redirect.
-- Wrap the binary: `alias bogo='CLIP_BASE_URL=https://api.your-bogo … bogo'`.
-- Per-team: ship the env var via your dotfiles / nix / homebrew formula.
-
-### Limitations of path A
-
-- Help text and console output still say "bogo" / `https://bogo.hexly.ai`
-  in the README and credentials are still stored under `~/.clip/bogo/`
-  (a single alias is baked into the CLI at codegen time). For a team
-  CLI with your own branding, go to path B.
-- You can't change the *alias* from `bogo` without regenerating. If you
-  already have another CLI named `bogo`, also see path B.
-- You can't redirect `bogo login` to a non-`bogo.hexly.ai` SPA host
-  without path B.
-
-## 5. Path B — fork and regenerate
+## 5. Fork and regenerate
 
 This gives you a CLI with your own alias, command name, and npm scope.
 

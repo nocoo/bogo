@@ -5,14 +5,11 @@ knowledge dashboard. The CLI is generated from the canonical
 [`clip.yaml`](https://github.com/nocoo/bogo/blob/main/clip.yaml) so
 every endpoint in the worker is reachable as a subcommand.
 
-> **Default endpoint:** `https://bogo.hexly.ai` (the maintainer's
-> deployment). Cloudflare Access gates the consent flow, so anyone
-> running `bogo login` against the default URL must be on that
-> Access policy — by design.
+> **Defaults:** login `https://bogo.hexly.ai/api/auth/cli` (Access),
+> API `https://api.bogo.hexly.ai`. `CLIP_BASE_URL` overrides API only.
 >
-> **Self-hosting?** Either set `CLIP_BASE_URL=https://your-bogo.example.com`
-> to point this same CLI at your worker, or fork the repo and regenerate
-> with your own alias / npm scope. See
+> **Self-hosting?** Fork and regenerate `clip.yaml` — do not expect
+> `CLIP_BASE_URL` to make `bogo login` talk to your worker. See
 > [docs/features/03-self-hosting.md](https://github.com/nocoo/bogo/blob/main/docs/features/03-self-hosting.md).
 
 ## Install
