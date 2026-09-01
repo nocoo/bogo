@@ -201,9 +201,8 @@ tokens with a self-hosted API host.
 Only at codegen time (edit `clip.yaml`, regenerate). The CLI burns those in.
 
 **Q: Does the worker need a custom domain?**
-No, but `clip.yaml` `baseUrl` / `loginUrl` must be routable (`*.workers.dev`
-works for personal use). Split-hostname Access still applies if you use two
-hosts.
+The production Access split needs **two** hostnames (`SPA` + `api.*`).
+`*.workers.dev` is a single hostname and cannot do that split.
 
 **Q: What does the `state` parameter on the callback do?**
 CSRF protection — generated client-side by `cli-base`, echoed back by

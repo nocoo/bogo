@@ -82,7 +82,8 @@ self-host needs a regenerated CLI (`docs/features/03-self-hosting.md`).
 ## How it's built
 
 ```
-bogo.hexly.ai  ←  clip.yaml (this repo)  →  clip generate  →  @nocoo/bogo
+bogo.hexly.ai (login) + api.bogo.hexly.ai (API)
+        ←  clip.yaml  →  clip generate  →  @nocoo/bogo
 ```
 
 The package is published by running `bun scripts/build.ts` inside
