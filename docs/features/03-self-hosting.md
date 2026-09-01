@@ -189,23 +189,21 @@ task 12).
 
 **Q: I can't `npm i -g @nocoo/bogo` and log in. What's happening?**
 The upstream worker has a CF Access policy that does not include you.
-You need either path A with `CLIP_BASE_URL` pointing at your worker, or
-ask the maintainer to add your email.
+`CLIP_BASE_URL` will not fix login. Fork and regenerate, or ask the
+maintainer to add your email.
 
 **Q: Does setting `CLIP_BASE_URL` change the credential file location?**
 No. Credentials still land at `$CLIP_HOME/bogo/credentials.json` (the
-alias from clip.yaml is baked in at codegen). If you redirect to your
-worker, you're mixing tokens for two deployments under one alias — set
-`CLIP_HOME` to a separate dir per env, or use path B with a different
-alias.
+alias from clip.yaml is baked in at codegen). Do not mix upstream login
+tokens with a self-hosted API host.
 
 **Q: Can I override the loginPath, tokenParam, or headerName?**
-Only at codegen time (path B — edit clip.yaml). The CLI burns those in.
+Only at codegen time (edit `clip.yaml`, regenerate). The CLI burns those in.
 
 **Q: Does the worker need a custom domain?**
-For path A: yes if you want `Authorization: Bearer bogo_*` to pass
-through unmodified. For path B: no, but your `clip.yaml` baseUrl needs
-to be a routable URL (a `*.workers.dev` URL works for personal use).
+No, but `clip.yaml` `baseUrl` / `loginUrl` must be routable (`*.workers.dev`
+works for personal use). Split-hostname Access still applies if you use two
+hosts.
 
 **Q: What does the `state` parameter on the callback do?**
 CSRF protection — generated client-side by `cli-base`, echoed back by

@@ -68,7 +68,7 @@ and walkthroughs are in
 
 `CLIP_BASE_URL` does not change `bogo login` — `loginUrl` is baked at
 `clip generate` (`https://bogo.hexly.ai/api/auth/cli`). Split-hostname
-self-host needs a regenerated CLI (path B in `docs/features/03-self-hosting.md`).
+self-host needs a regenerated CLI (`docs/features/03-self-hosting.md`).
 
 ## Security
 

@@ -1045,7 +1045,7 @@ Gate:pre-push(条件性)
 ### Commit 9 — `docs: link bogo CLI from README`
 
 - 改根 `README.md` 加「CLI」节:§8 安装/使用流程
-- 改 `CLAUDE.md` 加「Cloudflare Access 配置」节描述 §7 的 bypass policy
+- 改 `CLAUDE.md` 加「Cloudflare Access 配置」节描述 §7 的 bypass policy（historical plan; production is hostname split, not Bypass）
 - Gate:pre-commit
 
 ### Commit 10 — `chore(release): v0.4.0 — bogo CLI`
