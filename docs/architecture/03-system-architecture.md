@@ -305,13 +305,12 @@ bearer token instead of a CF Access JWT.
   (`clip.yaml`) and the worker-side support (the `api_tokens` table, the
   `/api/auth/cli` endpoint, the Bearer branch in `access-auth.ts`, the
   `personIds` / `options` query CSV bridge).
-- **Production CF Access deployment requirement**: bearer traffic does not
-  reach the Worker unless a Bypass policy on
-  `Authorization starts with "Bearer bogo_"` is in place. See
-  `docs/features/02-cli.md` §7 for the policy table and the rationale; the
-  Worker still performs the real authorisation against the `api_tokens`
-  hash, so the CF Access bypass is an admission filter, not a trust
-  boundary.
+- **Production hostname split**: `bogo.hexly.ai` stays Access-protected
+  (SPA + `/api/auth/cli`). `api.bogo.hexly.ai` has **no** Access application
+  so `Bearer bogo_*` traffic can reach the Worker. Do not restore a Bypass
+  policy on `Authorization` — Cloudflare removed that selector. The Worker
+  still authorises against `api_tokens` (`sha256` + `revoked_at` /
+  `expires_at`). See `docs/features/02-cli.md` §7.
 - `bogo login` mints exactly one token per call. Tokens never expire by
   default (`expires_at` is NULL); revocation is manual
   `UPDATE api_tokens SET revoked_at=…`.
