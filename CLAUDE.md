@@ -42,6 +42,8 @@ This file is the **contract**. Hooks, CI, and config are **enforcement**. If the
 packages/{shared,worker,ui,cli}    docs/{architecture,features}    clip.yaml
 ```
 
+MVVM: viewmodels have no View/DOM imports; routes stay thin.
+
 ## Commands
 
 ```bash
@@ -77,12 +79,7 @@ Today: pre-commit coverage/typecheck/full lint/gitleaks/gates on the working tre
 | Worker CD | tag + CI-green `main` | enforced | `.github/workflows/release.yml` |
 | npm `@nocoo/bogo` | publish generated CLI | planned | — |
 
-| Hook | Org bar | Status | Evidence |
-|---|---|---|---|
-| pre-commit | index snapshot | planned | — |
-| pre-push | stdin ref range | planned | — |
-
-`--no-verify` forbidden on commits and branch pushes. Tag-only may skip.
+Index-snapshot pre-commit and stdin-range pre-push are planned. `--no-verify` forbidden on commits and branch pushes. Tag-only may skip.
 
 ## Resources / Isolation
 
