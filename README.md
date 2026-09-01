@@ -85,9 +85,10 @@ for the same account — one active token per identity.
 deployment, gated by their CF Access policy). If you want to run your
 own bogo:
 
-- **Quick path** — `CLIP_BASE_URL=https://your-bogo.example.com bogo login`
-  redirects login and all API calls to your worker.
-- **Branded path** — fork the repo, edit `clip.yaml` (alias / baseUrl),
+- **Quick path** — `CLIP_BASE_URL` overrides **API `baseUrl` only**, not
+  `loginUrl` (baked at `clip generate`). Split-hostname self-host still
+  logs in at `bogo.hexly.ai`.
+- **Branded path** — fork, edit `clip.yaml` (`baseUrl` + `loginUrl`),
   regenerate, publish under your own scope.
 
 Full operator walkthrough in

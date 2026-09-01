@@ -67,11 +67,11 @@ and walkthroughs are in
 | Env var          | Default                              | Purpose                                          |
 | ---------------- | ------------------------------------ | ------------------------------------------------ |
 | `CLIP_HOME`      | `~/.clip`                            | Root of the credentials directory                |
-| `CLIP_BASE_URL`  | `https://bogo.hexly.ai` (from yaml)  | API base URL for **all** requests (login + business). Set this to your own worker URL when self-hosting. |
+| `CLIP_BASE_URL`  | `https://api.bogo.hexly.ai` (from yaml `baseUrl`) | API base URL for **business** requests. Does **not** override `loginUrl`. |
 
-`CLIP_BASE_URL` overrides both `bogo login` and every subsequent API
-call — one env var, full redirect, no rebuild. The hard-coded default
-from `clip.yaml` is the fallback when the env is unset.
+`CLIP_BASE_URL` does not change `bogo login` — `loginUrl` is baked at
+`clip generate` (`https://bogo.hexly.ai/api/auth/cli`). Split-hostname
+self-host needs a regenerated CLI (path B in `docs/features/03-self-hosting.md`).
 
 ## Security
 

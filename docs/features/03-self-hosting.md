@@ -109,23 +109,19 @@ Use the published CLI, redirect with env vars. Two URLs to override
 ```bash
 npm i -g @nocoo/bogo
 export CLIP_BASE_URL=https://api.your-bogo.example.com
-# CLIP_BASE_URL covers business calls AND login, but for the split-
-# hostname model the published @nocoo/bogo defaults to api.bogo.hexly.ai
-# for business and bogo.hexly.ai for login. To redirect login to a
-# different SPA host, you currently need path B (loginUrl is locked at
-# codegen time). If your worker happens to be a single host (no
-# split), CLIP_BASE_URL alone is enough.
+# CLIP_BASE_URL overrides business calls only. loginUrl is locked at
+# codegen time to bogo.hexly.ai. Split-hostname self-host needs path B.
 
-bogo login         # opens YOUR worker's consent page
-bogo me            # routed at your worker too
+bogo login         # still opens bogo.hexly.ai consent
+bogo me            # CLIP_BASE_URL host
 ```
 
 ### When path A is enough
 
 - You can put `/api/auth/cli` behind a CF Access app that lets you in
   *and* expose the rest of the API publicly under the same hostname —
-  but that requires CF Access Bypass on header (no longer supported,
-  see §3 historical note) or a different reverse-proxy setup.
+  header Bypass is gone, so that means a reverse-proxy (or path B), not
+  a CF Access Bypass policy.
 - You're OK with the published `bogo.hexly.ai` login redirect (e.g.,
   you have an account on the maintainer's deployment too) and only
   want business calls to hit your own data store.
