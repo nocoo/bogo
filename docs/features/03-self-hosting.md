@@ -26,6 +26,7 @@ Access). Roughly:
 git clone https://github.com/nocoo/bogo your-bogo
 cd your-bogo
 bun install
+bun run build   # SPA into packages/worker/static (clone only has .gitkeep)
 
 # Create your own D1
 cd packages/worker
