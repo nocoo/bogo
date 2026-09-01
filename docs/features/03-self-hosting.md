@@ -35,14 +35,15 @@ bunx wrangler d1 create your-bogo
 # Apply migrations
 bunx wrangler d1 migrations apply your-bogo --remote
 
-# First deploy
+# BEFORE deploy: edit [env.production] routes to YOUR two hostnames
+# (SPA + api.*) — cloned wrangler.toml still points at bogo.hexly.ai.
+# Not a single *.workers.dev host.
+
 bunx wrangler deploy --env production
-# Attach two custom domains (SPA + api.*) — not a single *.workers.dev host
 ```
 
 `wrangler.toml` must list the same D1 binding name (`DB`) the worker code
-expects. The `[env.production]` block in upstream points at
-`bogo.hexly.ai` — change `routes` / `vars` to your domain before deploy.
+expects.
 
 ## 3. Cloudflare Access setup (split-hostname model)
 
