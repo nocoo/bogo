@@ -34,7 +34,7 @@ bun run dev        # UI on :7036, Worker on :37036
 |---------|-------------|
 | `bun run dev` | Start all packages in dev mode |
 | `bun run build` | Build UI for production |
-| `bun run deploy` | Build + deploy worker |
+| `bun run deploy` | Build + `wrangler deploy` — races CD; do not run from a laptop |
 | `bun run typecheck` | TypeScript check all packages |
 | `bun run lint` | Biome lint + format check |
 | `bun run test` | Run all tests |
@@ -93,12 +93,11 @@ own bogo:
 Full operator walkthrough in
 [`docs/features/03-self-hosting.md`](./docs/features/03-self-hosting.md).
 
-**Production deployment requires a CF Access Bypass policy on
-`Authorization starts with "Bearer bogo_"`** so bearer requests reach the
-Worker; the Worker still authorises by hashing the token against
-`api_tokens`. See [`docs/features/02-cli.md`](./docs/features/02-cli.md) §7
-for the policy table, and `docs/architecture/03-system-architecture.md` for
-the auth flow diagram.
+Production CLI traffic uses hostname split, **not** an Access Bypass on
+`Authorization`: `bogo.hexly.ai` stays Access-protected (SPA +
+`/api/auth/cli`); `api.bogo.hexly.ai` has no Access application. The Worker
+still authorises `Bearer bogo_*` against `api_tokens`. See
+[`docs/features/02-cli.md`](./docs/features/02-cli.md) §7.
 
 To revoke a CLI token: `UPDATE api_tokens SET revoked_at=datetime('now')
 WHERE prefix='bogo_xxxxxx'`.
