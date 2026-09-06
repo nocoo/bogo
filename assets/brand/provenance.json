@@ -1,0 +1,79 @@
+{
+	"project": "bogo",
+	"model": "Azure Foundry gpt-image-2",
+	"nativeSize": [2048, 2048],
+	"study": "hexly.ai/artwork/logo-family/bogo/2026-09-07-05",
+	"localReview": "https://index.dev.hexly.ai/logos/bogo",
+	"finishing": "04",
+	"rawImageSha256": "40919d744626f8def06dcc98ebfd7b85d3474e00387d7edf68b0591ca6b8a1db",
+	"previousLogoSha256": "eeaf1c419feb02f3990451d642432dbf2fbda2c5ddd1d71269d804e3ce8dd3a1",
+	"approval": {
+		"decisionSource": "Owner explicitly selected Bogo 05, requested safer icon margins, and authorized complete finishing, catalogue delivery, and source-logo replacement.",
+		"ownerReviewedExactBytes": true,
+		"scope": "Bogo only; local adoption. Other projects and publication remain paused.",
+		"record": "hexly.ai/artwork/logo-family/bogo/2026-09-07-05/raw-review.json"
+	},
+	"framing": {
+		"scale": 0.8,
+		"roundedRadius": 0.23,
+		"minimumFeatureClearanceAt2048": 133.98198837588808,
+		"intentionalEdges": ["bottom neck", "lower-right shoulder"],
+		"edgeContinuation": {
+			"path": "input/edge-continuation-03.svg",
+			"sha256": "cc407b33c582d2987f7ecd1e12057bf00481d53915ab25c2295f35d33bc9fcf6",
+			"description": "Small vector continuation of clipped ear and horn contours, plus natural shoulder continuation behind the approved portrait. Original fully opaque placed pixels are verified unchanged; no stretched or repeated edge pixels.",
+			"addedPixels": 94364,
+			"opaquePixelsPreserved": 1841155
+		}
+	},
+	"assets": [
+		{
+			"path": "logo.png",
+			"role": "Canonical transparent foreground",
+			"width": 2048,
+			"height": 2048,
+			"bytes": 3637079,
+			"sha256": "54bff5a21a25489a94b5ad3d816332dc7082ed4a41510d782a3c33a05a17fac1"
+		},
+		{
+			"path": "assets/brand/icon.png",
+			"role": "Square tile for platform-managed masking",
+			"width": 2048,
+			"height": 2048,
+			"bytes": 5154256,
+			"sha256": "4063fb82588f5fe1221b32e530fddfd979a7b0414ffd0a49c896db6c020940e6"
+		},
+		{
+			"path": "assets/brand/icon-rounded.png",
+			"role": "Rounded tile for README and application surfaces",
+			"width": 2048,
+			"height": 2048,
+			"bytes": 5081941,
+			"sha256": "95a93d50cf868bd2eed7a82b20be17ce6374a54f9306e1e4839ed1b4b38530a9"
+		},
+		{
+			"path": "packages/ui/public/logo-24.png",
+			"role": "Rounded sidebar identity",
+			"width": 24,
+			"height": 24,
+			"bytes": 1730,
+			"sha256": "8720debf280a50dacaf52c12bc4c2167cf4b5f20537cc20fb5eeecafe2a9e952"
+		},
+		{
+			"path": "packages/ui/public/logo-80.png",
+			"role": "Rounded display identity",
+			"width": 80,
+			"height": 80,
+			"bytes": 13107,
+			"sha256": "9d6d480db4fe98ac2263d86ff04607b8b4152f293ad74a0571f566d3cc81b2fc"
+		},
+		{
+			"path": "packages/ui/public/favicon.png",
+			"role": "32 px PNG favicon",
+			"width": 32,
+			"height": 32,
+			"bytes": 2643,
+			"sha256": "bc68e355672aaf3c692db10e7757d19aead06eb2e2607060c2eaa5d8b5b2197d"
+		}
+	]
+}
