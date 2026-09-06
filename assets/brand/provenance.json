@@ -45,7 +45,7 @@
 		},
 		{
 			"path": "assets/brand/icon-rounded.png",
-			"role": "Rounded tile for README and application surfaces",
+			"role": "Rounded large README presentation",
 			"width": 2048,
 			"height": 2048,
 			"bytes": 5081941,
@@ -53,27 +53,36 @@
 		},
 		{
 			"path": "packages/ui/public/logo-24.png",
-			"role": "Rounded sidebar identity",
+			"role": "Transparent sidebar identity",
 			"width": 24,
 			"height": 24,
-			"bytes": 1730,
-			"sha256": "8720debf280a50dacaf52c12bc4c2167cf4b5f20537cc20fb5eeecafe2a9e952"
+			"bytes": 1603,
+			"sha256": "babeae354dc8e0df584f5e007d72a54d209cd66b1508cf5b39fb4ff94ff5d062"
 		},
 		{
 			"path": "packages/ui/public/logo-80.png",
-			"role": "Rounded display identity",
+			"role": "Transparent display identity",
 			"width": 80,
 			"height": 80,
-			"bytes": 13107,
-			"sha256": "9d6d480db4fe98ac2263d86ff04607b8b4152f293ad74a0571f566d3cc81b2fc"
+			"bytes": 10985,
+			"sha256": "4e1e6f8f051dc08198cb965a858b22ff23d0bc45f7eba3953914a74161d55e35"
 		},
 		{
 			"path": "packages/ui/public/favicon.png",
-			"role": "32 px PNG favicon",
+			"role": "Transparent 32 px PNG favicon",
 			"width": 32,
 			"height": 32,
-			"bytes": 2643,
-			"sha256": "bc68e355672aaf3c692db10e7757d19aead06eb2e2607060c2eaa5d8b5b2197d"
+			"bytes": 2479,
+			"sha256": "5dcc750fdfddb62fa7a218f1baf9b0d713e27b118cd068599aa950753754350c"
 		}
-	]
+	],
+	"usage": {
+		"updated": "2026-09-07",
+		"scope": "Local source adoption and usage standard; publication remains paused",
+		"foreground": "Root logo.png supplies transparent app marks and browser favicons; preserve framing without extra background or corner mask",
+		"largePresentation": "Rounded master supplies the README header and large social presentation",
+		"platformIcon": "Use square presentation only where the platform manages app-icon masking",
+		"sop": "hexly.ai/docs/07-logo-usage-sop.md",
+		"generator": "uv run --with pillow python scripts/resize-logos.py"
+	}
 }

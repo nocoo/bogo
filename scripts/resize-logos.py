@@ -27,11 +27,13 @@ def main() -> None:
     rounded = Image.open(BRAND / "icon-rounded.png").convert("RGBA")
     if foreground.size != (2048, 2048) or square.size != foreground.size or rounded.size != foreground.size:
         raise ValueError("All approved brand masters must share their 2048-square framing")
+    if foreground.getchannel("A").getextrema() != (0, 255):
+        raise ValueError("The foreground must preserve transparent space and opaque artwork")
     if square.getchannel("A").getextrema() != (255, 255) or rounded.getpixel((0, 0))[3] != 0:
         raise ValueError("Square and rounded master roles are inconsistent")
-    save_png(rounded, "packages/ui/public/logo-24.png", 24)
-    save_png(rounded, "packages/ui/public/logo-80.png", 80)
-    save_png(square, "packages/ui/public/favicon.png", 32)
+    save_png(foreground, "packages/ui/public/logo-24.png", 24)
+    save_png(foreground, "packages/ui/public/logo-80.png", 80)
+    save_png(foreground, "packages/ui/public/favicon.png", 32)
 
 
 if __name__ == "__main__":

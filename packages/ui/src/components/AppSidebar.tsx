@@ -109,7 +109,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 				{collapsed ? (
 					<div className="flex h-screen w-[68px] flex-col items-center">
 						<div className="flex h-14 items-center justify-center">
-							<img src="/logo-24.png" alt="bogo" className="h-5 w-5 shrink-0 rounded-sm" />
+							<img src="/logo-24.png" alt="bogo" className="h-5 w-5 shrink-0" />
 						</div>
 
 						<button
@@ -149,7 +149,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 						<div className="px-3 h-14 flex items-center">
 							<div className="flex w-full items-center justify-between px-3">
 								<div className="flex items-center gap-3">
-									<img src="/logo-24.png" alt="bogo" className="h-5 w-5 shrink-0 rounded-sm" />
+									<img src="/logo-24.png" alt="bogo" className="h-5 w-5 shrink-0" />
 									<span className="text-base font-semibold text-foreground">bogo.</span>
 									<span className="rounded-md bg-secondary px-1.5 py-0.5 text-xs font-medium text-muted-foreground leading-none">
 										v{BOGO_VERSION}
