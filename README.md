@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" width="128" height="128" alt="bogo" />
+  <img src="assets/brand/icon-rounded.png" width="128" height="128" alt="bogo" />
 </p>
 
 <h1 align="center">bogo</h1>

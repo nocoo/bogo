@@ -1,0 +1,40 @@
+{
+	"project": "bogo",
+	"model": "Azure Foundry gpt-image-2",
+	"nativeSize": [2048, 2048],
+	"study": "https://github.com/nocoo/hexly.ai/tree/main/artwork/logo-family/bogo/2026-09-07-02",
+	"finishing": "02",
+	"rawImageSha256": "6c72a91186995069831f39e439f4cb1a64e8dc74e04d7fadec970e690fcab7fe",
+	"previousLogoSha256": "eeaf1c419feb02f3990451d642432dbf2fbda2c5ddd1d71269d804e3ce8dd3a1",
+	"approval": {
+		"decisionSource": "owner-delegated batch acceptance",
+		"ownerReviewedExactBytes": false,
+		"scope": "https://github.com/nocoo/hexly.ai/blob/main/artwork/logo-family/bogo/2026-09-07-02/approval-scope.json"
+	},
+	"assets": [
+		{
+			"path": "logo.png",
+			"role": "Canonical transparent foreground",
+			"width": 2048,
+			"height": 2048,
+			"bytes": 3136391,
+			"sha256": "b306860fd648c95456dd155e156db269db8b6a24d87d26e5a31bf03c025ec357"
+		},
+		{
+			"path": "assets/brand/icon.png",
+			"role": "Square tile for platform-managed masking",
+			"width": 2048,
+			"height": 2048,
+			"bytes": 4457446,
+			"sha256": "ba9bf588093a6fcc6ea8a36403c783700ff792f0c77616dca57efcb0c6d2c006"
+		},
+		{
+			"path": "assets/brand/icon-rounded.png",
+			"role": "Rounded tile for README and app-controlled surfaces",
+			"width": 2048,
+			"height": 2048,
+			"bytes": 4356014,
+			"sha256": "f2818a4d26c93c97c17cc5302469c895b776c46fe8019b5ab222ccac348c0102"
+		}
+	]
+}
