@@ -1,6 +1,10 @@
 # Bogo Docs
 
+项目介绍与运行方法：[中文](../README.md) · [English](README.en.md)。
+
 Bogo 的设计与规范文档。按主题分两个二级目录，每个目录内独立编号。
+
+部分设计文档保留了阶段性方案；当前权限范围、存储和命令以 README 与源码为准。例如，现有已授权用户共用 workspace 数据，尚未实现按账号隔离。
 
 ## 目录
 
@@ -17,12 +21,12 @@ Bogo 的设计与规范文档。按主题分两个二级目录，每个目录内
 | 05 | [ui-mvvm-architecture](./architecture/05-ui-mvvm-architecture.md) | 前端 MVVM 分层 |
 | 06 | [ui-component-decisions](./architecture/06-ui-component-decisions.md) | 组件取舍 |
 | 07 | [ui-page-interactions](./architecture/07-ui-page-interactions.md) | 页面交互细节 |
-| 08 | [ui-test-strategy](./architecture/08-ui-test-strategy.md) | 测试策略（6 层 + 6DQ） |
+| 08 | [ui-test-strategy](./architecture/08-ui-test-strategy.md) | UI 测试策略 |
 | 09 | [css-conventions](./architecture/09-css-conventions.md) | CSS 与样式规范 |
 
 ### [features/](./features/) — 功能迭代规格
 
-按功能拆分的实施规格，含设计细节、文件引用、原子化提交计划、6DQ 计划。
+按功能拆分的实施规格，含设计细节、文件引用和实施计划。
 
 | 编号 | 文档 | 主题 |
 |------|------|------|
