@@ -416,94 +416,95 @@ export function TablePage() {
 								<li
 									// biome-ignore lint/suspicious/noArrayIndexKey: draft filter rows have no stable id
 									key={`filter-row-${i}`}
-									className="flex flex-wrap items-center gap-2 p-2 rounded-lg bg-basalt-bright border border-basalt-border"
 								>
-									<select
-										className="field-select field-sm"
-										value={f.key}
-										onChange={(e) => {
-											const key = e.target.value;
-											const allowed = opsForColumn(key);
-											const op = (allowed.includes(f.op) ? f.op : allowed[0]) as ViewFilter["op"];
-											setFilterDraft((d) =>
-												d.map((x, j) =>
-													j === i
-														? {
-																...x,
-																key,
-																op,
-																value:
-																	op === "is_empty" || op === "is_not_empty"
-																		? null
-																		: op === "in"
-																			? []
-																			: "",
-															}
-														: x,
-												),
-											);
-										}}
-									>
-										{columnMetas
-											.filter((c) => c.filterable)
-											.map((c) => (
-												<option key={c.key} value={c.key}>
-													{c.label}
+									<LayerCard.Well className="flex flex-wrap items-center gap-2 p-2 rounded-lg">
+										<select
+											className="field-select field-sm"
+											value={f.key}
+											onChange={(e) => {
+												const key = e.target.value;
+												const allowed = opsForColumn(key);
+												const op = (allowed.includes(f.op) ? f.op : allowed[0]) as ViewFilter["op"];
+												setFilterDraft((d) =>
+													d.map((x, j) =>
+														j === i
+															? {
+																	...x,
+																	key,
+																	op,
+																	value:
+																		op === "is_empty" || op === "is_not_empty"
+																			? null
+																			: op === "in"
+																				? []
+																				: "",
+																}
+															: x,
+													),
+												);
+											}}
+										>
+											{columnMetas
+												.filter((c) => c.filterable)
+												.map((c) => (
+													<option key={c.key} value={c.key}>
+														{c.label}
+													</option>
+												))}
+										</select>
+										<select
+											className="field-select field-sm min-w-[7rem]"
+											value={
+												opsForColumn(f.key).includes(f.op) ? f.op : (opsForColumn(f.key)[0] ?? "eq")
+											}
+											onChange={(e) => {
+												const op = e.target.value as ViewFilter["op"];
+												setFilterDraft((d) =>
+													d.map((x, j) =>
+														j === i
+															? {
+																	...x,
+																	op,
+																	value:
+																		op === "is_empty" || op === "is_not_empty"
+																			? null
+																			: op === "in"
+																				? []
+																				: typeof x.value === "string"
+																					? x.value
+																					: "",
+																}
+															: x,
+													),
+												);
+											}}
+										>
+											{opsForColumn(f.key).map((op) => (
+												<option key={op} value={op}>
+													{op}
 												</option>
 											))}
-									</select>
-									<select
-										className="field-select field-sm min-w-[7rem]"
-										value={
-											opsForColumn(f.key).includes(f.op) ? f.op : (opsForColumn(f.key)[0] ?? "eq")
-										}
-										onChange={(e) => {
-											const op = e.target.value as ViewFilter["op"];
-											setFilterDraft((d) =>
-												d.map((x, j) =>
-													j === i
-														? {
-																...x,
-																op,
-																value:
-																	op === "is_empty" || op === "is_not_empty"
-																		? null
-																		: op === "in"
-																			? []
-																			: typeof x.value === "string"
-																				? x.value
-																				: "",
-															}
-														: x,
-												),
-											);
-										}}
-									>
-										{opsForColumn(f.key).map((op) => (
-											<option key={op} value={op}>
-												{op}
-											</option>
-										))}
-									</select>
-									<FilterValueInput
-										filter={f}
-										meta={columnMetas.find((c) => c.key === f.key)}
-										def={(() => {
-											const fid = fieldIdFromColumnKey(f.key);
-											return fid ? defs.find((d) => d.id === fid) : undefined;
-										})()}
-										personTags={tagsVm.tags.map((t) => ({ id: t.id, name: t.name }))}
-										onChange={(value) => {
-											setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, value } : x)));
-										}}
-									/>
-									<button
-										type="button"
-										className="btn-ghost btn-sm"
-										onClick={() => setFilterDraft((d) => d.filter((_, j) => j !== i))}
-									>
-										Remove
-									</button>
+										</select>
+										<FilterValueInput
+											filter={f}
+											meta={columnMetas.find((c) => c.key === f.key)}
+											def={(() => {
+												const fid = fieldIdFromColumnKey(f.key);
+												return fid ? defs.find((d) => d.id === fid) : undefined;
+											})()}
+											personTags={tagsVm.tags.map((t) => ({ id: t.id, name: t.name }))}
+											onChange={(value) => {
+												setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, value } : x)));
+											}}
+										/>
+										<button
+											type="button"
+											className="btn-ghost btn-sm"
+											onClick={() => setFilterDraft((d) => d.filter((_, j) => j !== i))}
+										>
+											Remove
+										</button>
+									</LayerCard.Well>
 								</li>
 							))}
 						</ul>
