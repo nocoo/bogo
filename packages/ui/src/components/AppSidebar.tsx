@@ -1,5 +1,26 @@
 import { BOGO_VERSION } from "@bogo/shared";
 import {
+	Button,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+	CommandPalette,
+	Sidebar,
+	SidebarFooter,
+	SidebarHeader,
+	SidebarIconItem,
+	SidebarItem,
+	SidebarNav,
+	SidebarPartition,
+	SidebarSearch,
+	SidebarUser,
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@nocoo/basalt";
+import {
 	FileText,
 	FileType,
 	ListTree,
@@ -15,7 +36,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { PersonAvatar } from "@/components/person/PersonAvatar";
 import { useUserInfo } from "@/hooks/use-user-info";
-import { cn } from "@/lib/utils";
 
 interface NavItem {
 	title: string;
@@ -46,26 +66,6 @@ function isNavActive(itemPath: string, currentPath: string): boolean {
 		return currentPath === "/settings";
 	}
 	return currentPath.startsWith(itemPath);
-}
-
-function CollapsedNavItem({ item, currentPath }: { item: NavItem; currentPath: string }) {
-	const navigate = useNavigate();
-	const isActive = isNavActive(item.path, currentPath);
-	return (
-		<button
-			type="button"
-			onClick={() => navigate(item.path)}
-			title={item.title}
-			className={cn(
-				"relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
-				isActive
-					? "bg-accent text-foreground"
-					: "text-muted-foreground hover:bg-accent hover:text-foreground",
-			)}
-		>
-			<item.icon className="h-4 w-4" strokeWidth={1.5} />
-		</button>
-	);
 }
 
 interface AppSidebarProps {
@@ -100,207 +100,203 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
 	return (
 		<>
-			<aside
-				className={cn(
-					"sticky top-0 flex h-screen shrink-0 flex-col bg-background transition-all duration-300 ease-in-out overflow-hidden",
-					collapsed ? "w-[68px]" : "w-[260px]",
-				)}
-			>
+			<Sidebar collapsed={collapsed}>
 				{collapsed ? (
-					<div className="flex h-screen w-[68px] flex-col items-center">
-						<div className="flex h-14 items-center justify-center">
+					<>
+						<SidebarHeader className="justify-center px-0">
 							<img src="/logo-24.png" alt="bogo" className="h-5 w-5 shrink-0" />
-						</div>
+						</SidebarHeader>
 
-						<button
-							type="button"
+						<Button
+							variant="ghost"
+							size="icon"
 							onClick={onToggle}
 							aria-label="Expand sidebar"
-							className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors mb-1"
+							className="mb-1 self-center"
 						>
 							<PanelLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
-						</button>
+						</Button>
 
-						<button
-							type="button"
-							onClick={() => setSearchOpen(true)}
-							aria-label="Search (⌘K)"
-							className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors mb-2"
-						>
-							<Search className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
-						</button>
+						<Tooltip delayDuration={0}>
+							<TooltipTrigger asChild>
+								<SidebarIconItem
+									onClick={() => setSearchOpen(true)}
+									aria-label="Search (⌘K)"
+									className="mb-2 self-center"
+								>
+									<Search className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
+								</SidebarIconItem>
+							</TooltipTrigger>
+							<TooltipContent side="right" sideOffset={8}>
+								Search (⌘K)
+							</TooltipContent>
+						</Tooltip>
 
-						<nav className="flex-1 flex flex-col items-center gap-1 overflow-y-auto pt-1">
+						<SidebarNav className="w-full items-center gap-1 pt-1">
 							{WORKSPACE_ITEMS.map((item) => (
-								<CollapsedNavItem key={item.path} item={item} currentPath={pathname} />
+								<Tooltip key={item.path} delayDuration={0}>
+									<TooltipTrigger asChild>
+										<SidebarIconItem
+											active={isNavActive(item.path, pathname)}
+											aria-label={item.title}
+											className="self-center"
+											onClick={() => navigate(item.path)}
+										>
+											<item.icon className="h-4 w-4" strokeWidth={1.5} />
+										</SidebarIconItem>
+									</TooltipTrigger>
+									<TooltipContent side="right" sideOffset={8}>
+										{item.title}
+									</TooltipContent>
+								</Tooltip>
 							))}
-							<div className="my-1.5 h-px w-6 bg-border" />
+							<div className="my-1.5 h-px w-6 bg-basalt-border" />
 							{SETTINGS_ITEMS.map((item) => (
-								<CollapsedNavItem key={item.path} item={item} currentPath={pathname} />
+								<Tooltip key={item.path} delayDuration={0}>
+									<TooltipTrigger asChild>
+										<SidebarIconItem
+											active={isNavActive(item.path, pathname)}
+											aria-label={item.title}
+											className="self-center"
+											onClick={() => navigate(item.path)}
+										>
+											<item.icon className="h-4 w-4" strokeWidth={1.5} />
+										</SidebarIconItem>
+									</TooltipTrigger>
+									<TooltipContent side="right" sideOffset={8}>
+										{item.title}
+									</TooltipContent>
+								</Tooltip>
 							))}
-						</nav>
+						</SidebarNav>
 
-						<div className="py-3 flex justify-center w-full">
-							<PersonAvatar name={userInfo.displayName} avatarUrl={userInfo.avatarUrl} size="lg" />
-						</div>
-					</div>
+						<SidebarFooter className="flex w-full justify-center px-0">
+							<Tooltip delayDuration={0}>
+								<TooltipTrigger asChild>
+									<span className="inline-flex">
+										<PersonAvatar
+											name={userInfo.displayName}
+											avatarUrl={userInfo.avatarUrl}
+											size="lg"
+										/>
+									</span>
+								</TooltipTrigger>
+								<TooltipContent side="right" sideOffset={8}>
+									{userInfo.displayName}
+								</TooltipContent>
+							</Tooltip>
+						</SidebarFooter>
+					</>
 				) : (
-					<div className="flex h-screen w-[260px] flex-col">
-						<div className="px-3 h-14 flex items-center">
-							<div className="flex w-full items-center justify-between px-3">
-								<div className="flex items-center gap-3">
+					<>
+						<SidebarHeader>
+							<div className="flex w-full items-center justify-between">
+								<div className="flex min-w-0 items-center gap-3">
 									<img src="/logo-24.png" alt="bogo" className="h-5 w-5 shrink-0" />
-									<span className="text-base font-semibold text-foreground">bogo.</span>
-									<span className="rounded-md bg-secondary px-1.5 py-0.5 text-xs font-medium text-muted-foreground leading-none">
+									<span className="truncate text-base font-semibold text-basalt-foreground md:text-lg">
+										bogo.
+									</span>
+									<span className="shrink-0 rounded-md bg-basalt-secondary px-1.5 py-0.5 text-[10px] leading-none font-medium text-basalt-muted-foreground">
 										v{BOGO_VERSION}
 									</span>
 								</div>
-								<button
-									type="button"
+								<Button
+									variant="ghost"
+									size="icon"
+									className="h-7 w-7 shrink-0"
 									onClick={onToggle}
 									aria-label="Collapse sidebar"
-									className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
 								>
 									<PanelLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
-								</button>
+								</Button>
 							</div>
-						</div>
+						</SidebarHeader>
 
 						<div className="px-3 pb-1">
-							<button
-								type="button"
-								onClick={() => setSearchOpen(true)}
-								className="flex w-full items-center gap-3 rounded-lg bg-secondary px-3 py-1.5 transition-colors hover:bg-accent cursor-pointer"
-							>
-								<Search className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
-								<span className="flex-1 text-left text-sm text-muted-foreground">Search</span>
-								<span className="flex h-7 w-7 shrink-0 items-center justify-center">
-									<kbd className="pointer-events-none hidden rounded-sm border border-border bg-card px-1.5 py-0.5 text-xs font-medium text-muted-foreground sm:inline-block">
-										⌘K
-									</kbd>
-								</span>
-							</button>
+							<SidebarSearch onClick={() => setSearchOpen(true)}>Search</SidebarSearch>
 						</div>
 
-						<nav className="flex-1 overflow-y-auto pt-2">
+						<SidebarNav className="pt-1">
+							<SidebarPartition>Workspace</SidebarPartition>
 							<div className="flex flex-col gap-0.5 px-3">
-								<span className="px-3 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
-									Workspace
-								</span>
 								{WORKSPACE_ITEMS.map((item) => {
 									const isActive = isNavActive(item.path, pathname);
 									return (
-										<button
-											type="button"
+										<SidebarItem
 											key={item.path}
+											active={isActive}
 											onClick={() => navigate(item.path)}
-											className={cn(
-												"flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-normal transition-colors",
-												isActive
-													? "bg-accent text-foreground"
-													: "text-muted-foreground hover:bg-accent hover:text-foreground",
-											)}
 										>
 											<item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
-											<span className="flex-1 text-left">{item.title}</span>
-										</button>
+											<span className="flex-1 truncate text-left">{item.title}</span>
+										</SidebarItem>
 									);
 								})}
 							</div>
-							<div className="flex flex-col gap-0.5 px-3 mt-4">
-								<span className="px-3 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
-									Settings
-								</span>
+
+							<SidebarPartition>Settings</SidebarPartition>
+							<div className="flex flex-col gap-0.5 px-3">
 								{SETTINGS_ITEMS.map((item) => {
 									const isActive = isNavActive(item.path, pathname);
 									return (
-										<button
-											type="button"
+										<SidebarItem
 											key={item.path}
+											active={isActive}
 											onClick={() => navigate(item.path)}
-											className={cn(
-												"flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-normal transition-colors",
-												isActive
-													? "bg-accent text-foreground"
-													: "text-muted-foreground hover:bg-accent hover:text-foreground",
-											)}
 										>
 											<item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
-											<span className="flex-1 text-left">{item.title}</span>
-										</button>
+											<span className="flex-1 truncate text-left">{item.title}</span>
+										</SidebarItem>
 									);
 								})}
 							</div>
-						</nav>
+						</SidebarNav>
 
-						<div className="px-4 py-3">
-							<div className="flex items-center gap-3">
-								<PersonAvatar
-									name={userInfo.displayName}
-									avatarUrl={userInfo.avatarUrl}
-									size="lg"
-								/>
-								<div className="flex-1 min-w-0">
-									<p className="text-sm font-medium text-foreground truncate">
-										{userInfo.displayName}
-									</p>
-									<p className="text-xs text-muted-foreground truncate">
-										{userInfo.email ?? "CF Access"}
-									</p>
-								</div>
-								<button
-									type="button"
-									aria-label="Log out"
-									className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0"
-								>
-									<LogOut className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
-								</button>
-							</div>
-						</div>
-					</div>
-				)}
-			</aside>
-
-			{searchOpen && (
-				// biome-ignore lint/a11y/useKeyWithClickEvents: backdrop dismiss pattern
-				// biome-ignore lint/a11y/noStaticElementInteractions: backdrop overlay, ESC-closable
-				<div
-					className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] bg-black/50 backdrop-blur-xs"
-					onClick={() => setSearchOpen(false)}
-				>
-					{/* biome-ignore lint/a11y/useKeyWithClickEvents: stop propagation for modal */}
-					{/* biome-ignore lint/a11y/noStaticElementInteractions: modal container, focus held by input child */}
-					<div
-						className="w-full max-w-md rounded-xl bg-card shadow-lg p-2"
-						onClick={(e) => e.stopPropagation()}
-					>
-						<input
-							ref={(el) => el?.focus()}
-							type="text"
-							placeholder="Search pages..."
-							className="w-full bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none"
-							onKeyDown={(e) => {
-								if (e.key === "Escape") {
-									setSearchOpen(false);
+						<SidebarFooter>
+							<SidebarUser
+								name={userInfo.displayName}
+								email={userInfo.email ?? "CF Access"}
+								avatar={
+									<PersonAvatar
+										name={userInfo.displayName}
+										avatarUrl={userInfo.avatarUrl}
+										size="lg"
+									/>
 								}
-							}}
-						/>
-						<div className="mt-1 border-t border-border pt-1">
-							{ALL_NAV_ITEMS.map((item) => (
-								<button
-									type="button"
-									key={item.path}
-									onClick={() => handleSelect(item.path)}
-									className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-								>
-									<item.icon className="h-4 w-4" strokeWidth={1.5} />
-									<span>{item.title}</span>
-								</button>
-							))}
-						</div>
-					</div>
-				</div>
-			)}
+								action={
+									<Button
+										variant="ghost"
+										size="icon"
+										aria-label="Log out"
+										className="h-8 w-8 shrink-0 text-basalt-muted-foreground hover:text-basalt-foreground"
+									>
+										<LogOut className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
+									</Button>
+								}
+							/>
+						</SidebarFooter>
+					</>
+				)}
+			</Sidebar>
+
+			<CommandPalette open={searchOpen} onOpenChange={setSearchOpen}>
+				<CommandInput placeholder="Search pages..." />
+				<CommandList>
+					<CommandEmpty>No results found.</CommandEmpty>
+					<CommandGroup heading="Navigation">
+						{ALL_NAV_ITEMS.map((item) => (
+							<CommandItem
+								key={item.path}
+								value={item.title}
+								onSelect={() => handleSelect(item.path)}
+							>
+								<item.icon className="mr-2 h-4 w-4" strokeWidth={1.5} />
+								<span>{item.title}</span>
+							</CommandItem>
+						))}
+					</CommandGroup>
+				</CommandList>
+			</CommandPalette>
 		</>
 	);
 }
