@@ -156,7 +156,7 @@ export function DashboardLayout() {
 								target="_blank"
 								rel="noopener noreferrer"
 								aria-label="GitHub repository"
-								className="flex h-8 w-8 items-center justify-center rounded-lg text-basalt-muted-foreground hover:text-basalt-foreground hover:bg-basalt-accent transition-colors"
+								className="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg text-basalt-muted-foreground hover:text-basalt-foreground hover:bg-basalt-accent transition-colors"
 							>
 								<Github className="h-[18px] w-[18px]" aria-hidden="true" strokeWidth={1.5} />
 							</a>

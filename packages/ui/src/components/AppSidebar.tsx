@@ -101,12 +101,37 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 	return (
 		<>
 			<Sidebar collapsed={collapsed}>
+				<SidebarHeader className="px-3">
+					<div className="flex w-full items-center justify-between">
+						<div className="flex min-w-0 items-center gap-3">
+							<img src="/logo-24.png" alt="bogo" className="h-5 w-5 shrink-0" />
+							{!collapsed && (
+								<>
+									<span className="truncate text-base font-semibold text-basalt-foreground md:text-lg">
+										bogo.
+									</span>
+									<span className="shrink-0 rounded-md bg-basalt-secondary px-1.5 py-0.5 text-[10px] leading-none font-medium text-basalt-muted-foreground">
+										v{BOGO_VERSION}
+									</span>
+								</>
+							)}
+						</div>
+						{!collapsed && (
+							<Button
+								variant="ghost"
+								size="icon"
+								className="h-7 w-7 shrink-0"
+								onClick={onToggle}
+								aria-label="Collapse sidebar"
+							>
+								<PanelLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
+							</Button>
+						)}
+					</div>
+				</SidebarHeader>
+
 				{collapsed ? (
 					<>
-						<SidebarHeader className="justify-center px-0">
-							<img src="/logo-24.png" alt="bogo" className="h-5 w-5 shrink-0" />
-						</SidebarHeader>
-
 						<Button
 							variant="ghost"
 							size="icon"
@@ -189,29 +214,6 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 					</>
 				) : (
 					<>
-						<SidebarHeader>
-							<div className="flex w-full items-center justify-between">
-								<div className="flex min-w-0 items-center gap-3">
-									<img src="/logo-24.png" alt="bogo" className="h-5 w-5 shrink-0" />
-									<span className="truncate text-base font-semibold text-basalt-foreground md:text-lg">
-										bogo.
-									</span>
-									<span className="shrink-0 rounded-md bg-basalt-secondary px-1.5 py-0.5 text-[10px] leading-none font-medium text-basalt-muted-foreground">
-										v{BOGO_VERSION}
-									</span>
-								</div>
-								<Button
-									variant="ghost"
-									size="icon"
-									className="h-7 w-7 shrink-0"
-									onClick={onToggle}
-									aria-label="Collapse sidebar"
-								>
-									<PanelLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
-								</Button>
-							</div>
-						</SidebarHeader>
-
 						<div className="px-3 pb-1">
 							<SidebarSearch onClick={() => setSearchOpen(true)}>Search</SidebarSearch>
 						</div>

@@ -41,7 +41,7 @@ export function WorkspaceSelector() {
 				variant="outline"
 				size="sm"
 				onClick={() => setOpen(!open)}
-				className="gap-2 text-xs font-medium"
+				className="gap-2 text-xs font-medium max-w-[130px] sm:max-w-none px-2 sm:px-2.5"
 				aria-label="Select workspace"
 			>
 				{error ? (
@@ -49,12 +49,12 @@ export function WorkspaceSelector() {
 				) : (
 					<Building2 className="h-3.5 w-3.5 text-basalt-muted-foreground" strokeWidth={1.5} />
 				)}
-				<span className="max-w-[120px] truncate">
+				<span className="max-w-[70px] sm:max-w-[120px] truncate">
 					{error ? "Error" : isLoading ? "Loading…" : (workspace?.name ?? "Select workspace")}
 				</span>
 				<ChevronDown
 					className={cn(
-						"h-3 w-3 text-basalt-muted-foreground transition-transform",
+						"h-3 w-3 text-basalt-muted-foreground transition-transform shrink-0",
 						open && "rotate-180",
 					)}
 					strokeWidth={1.5}
@@ -66,7 +66,7 @@ export function WorkspaceSelector() {
 				size="icon"
 				onClick={() => navigate("/workspaces")}
 				aria-label="Manage workspaces"
-				className="h-8 w-8 text-basalt-muted-foreground hover:text-basalt-foreground"
+				className="hidden sm:flex h-8 w-8 text-basalt-muted-foreground hover:text-basalt-foreground"
 			>
 				<Settings className="h-[16px] w-[16px]" aria-hidden="true" strokeWidth={1.5} />
 			</Button>
