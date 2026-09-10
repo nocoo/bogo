@@ -186,43 +186,144 @@ function renderConsentHtml(params: {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #171717; color: #e5e5e5;
+      background: hsl(220, 14%, 94%); color: hsl(0, 0%, 12%);
       min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
     }
-    .card {
-      background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 12px;
-      padding: 2rem; max-width: 440px; width: 90%;
+    @media (prefers-color-scheme: dark) {
+      body { background: hsl(0, 0%, 9%); color: hsl(0, 0%, 93%); }
     }
-    h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: #fafafa; }
-    p { font-size: 0.9rem; color: #a3a3a3; margin-bottom: 1rem; line-height: 1.5; }
-    .email { color: #fafafa; font-weight: 500; }
+    .badge-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: 18rem;
+      aspect-ratio: 54 / 86;
+      border-radius: 1rem;
+      overflow: hidden;
+      background: hsl(220, 14%, 97%);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 4px 8px rgba(0,0,0,0.04), 0 12px 24px rgba(0,0,0,0.06), 0 24px 48px rgba(0,0,0,0.04);
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      .badge-card {
+        background: hsl(0, 0%, 10.6%);
+        border: 1px solid rgba(255,255,255,0.06);
+      }
+    }
+    .badge-header {
+      background: hsl(237, 66%, 69%);
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .badge-notch {
+      width: 2rem;
+      height: 1rem;
+      border-radius: 9999px;
+      background: rgba(255,255,255,0.8);
+    }
+    .badge-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #000;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .badge-type {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.6);
+    }
+    .badge-body {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.25rem 1.5rem 2.5rem;
+      text-align: center;
+    }
+    .badge-avatar {
+      width: 4rem;
+      height: 4rem;
+      border-radius: 9999px;
+      background: hsl(220, 14%, 99%);
+      border: 1px solid rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.75rem;
+    }
+    @media (prefers-color-scheme: dark) {
+      .badge-avatar {
+        background: hsl(0, 0%, 14%);
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+    }
+    .badge-avatar img { width: 2.25rem; height: 2.25rem; }
+    h1 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.25rem; color: inherit; }
+    p { font-size: 0.8rem; color: #737373; margin-bottom: 0.5rem; line-height: 1.4; }
+    .email { color: inherit; font-weight: 600; word-break: break-all; }
     .callback {
-      font-family: ui-monospace, monospace; font-size: 0.8rem;
-      color: #737373; background: #0f0f0f; padding: 0.5rem 0.75rem;
-      border-radius: 6px; word-break: break-all; margin-bottom: 1.5rem;
+      font-family: ui-monospace, monospace; font-size: 0.7rem;
+      color: #737373; background: rgba(0,0,0,0.04); padding: 0.35rem 0.5rem;
+      border-radius: 6px; word-break: break-all; margin-bottom: 0.75rem; width: 100%;
     }
+    @media (prefers-color-scheme: dark) {
+      .callback { background: rgba(255,255,255,0.05); color: #a3a3a3; }
+    }
+    form { width: 100%; margin-top: auto; }
     button {
-      width: 100%; padding: 0.75rem 1rem; border: 0; border-radius: 8px;
-      background: #c9a227; color: #171717; font-size: 0.95rem; font-weight: 600;
-      cursor: pointer;
+      width: 100%; padding: 0.65rem 1rem; border: 0; border-radius: 0.75rem;
+      background: hsl(237, 66%, 69%); color: #000; font-size: 0.875rem; font-weight: 600;
+      cursor: pointer; transition: opacity 0.15s;
     }
-    button:hover { background: #d4ae34; }
-    .hint { font-size: 0.75rem; color: #525252; margin-top: 1rem; text-align: center; }
+    button:hover { opacity: 0.9; }
+    .badge-footer {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      background: rgba(0,0,0,0.02);
+      padding: 0.5rem 0;
+      text-align: center;
+      font-size: 10px;
+      color: #737373;
+    }
+    @media (prefers-color-scheme: dark) {
+      .badge-footer { border-top-color: rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Authorize bogo CLI</h1>
-    <p>Issue a long-lived API token to the CLI listening at:</p>
-    <div class="callback">${callback}</div>
-    <p>The token will be linked to <span class="email">${email}</span> and will replace any previous CLI token for this account.</p>
-    <form method="GET" action="/api/auth/cli">
-      <input type="hidden" name="callback" value="${callback}">
-      <input type="hidden" name="state" value="${state}">
-      <input type="hidden" name="confirm" value="${csrf}">
-      <button type="submit">Authorize</button>
-    </form>
-    <p class="hint">If you did not run <code>bogo login</code>, close this tab.</p>
+  <div class="badge-card" data-basalt-surface-root="">
+    <div class="badge-header">
+      <div class="badge-notch"></div>
+      <div class="badge-title">
+        <span>bogo.</span>
+      </div>
+      <span class="badge-type">CLI Auth</span>
+    </div>
+    <div class="badge-body">
+      <div class="badge-avatar">
+        <img src="/logo-24.png" alt="bogo">
+      </div>
+      <h1>Authorize bogo CLI</h1>
+      <p>Issue an API token to the CLI at:</p>
+      <div class="callback">${callback}</div>
+      <p>Linked to <span class="email">${email}</span></p>
+      <form method="GET" action="/api/auth/cli">
+        <input type="hidden" name="callback" value="${callback}">
+        <input type="hidden" name="state" value="${state}">
+        <input type="hidden" name="confirm" value="${csrf}">
+        <button type="submit">Authorize</button>
+      </form>
+    </div>
+    <div class="badge-footer">
+      <span>Secure sign-in · If unexpected, close this tab</span>
+    </div>
   </div>
 </body>
 </html>`;
