@@ -1,4 +1,5 @@
 import type { DocumentType } from "@bogo/shared";
+import { Button, Input, LayerCard } from "@nocoo/basalt";
 import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { DocTypesVM } from "../../viewmodels/document/use-doc-types.js";
@@ -36,17 +37,16 @@ export function DocTypeManager({ vm }: { vm: DocTypesVM }) {
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
-				<h3 className="text-sm font-semibold text-foreground">Document Types</h3>
-				<button
-					type="button"
+				<h3 className="text-sm font-semibold text-basalt-foreground">Document Types</h3>
+				<Button
+					size="sm"
 					onClick={() => setShowCreate(true)}
 					disabled={showCreate}
-					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
 					aria-label="Add document type"
 				>
 					<Plus className="h-3 w-3" strokeWidth={2} />
 					Add Type
-				</button>
+				</Button>
 			</div>
 
 			{showCreate && (
@@ -118,44 +118,44 @@ function CreateDocTypeForm({
 	}, [name, color, onSubmit]);
 
 	return (
-		<div className="rounded-lg border border-border bg-card p-3 space-y-3">
+		<LayerCard className="p-3 space-y-3">
 			<div className="flex items-center justify-between">
-				<span className="text-xs font-medium text-foreground">New Document Type</span>
-				<button
-					type="button"
+				<span className="text-xs font-medium text-basalt-foreground">New Document Type</span>
+				<Button
+					variant="ghost"
+					size="icon"
 					onClick={onCancel}
-					className="text-muted-foreground hover:text-foreground"
+					className="h-6 w-6 text-basalt-muted-foreground hover:text-basalt-foreground"
 					aria-label="Cancel create"
 				>
 					<X className="h-4 w-4" />
-				</button>
+				</Button>
 			</div>
 			<div>
-				<label htmlFor="doctype-name" className="text-xs text-muted-foreground">
+				<label htmlFor="doctype-name" className="text-xs text-basalt-muted-foreground">
 					Name
 				</label>
-				<input
+				<Input
 					id="doctype-name"
 					type="text"
 					value={name}
 					onChange={(e) => setName(e.target.value)}
 					placeholder="Type name"
-					className="mt-1 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
-					// biome-ignore lint/a11y/noAutofocus: intentional focus on form open
+					className="mt-1 w-full"
 					autoFocus={true}
 				/>
 			</div>
 			<div>
-				<span className="text-xs text-muted-foreground">Color</span>
+				<span className="text-xs text-basalt-muted-foreground">Color</span>
 				<div className="mt-1 flex flex-wrap gap-2" role="radiogroup" aria-label="Color selection">
 					{PRESET_COLORS.map((c) => (
-						// biome-ignore lint/a11y/useSemanticElements: custom color-swatch radio — visual block, not a native input
+						// biome-ignore lint/a11y/useSemanticElements: custom color radio
 						<button
 							key={c}
 							type="button"
 							onClick={() => setColor(c)}
 							className={`h-6 w-6 rounded-full border-2 transition-all ${
-								color === c ? "border-foreground scale-110" : "border-transparent"
+								color === c ? "border-basalt-foreground scale-110" : "border-transparent"
 							}`}
 							style={{ backgroundColor: c }}
 							aria-label={`Color ${c}`}
@@ -166,28 +166,20 @@ function CreateDocTypeForm({
 				</div>
 			</div>
 			<div className="flex items-center gap-2">
-				<button
-					type="button"
+				<Button
 					onClick={handleSubmit}
 					disabled={!name.trim() || isCreating}
-					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+					loading={isCreating}
+					size="sm"
 				>
-					{isCreating ? (
-						<Loader2 className="h-3 w-3 animate-spin" />
-					) : (
-						<Plus className="h-3 w-3" strokeWidth={2} />
-					)}
+					<Plus className="h-3 w-3" strokeWidth={2} />
 					{isCreating ? "Creating..." : "Create"}
-				</button>
-				<button
-					type="button"
-					onClick={onCancel}
-					className="rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-				>
+				</Button>
+				<Button variant="ghost" size="sm" onClick={onCancel}>
 					Cancel
-				</button>
+				</Button>
 			</div>
-		</div>
+		</LayerCard>
 	);
 }
 

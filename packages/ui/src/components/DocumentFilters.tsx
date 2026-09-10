@@ -1,4 +1,5 @@
 import type { DocumentType, Person, Tag } from "@bogo/shared";
+import { Badge, Button, Input, LayerCard } from "@nocoo/basalt";
 import { ChevronDown, Filter, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { PersonAvatar } from "./person/PersonAvatar.js";
@@ -79,40 +80,41 @@ export function DocumentFilters({
 	);
 
 	return (
-		<div className="rounded-card bg-secondary">
+		<LayerCard className="p-0 overflow-hidden">
 			{/* Collapsed bar */}
-			<div className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-foreground">
+			<div className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-basalt-foreground">
 				<button
 					type="button"
 					onClick={() => setOpen(!open)}
-					className="flex flex-1 items-center gap-2 text-left -my-1 py-1 rounded hover:bg-accent/40 transition-colors"
+					className="flex flex-1 items-center gap-2 text-left -my-1 py-1 rounded hover:bg-basalt-accent/40 transition-colors"
 					aria-expanded={open}
 					aria-controls="document-filters-panel"
 				>
-					<Filter className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={1.6} />
+					<Filter className="h-4 w-4 shrink-0 text-basalt-muted-foreground" strokeWidth={1.6} />
 					<span className="font-medium">Filters</span>
 					{activeCount > 0 && (
-						<span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
+						<Badge variant="blue" className="h-5 min-w-[20px] px-1.5 text-[11px] font-semibold">
 							{activeCount}
-						</span>
+						</Badge>
 					)}
 					<ChevronDown
-						className={`ml-auto h-4 w-4 text-muted-foreground transition-transform ${
+						className={`ml-auto h-4 w-4 text-basalt-muted-foreground transition-transform ${
 							open ? "rotate-180" : ""
 						}`}
 						strokeWidth={1.6}
 					/>
 				</button>
 				{activeCount > 0 && (
-					<button
-						type="button"
+					<Button
+						variant="ghost"
+						size="sm"
 						onClick={clear}
-						className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+						className="gap-1 text-xs text-basalt-muted-foreground hover:text-basalt-foreground"
 						aria-label="Clear all filters"
 					>
 						<X className="h-3 w-3" />
 						Clear
-					</button>
+					</Button>
 				)}
 			</div>
 
@@ -120,18 +122,18 @@ export function DocumentFilters({
 			{open && (
 				<div
 					id="document-filters-panel"
-					className="grid gap-4 border-t border-border px-4 py-4 sm:grid-cols-2"
+					className="grid gap-4 border-t border-basalt-border px-4 py-4 sm:grid-cols-2"
 				>
 					{/* Keyword */}
 					<div className="space-y-1.5 sm:col-span-2">
 						<FieldLabel htmlFor="filter-keyword" label="Keyword" />
-						<input
+						<Input
 							id="filter-keyword"
 							type="text"
 							value={value.keyword}
 							onChange={(e) => patch({ keyword: e.target.value })}
 							placeholder="Search title…"
-							className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
+							className="h-9 w-full"
 						/>
 					</div>
 
@@ -142,7 +144,7 @@ export function DocumentFilters({
 							id="filter-type"
 							value={value.typeId}
 							onChange={(e) => patch({ typeId: e.target.value })}
-							className="h-9 w-full rounded-md border border-border bg-background pl-3 pr-8 text-sm text-foreground outline-none focus:border-primary"
+							className="field-select h-9 w-full"
 						>
 							<option value="all">All types</option>
 							<option value="none">No type</option>
@@ -158,19 +160,19 @@ export function DocumentFilters({
 					<div className="space-y-1.5">
 						<FieldLabel label="Event date" />
 						<div className="flex items-center gap-2">
-							<input
+							<Input
 								type="date"
 								value={value.dateFrom}
 								onChange={(e) => patch({ dateFrom: e.target.value })}
-								className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm text-foreground outline-none focus:border-primary"
+								className="h-9 w-full"
 								aria-label="Date from"
 							/>
-							<span className="text-muted-foreground text-xs shrink-0">to</span>
-							<input
+							<span className="text-basalt-muted-foreground text-xs shrink-0">to</span>
+							<Input
 								type="date"
 								value={value.dateTo}
 								onChange={(e) => patch({ dateTo: e.target.value })}
-								className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm text-foreground outline-none focus:border-primary"
+								className="h-9 w-full"
 								aria-label="Date to"
 							/>
 						</div>
@@ -208,7 +210,7 @@ export function DocumentFilters({
 					<div className="space-y-1.5 sm:col-span-2">
 						<FieldLabel label="People" />
 						{allPersons.length === 0 ? (
-							<p className="text-xs text-muted-foreground">No people defined</p>
+							<p className="text-xs text-basalt-muted-foreground">No people defined</p>
 						) : (
 							<div className="flex flex-wrap items-center gap-1.5">
 								{allPersons.map((p) => {
@@ -220,8 +222,8 @@ export function DocumentFilters({
 												onClick={() => togglePerson(p.id)}
 												className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs transition-colors ${
 													isActive
-														? "border-primary bg-primary/10 text-foreground"
-														: "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+														? "border-basalt-primary bg-basalt-primary/10 text-basalt-foreground"
+														: "border-basalt-border text-basalt-muted-foreground hover:border-basalt-primary/40 hover:text-basalt-foreground"
 												}`}
 												aria-pressed={isActive}
 												aria-label={`${isActive ? "Remove" : "Add"} person filter ${p.name}`}
@@ -237,7 +239,7 @@ export function DocumentFilters({
 					</div>
 				</div>
 			)}
-		</div>
+		</LayerCard>
 	);
 }
 
@@ -245,7 +247,7 @@ function FieldLabel({ label, htmlFor }: { label: string; htmlFor?: string }) {
 	return (
 		<label
 			htmlFor={htmlFor}
-			className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
+			className="block text-[11px] font-medium uppercase tracking-wider text-basalt-muted-foreground"
 		>
 			{label}
 		</label>

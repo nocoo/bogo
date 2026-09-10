@@ -1,4 +1,5 @@
 import type { Document } from "@bogo/shared";
+import { Button, LayerCard } from "@nocoo/basalt";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, X } from "lucide-react";
 import { useMemo } from "react";
@@ -45,28 +46,29 @@ export function PersonDocTimeline({
 	}, [documents]);
 
 	return (
-		<div className="w-72 rounded-xl bg-card p-4 shadow-lg">
+		<LayerCard className="w-72 p-4 shadow-lg">
 			<div className="flex items-center justify-between mb-4">
-				<h3 className="text-sm font-semibold text-foreground">Documents</h3>
-				<button
-					type="button"
+				<h3 className="text-sm font-semibold text-basalt-foreground">Documents</h3>
+				<Button
+					variant="ghost"
+					size="icon"
 					onClick={onClose}
-					className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
+					className="h-6 w-6 text-basalt-muted-foreground hover:text-basalt-foreground"
 					aria-label="Close timeline"
 				>
 					<X className="h-4 w-4" strokeWidth={1.5} />
-				</button>
+				</Button>
 			</div>
 
 			<div className="max-h-[480px] overflow-y-auto -mr-2 pr-2">
 				{isLoading && (
 					<div className="flex justify-center py-6">
-						<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+						<Loader2 className="h-4 w-4 animate-spin text-basalt-muted-foreground" />
 					</div>
 				)}
 
 				{!isLoading && documents?.length === 0 && (
-					<p className="text-sm text-muted-foreground text-center py-6">No documents</p>
+					<p className="text-sm text-basalt-muted-foreground text-center py-6">No documents</p>
 				)}
 
 				{!isLoading && documents && documents.length > 0 && (
@@ -104,7 +106,7 @@ export function PersonDocTimeline({
 					</div>
 				)}
 			</div>
-		</div>
+		</LayerCard>
 	);
 }
 

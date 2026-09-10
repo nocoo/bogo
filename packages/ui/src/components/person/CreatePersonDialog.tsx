@@ -1,5 +1,6 @@
 import type { Person } from "@bogo/shared";
-import { Loader2, Plus, UserX, X } from "lucide-react";
+import { Button, Input, LayerCard } from "@nocoo/basalt";
+import { Plus, UserX, X } from "lucide-react";
 import { useCallback, useState } from "react";
 
 export function CreatePersonDialog({
@@ -25,25 +26,26 @@ export function CreatePersonDialog({
 	}, [name, managerId, onSubmit]);
 
 	return (
-		<div className="rounded-xl bg-card p-4 shadow-lg w-80">
+		<LayerCard className="w-80 shadow-lg">
 			<div className="flex items-center justify-between mb-3">
-				<h3 className="text-sm font-semibold text-foreground">Add Person</h3>
-				<button
-					type="button"
+				<h3 className="text-sm font-semibold text-basalt-foreground">Add Person</h3>
+				<Button
+					variant="ghost"
+					size="icon"
 					onClick={onClose}
-					className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
+					className="h-6 w-6 text-basalt-muted-foreground hover:text-basalt-foreground"
 					aria-label="Close create dialog"
 				>
 					<X className="h-4 w-4" strokeWidth={1.5} />
-				</button>
+				</Button>
 			</div>
 
 			<div className="space-y-3">
 				<div>
-					<label htmlFor="person-name" className="text-xs text-muted-foreground">
+					<label htmlFor="person-name" className="text-xs text-basalt-muted-foreground">
 						Name
 					</label>
-					<input
+					<Input
 						id="person-name"
 						type="text"
 						value={name}
@@ -57,21 +59,20 @@ export function CreatePersonDialog({
 							}
 						}}
 						placeholder="Person name"
-						className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
-						// biome-ignore lint/a11y/noAutofocus: intentional focus on form activation
+						className="mt-1 w-full"
 						autoFocus={true}
 					/>
 				</div>
 
 				<div>
-					<label htmlFor="person-manager" className="text-xs text-muted-foreground">
+					<label htmlFor="person-manager" className="text-xs text-basalt-muted-foreground">
 						Reports to
 					</label>
 					<select
 						id="person-manager"
 						value={managerId}
 						onChange={(e) => setManagerId(e.target.value)}
-						className="mt-1 w-full rounded-md border border-border bg-background pl-3 pr-8 py-1.5 text-sm text-foreground outline-none focus:border-primary"
+						className="field-select mt-1 w-full"
 					>
 						{persons.map((p) => (
 							<option key={p.id} value={p.id}>
@@ -82,29 +83,21 @@ export function CreatePersonDialog({
 				</div>
 
 				<div className="flex items-center gap-2 pt-1">
-					<button
-						type="button"
+					<Button
 						onClick={handleSubmit}
 						disabled={!(name.trim() && managerId) || isCreating}
-						className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+						loading={isCreating}
+						size="sm"
 					>
-						{isCreating ? (
-							<Loader2 className="h-3 w-3 animate-spin" />
-						) : (
-							<Plus className="h-3 w-3" strokeWidth={2} />
-						)}
+						<Plus className="h-3 w-3" strokeWidth={2} />
 						{isCreating ? "Creating..." : "Create"}
-					</button>
-					<button
-						type="button"
-						onClick={onClose}
-						className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-					>
+					</Button>
+					<Button variant="ghost" size="sm" onClick={onClose}>
 						Cancel
-					</button>
+					</Button>
 				</div>
 			</div>
-		</div>
+		</LayerCard>
 	);
 }
 

@@ -1,4 +1,5 @@
 import type { TagScope } from "@bogo/shared";
+import { Button } from "@nocoo/basalt";
 import { useQuery } from "@tanstack/react-query";
 import { Filter } from "lucide-react";
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
@@ -47,14 +48,15 @@ export function TagFilter({ scope, selected, onChange }: TagFilterProps) {
 				);
 			})}
 			{selected.length > 0 && (
-				<button
-					type="button"
+				<Button
+					variant="ghost"
+					size="sm"
 					onClick={() => onChange([])}
-					className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+					className="h-6 px-2 text-xs text-basalt-muted-foreground hover:text-basalt-foreground"
 					aria-label="Clear tag filter"
 				>
 					Clear
-				</button>
+				</Button>
 			)}
 		</div>
 	);

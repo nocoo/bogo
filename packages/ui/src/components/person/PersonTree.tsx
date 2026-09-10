@@ -1,3 +1,4 @@
+import { Button } from "@nocoo/basalt";
 import { useQuery } from "@tanstack/react-query";
 import {
 	Background,
@@ -170,15 +171,10 @@ function PersonTreeInner() {
 			</ReactFlow>
 
 			<div className="absolute top-3 left-3 z-10">
-				<button
-					type="button"
-					onClick={() => setShowCreate(true)}
-					className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-md hover:bg-primary/90 transition-colors"
-					aria-label="Add person"
-				>
+				<Button onClick={() => setShowCreate(true)} className="shadow-md" aria-label="Add person">
 					<Plus className="h-4 w-4" strokeWidth={1.5} />
 					Add
-				</button>
+				</Button>
 			</div>
 
 			{showCreate && (

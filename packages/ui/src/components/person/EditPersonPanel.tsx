@@ -1,4 +1,5 @@
 import type { CustomFieldDefinition, Person, UpdatePersonInput } from "@bogo/shared";
+import { Button, LayerCard } from "@nocoo/basalt";
 import { X } from "lucide-react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
 import { PersonEditorForm } from "./PersonEditorForm.js";
@@ -29,17 +30,18 @@ export function EditPersonPanel({
 	fieldValuesVm?: FieldValuesVM;
 }) {
 	return (
-		<div className="w-80 max-h-[min(85vh,40rem)] overflow-y-auto rounded-xl bg-card p-4 shadow-lg">
+		<LayerCard className="w-80 max-h-[min(85vh,40rem)] overflow-y-auto p-4 shadow-lg">
 			<div className="mb-3 flex items-center justify-between">
-				<h3 className="text-sm font-semibold text-foreground">Edit Person</h3>
-				<button
-					type="button"
+				<h3 className="text-sm font-semibold text-basalt-foreground">Edit Person</h3>
+				<Button
+					variant="ghost"
+					size="icon"
 					onClick={onClose}
-					className="btn-icon h-7 w-7"
+					className="h-7 w-7 text-basalt-muted-foreground hover:text-basalt-foreground"
 					aria-label="Close edit panel"
 				>
 					<X className="h-4 w-4" strokeWidth={1.5} />
-				</button>
+				</Button>
 			</div>
 
 			<PersonEditorForm
@@ -53,6 +55,6 @@ export function EditPersonPanel({
 				fieldValuesVm={fieldValuesVm}
 				variant="panel"
 			/>
-		</div>
+		</LayerCard>
 	);
 }

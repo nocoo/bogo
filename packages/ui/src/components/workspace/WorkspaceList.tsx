@@ -1,4 +1,6 @@
 import type { Workspace } from "@bogo/shared";
+import { Button, Input, LayerCard } from "@nocoo/basalt";
+import { PageHeader } from "@nocoo/basalt/components/page-header";
 import { Building2, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useWorkspaceList } from "@/viewmodels/workspace/use-workspace-list.js";
@@ -28,16 +30,16 @@ function WorkspaceItem({
 	};
 
 	return (
-		// biome-ignore lint/a11y/useKeyWithClickEvents: workspace item with nested interactive elements
-		// biome-ignore lint/a11y/noStaticElementInteractions: card-shaped clickable wrapper, nested controls handle keyboard
-		<div
-			className={`group flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors cursor-pointer ${
-				isSelected ? "bg-primary/10 border border-primary/20" : "bg-secondary hover:bg-accent"
+		<LayerCard
+			className={`group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors cursor-pointer ${
+				isSelected
+					? "bg-basalt-primary/10 border border-basalt-primary/20"
+					: "hover:bg-basalt-accent"
 			}`}
 			onClick={onSelect}
 		>
-			<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-				<Building2 className="h-4 w-4 text-primary" strokeWidth={1.5} />
+			<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-basalt-primary/10">
+				<Building2 className="h-4 w-4 text-basalt-primary" strokeWidth={1.5} />
 			</div>
 
 			<div className="flex-1 min-w-0">
@@ -57,14 +59,14 @@ function WorkspaceItem({
 							}
 						}}
 						onClick={(e) => e.stopPropagation()}
-						className="w-full bg-transparent border-b border-primary text-sm text-foreground outline-none py-0.5"
+						className="w-full bg-transparent border-b border-basalt-primary text-sm text-basalt-foreground outline-none py-0.5"
 						// biome-ignore lint/a11y/noAutofocus: intentional focus on edit activation
 						autoFocus={true}
 					/>
 				) : (
 					<>
-						<p className="text-sm font-medium text-foreground truncate">{workspace.name}</p>
-						<p className="text-xs text-muted-foreground">
+						<p className="text-sm font-medium text-basalt-foreground truncate">{workspace.name}</p>
+						<p className="text-xs text-basalt-muted-foreground">
 							{new Date(workspace.createdAt).toLocaleDateString()}
 						</p>
 					</>
@@ -73,32 +75,34 @@ function WorkspaceItem({
 
 			{!editing && (
 				<div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-					<button
-						type="button"
+					<Button
+						variant="ghost"
+						size="icon"
 						onClick={(e) => {
 							e.stopPropagation();
 							setEditName(workspace.name);
 							setEditing(true);
 						}}
-						className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-background transition-colors"
+						className="h-7 w-7 text-basalt-muted-foreground hover:text-basalt-foreground"
 						aria-label={`Rename ${workspace.name}`}
 					>
 						<Pencil className="h-3.5 w-3.5" strokeWidth={1.5} />
-					</button>
-					<button
-						type="button"
+					</Button>
+					<Button
+						variant="ghost"
+						size="icon"
 						onClick={(e) => {
 							e.stopPropagation();
 							onDelete();
 						}}
-						className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-background transition-colors"
+						className="h-7 w-7 text-basalt-muted-foreground hover:text-basalt-destructive"
 						aria-label={`Delete ${workspace.name}`}
 					>
 						<Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
-					</button>
+					</Button>
 				</div>
 			)}
-		</div>
+		</LayerCard>
 	);
 }
 
@@ -119,40 +123,36 @@ export function WorkspaceList() {
 	if (vm.isLoading) {
 		return (
 			<div className="flex items-center justify-center py-12">
-				<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+				<Loader2 className="h-6 w-6 animate-spin text-basalt-muted-foreground" />
 			</div>
 		);
 	}
 
 	if (vm.error) {
 		return (
-			<div className="rounded-xl bg-destructive/10 p-6 text-center">
-				<p className="text-sm text-destructive">Failed to load workspaces</p>
-				<p className="mt-1 text-xs text-muted-foreground">{vm.error.message}</p>
+			<div className="rounded-xl bg-basalt-destructive/10 p-6 text-center">
+				<p className="text-sm text-basalt-destructive">Failed to load workspaces</p>
+				<p className="mt-1 text-xs text-basalt-muted-foreground">{vm.error.message}</p>
 			</div>
 		);
 	}
 
 	return (
 		<div className="space-y-4">
-			<div className="flex items-center justify-between">
-				<div>
-					<h2 className="text-base font-semibold text-foreground">Workspaces</h2>
-					<p className="text-sm text-muted-foreground">Manage your organization workspaces</p>
-				</div>
-				<button
-					type="button"
-					onClick={() => setShowCreate(true)}
-					className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-				>
-					<Plus className="h-4 w-4" strokeWidth={1.5} />
-					New
-				</button>
-			</div>
+			<PageHeader
+				title="Workspaces"
+				description="Manage your organization workspaces and access scopes."
+				actions={
+					<Button onClick={() => setShowCreate(true)} aria-label="New workspace">
+						<Plus className="h-4 w-4" strokeWidth={1.5} />
+						New
+					</Button>
+				}
+			/>
 
 			{showCreate && (
-				<div className="flex items-center gap-2 rounded-lg bg-secondary p-3">
-					<input
+				<LayerCard className="flex items-center gap-2 p-3">
+					<Input
 						type="text"
 						value={newName}
 						onChange={(e) => setNewName(e.target.value)}
@@ -166,39 +166,38 @@ export function WorkspaceList() {
 							}
 						}}
 						placeholder="Workspace name"
-						className="flex-1 bg-transparent border-b border-border text-sm text-foreground outline-none py-1 placeholder:text-muted-foreground focus:border-primary"
-						// biome-ignore lint/a11y/noAutofocus: intentional focus on form activation
+						className="flex-1"
 						autoFocus={true}
 					/>
-					<button
-						type="button"
+					<Button
+						size="sm"
 						onClick={handleCreate}
 						disabled={!newName.trim() || vm.isCreating}
-						className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+						loading={vm.isCreating}
 					>
 						{vm.isCreating ? "Creating..." : "Create"}
-					</button>
-					<button
-						type="button"
+					</Button>
+					<Button
+						variant="ghost"
+						size="sm"
 						onClick={() => {
 							setShowCreate(false);
 							setNewName("");
 						}}
-						className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
 					>
 						Cancel
-					</button>
-				</div>
+					</Button>
+				</LayerCard>
 			)}
 
 			{vm.workspaces.length === 0 ? (
-				<div className="rounded-card bg-secondary p-12 text-center">
-					<Building2 className="mx-auto h-10 w-10 text-muted-foreground" strokeWidth={1} />
-					<p className="mt-3 text-sm text-muted-foreground">No workspaces yet</p>
-					<p className="mt-1 text-xs text-muted-foreground">
+				<LayerCard className="p-12 text-center">
+					<Building2 className="mx-auto h-10 w-10 text-basalt-muted-foreground" strokeWidth={1} />
+					<p className="mt-3 text-sm text-basalt-muted-foreground">No workspaces yet</p>
+					<p className="mt-1 text-xs text-basalt-muted-foreground">
 						Create your first workspace to get started
 					</p>
-				</div>
+				</LayerCard>
 			) : (
 				<div className="space-y-2">
 					{vm.workspaces.map((ws) => (
