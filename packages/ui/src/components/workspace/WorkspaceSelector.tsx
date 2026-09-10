@@ -41,15 +41,18 @@ export function WorkspaceSelector() {
 				variant="outline"
 				size="sm"
 				onClick={() => setOpen(!open)}
-				className="gap-2 text-xs font-medium max-w-[130px] sm:max-w-none px-2 sm:px-2.5"
+				className="gap-1.5 text-xs font-medium max-w-[100px] sm:max-w-none px-2 sm:px-2.5 shrink-0"
 				aria-label="Select workspace"
 			>
 				{error ? (
-					<AlertCircle className="h-3.5 w-3.5 text-basalt-destructive" strokeWidth={1.5} />
+					<AlertCircle className="h-3.5 w-3.5 text-basalt-destructive shrink-0" strokeWidth={1.5} />
 				) : (
-					<Building2 className="h-3.5 w-3.5 text-basalt-muted-foreground" strokeWidth={1.5} />
+					<Building2
+						className="h-3.5 w-3.5 text-basalt-muted-foreground shrink-0"
+						strokeWidth={1.5}
+					/>
 				)}
-				<span className="max-w-[70px] sm:max-w-[120px] truncate">
+				<span className="max-w-[45px] sm:max-w-[120px] truncate">
 					{error ? "Error" : isLoading ? "Loading…" : (workspace?.name ?? "Select workspace")}
 				</span>
 				<ChevronDown

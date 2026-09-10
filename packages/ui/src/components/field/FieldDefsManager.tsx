@@ -46,7 +46,7 @@ export function FieldDefsManager({
 
 	return (
 		<div className="space-y-4">
-			{showHeader ? (
+			{showHeader && (
 				<div className="flex items-center justify-between">
 					<h3 className="text-sm font-semibold text-basalt-foreground">Custom Fields</h3>
 					<Button
@@ -59,20 +59,6 @@ export function FieldDefsManager({
 						Add Field
 					</Button>
 				</div>
-			) : (
-				!showCreate && (
-					<div className="flex justify-end">
-						<Button
-							size="sm"
-							onClick={() => setShowCreate(true)}
-							disabled={showCreate}
-							aria-label="Add field definition"
-						>
-							<Plus className="h-3 w-3" strokeWidth={2} />
-							Add Field
-						</Button>
-					</div>
-				)
 			)}
 
 			{showCreate && (
@@ -382,7 +368,7 @@ function FieldDefRow({
 									setEditing(false);
 								}
 							}}
-							className="w-full rounded border border-primary bg-secondary px-2 py-1 text-sm text-foreground outline-none"
+							className="w-full rounded border border-basalt-border bg-basalt-control px-2 py-1 text-sm text-basalt-foreground outline-none"
 							// biome-ignore lint/a11y/noAutofocus: intentional focus on inline edit
 							autoFocus={true}
 							aria-label={`Edit name for ${def.name}`}

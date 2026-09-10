@@ -14,6 +14,7 @@ import {
 	Input,
 	LayerCard,
 } from "@nocoo/basalt";
+import { PageHeader } from "@nocoo/basalt/components/page-header";
 import { Columns3, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
@@ -230,9 +231,13 @@ export function TablePage() {
 	};
 
 	return (
-		<div className="flex h-full min-h-0 flex-col gap-3">
+		<div className="flex h-full min-h-0 flex-col gap-3 space-y-2">
+			<PageHeader
+				title="People Table"
+				description="Customizable spreadsheet view of organization personnel, fields, and reporting structure."
+			/>
 			{/* L1 toolbar — view switcher + tools */}
-			<header className="shrink-0 space-y-2.5 border-b border-border/60 pb-3">
+			<header className="shrink-0 space-y-2.5 border-b border-basalt-border/60 pb-3">
 				{/* View strip: segmented tabs + create */}
 				<div className="flex min-w-0 items-center gap-2">
 					<nav className="view-switcher min-w-0 flex-1" aria-label="Table views">
@@ -411,7 +416,7 @@ export function TablePage() {
 								<li
 									// biome-ignore lint/suspicious/noArrayIndexKey: draft filter rows have no stable id
 									key={`filter-row-${i}`}
-									className="panel-l3 flex flex-wrap items-center gap-2 p-2"
+									className="flex flex-wrap items-center gap-2 p-2 rounded-lg bg-basalt-bright border border-basalt-border"
 								>
 									<select
 										className="field-select field-sm"

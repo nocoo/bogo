@@ -1,4 +1,5 @@
 import type { CustomFieldDefinition, Person, UpdatePersonInput } from "@bogo/shared";
+import { LayerCard } from "@nocoo/basalt";
 import { Loader2, Save, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
@@ -242,28 +243,28 @@ export function PersonEditorForm({
 			<div className="flex flex-col gap-4">
 				{/* Full-width two-column board — matches Settings / Table L2 panels */}
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-					<section className="panel-l2 space-y-4 p-4 md:p-5">
-						<h2 className="text-sm font-semibold text-foreground">Profile</h2>
+					<LayerCard className="space-y-4 p-4 md:p-5">
+						<h2 className="text-sm font-semibold text-basalt-foreground">Profile</h2>
 						{avatarBlock}
 						{nameTitleBlock}
-					</section>
+					</LayerCard>
 
-					<section className="panel-l2 space-y-4 p-4 md:p-5">
-						<h2 className="text-sm font-semibold text-foreground">Reporting</h2>
+					<LayerCard className="space-y-4 p-4 md:p-5">
+						<h2 className="text-sm font-semibold text-basalt-foreground">Reporting</h2>
 						{managersBlock}
-					</section>
+					</LayerCard>
 
 					{hasCustomFields && fieldDefs && fieldValuesVm ? (
-						<section className="panel-l2 p-4 md:p-5">
-							<h2 className="mb-3 text-sm font-semibold text-foreground">Custom fields</h2>
+						<LayerCard className="p-4 md:p-5">
+							<h2 className="mb-3 text-sm font-semibold text-basalt-foreground">Custom fields</h2>
 							<PersonFieldValues defs={fieldDefs} vm={fieldValuesVm} />
-						</section>
+						</LayerCard>
 					) : null}
 
-					<section className="panel-l2 p-4 md:p-5">
-						<h2 className="mb-3 text-sm font-semibold text-foreground">Tags</h2>
+					<LayerCard className="p-4 md:p-5">
+						<h2 className="mb-3 text-sm font-semibold text-basalt-foreground">Tags</h2>
 						<TagPicker scope="person" entityId={person.id} assignedTags={person.tags} />
-					</section>
+					</LayerCard>
 				</div>
 
 				{actions}

@@ -1,6 +1,6 @@
 import type { DocumentType, Person, Tag } from "@bogo/shared";
-import { Badge, Button, Input } from "@nocoo/basalt";
-import { Filter, X } from "lucide-react";
+import { Button, Input } from "@nocoo/basalt";
+import { X } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { PersonAvatar } from "./person/PersonAvatar.js";
 import { PersonHover } from "./person/PersonHover.js";
@@ -79,17 +79,8 @@ export function DocumentFilters({
 
 	return (
 		<div className="space-y-4 py-2">
-			<div className="flex items-center justify-between pb-1">
-				<div className="flex items-center gap-2">
-					<Filter className="h-4 w-4 text-basalt-muted-foreground" strokeWidth={1.6} />
-					<span className="text-sm font-semibold text-basalt-foreground">Filter Documents</span>
-					{activeCount > 0 && (
-						<Badge variant="blue" className="h-5 px-1.5 text-[11px] font-semibold">
-							{activeCount} active
-						</Badge>
-					)}
-				</div>
-				{activeCount > 0 && (
+			{activeCount > 0 && (
+				<div className="flex items-center justify-end pb-1">
 					<Button
 						variant="ghost"
 						size="sm"
@@ -100,8 +91,8 @@ export function DocumentFilters({
 						<X className="h-3 w-3" />
 						Clear
 					</Button>
-				)}
-			</div>
+				</div>
+			)}
 
 			<div id="document-filters-panel" className="grid gap-4 sm:grid-cols-2">
 				{/* Keyword */}

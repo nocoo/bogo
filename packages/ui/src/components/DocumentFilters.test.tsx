@@ -61,7 +61,7 @@ describe("DocumentFilters", () => {
 		expect(screen.getByLabelText("Date to")).toBeTruthy();
 	});
 
-	it("shows active-count badge and Clear shortcut when filters are set", () => {
+	it("shows Clear shortcut when filters are set", () => {
 		const onChange = vi.fn();
 		render(
 			<DocumentFilters
@@ -72,7 +72,6 @@ describe("DocumentFilters", () => {
 				allPersons={PEOPLE}
 			/>,
 		);
-		expect(screen.getByText("2 active")).toBeTruthy();
 		fireEvent.click(screen.getByLabelText("Clear all filters"));
 		expect(onChange).toHaveBeenCalledWith(EMPTY_FILTERS);
 	});

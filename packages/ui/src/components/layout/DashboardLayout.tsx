@@ -144,7 +144,11 @@ export function DashboardLayout() {
 							</Button>
 						) : null
 					}
-					breadcrumbs={ancestorCrumbs}
+					breadcrumbs={
+						isMobile && ancestorCrumbs.length > 1
+							? [ancestorCrumbs[ancestorCrumbs.length - 1]]
+							: ancestorCrumbs
+					}
 					title={undefined}
 					actions={
 						<>
