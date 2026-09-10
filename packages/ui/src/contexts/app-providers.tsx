@@ -1,9 +1,38 @@
-import { TooltipProvider } from "@nocoo/basalt";
+import { LinkProvider, TooltipProvider } from "@nocoo/basalt";
 import { AccentProvider } from "@nocoo/basalt/providers/accent";
 import { ThemeProvider } from "@nocoo/basalt/providers/theme";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { Link } from "react-router";
 import { WorkspaceProvider } from "./workspace-context.js";
+
+function AppLink({
+	href,
+	className,
+	children,
+}: {
+	href: string;
+	className?: string;
+	children?: ReactNode;
+}) {
+	if (
+		href.startsWith("http:") ||
+		href.startsWith("https:") ||
+		href.startsWith("mailto:") ||
+		href.startsWith("tel:")
+	) {
+		return (
+			<a href={href} className={className}>
+				{children}
+			</a>
+		);
+	}
+	return (
+		<Link to={href} className={className}>
+			{children}
+		</Link>
+	);
+}
 
 const queryClient = new QueryClient({
 	defaultOptions: {
@@ -28,11 +57,13 @@ export function AppProviders({ children }: { children: ReactNode }) {
 					},
 				}}
 			>
-				<TooltipProvider>
-					<QueryClientProvider client={queryClient}>
-						<WorkspaceProvider>{children}</WorkspaceProvider>
-					</QueryClientProvider>
-				</TooltipProvider>
+				<LinkProvider render={AppLink}>
+					<TooltipProvider>
+						<QueryClientProvider client={queryClient}>
+							<WorkspaceProvider>{children}</WorkspaceProvider>
+						</QueryClientProvider>
+					</TooltipProvider>
+				</LinkProvider>
 			</AccentProvider>
 		</ThemeProvider>
 	);

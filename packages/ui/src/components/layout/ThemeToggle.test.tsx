@@ -1,6 +1,15 @@
+import { ThemeProvider } from "@nocoo/basalt/providers/theme";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initTheme, ThemeToggle } from "./ThemeToggle.js";
+
+function renderWithTheme() {
+	return render(
+		<ThemeProvider storageKey="theme" defaultTheme="system">
+			<ThemeToggle />
+		</ThemeProvider>,
+	);
+}
 
 let matchMediaResult = true;
 
@@ -52,12 +61,12 @@ afterEach(() => {
 
 describe("ThemeToggle", () => {
 	it("renders with system theme by default", () => {
-		render(<ThemeToggle />);
+		renderWithTheme();
 		expect(screen.getByLabelText("Theme: system")).toBeTruthy();
 	});
 
 	it("cycles system → light → dark → system", () => {
-		render(<ThemeToggle />);
+		renderWithTheme();
 		const btn = screen.getByRole("button");
 
 		fireEvent.click(btn);
@@ -76,25 +85,25 @@ describe("ThemeToggle", () => {
 
 	it("restores stored light theme on mount", () => {
 		localStorage.setItem("theme", "light");
-		render(<ThemeToggle />);
+		renderWithTheme();
 		expect(screen.getByLabelText("Theme: light")).toBeTruthy();
 	});
 
 	it("restores stored dark theme on mount", () => {
 		localStorage.setItem("theme", "dark");
-		render(<ThemeToggle />);
+		renderWithTheme();
 		expect(screen.getByLabelText("Theme: dark")).toBeTruthy();
 	});
 
 	it("uses system preference when no stored value (system=dark)", () => {
 		matchMediaResult = true;
-		render(<ThemeToggle />);
+		renderWithTheme();
 		expect(screen.getByLabelText("Theme: system")).toBeTruthy();
 	});
 
 	it("uses system preference when no stored value (system=light)", () => {
 		matchMediaResult = false;
-		render(<ThemeToggle />);
+		renderWithTheme();
 		expect(screen.getByLabelText("Theme: system")).toBeTruthy();
 	});
 });
