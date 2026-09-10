@@ -1,4 +1,6 @@
 import type { TagScope } from "@bogo/shared";
+import { LayerCard } from "@nocoo/basalt";
+import { PageHeader } from "@nocoo/basalt/components/page-header";
 import { Check, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useState } from "react";
 import { TagBadge } from "../components/TagBadge.js";
@@ -9,43 +11,45 @@ export function TagsSettingsPage() {
 	const [scope, setScope] = useState<TagScope>("document");
 
 	return (
-		<div className="rounded-card bg-secondary p-5">
-			<div className="flex items-center justify-between mb-4">
-				<h2 className="font-semibold text-foreground text-lg">Tags</h2>
-			</div>
+		<div className="space-y-6">
+			<PageHeader
+				title="Tags"
+				description="Organize documents and people with color-coded label tags."
+			/>
+			<LayerCard>
+				<div className="flex gap-1 mb-4 border-b border-basalt-border" role="tablist">
+					<button
+						type="button"
+						role="tab"
+						aria-label="Document Tags"
+						aria-selected={scope === "document"}
+						onClick={() => setScope("document")}
+						className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+							scope === "document"
+								? "border-basalt-primary text-basalt-primary"
+								: "border-transparent text-basalt-muted-foreground hover:text-basalt-foreground"
+						}`}
+					>
+						Document Tags
+					</button>
+					<button
+						type="button"
+						role="tab"
+						aria-label="Person Tags"
+						aria-selected={scope === "person"}
+						onClick={() => setScope("person")}
+						className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+							scope === "person"
+								? "border-basalt-primary text-basalt-primary"
+								: "border-transparent text-basalt-muted-foreground hover:text-basalt-foreground"
+						}`}
+					>
+						Person Tags
+					</button>
+				</div>
 
-			<div className="flex gap-1 mb-4 border-b border-border" role="tablist">
-				<button
-					type="button"
-					role="tab"
-					aria-label="Document Tags"
-					aria-selected={scope === "document"}
-					onClick={() => setScope("document")}
-					className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-						scope === "document"
-							? "border-primary text-primary"
-							: "border-transparent text-muted-foreground hover:text-foreground"
-					}`}
-				>
-					Document Tags
-				</button>
-				<button
-					type="button"
-					role="tab"
-					aria-label="Person Tags"
-					aria-selected={scope === "person"}
-					onClick={() => setScope("person")}
-					className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-						scope === "person"
-							? "border-primary text-primary"
-							: "border-transparent text-muted-foreground hover:text-foreground"
-					}`}
-				>
-					Person Tags
-				</button>
-			</div>
-
-			<TagList scope={scope} />
+				<TagList scope={scope} />
+			</LayerCard>
 		</div>
 	);
 }

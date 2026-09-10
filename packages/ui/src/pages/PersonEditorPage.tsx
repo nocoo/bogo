@@ -1,3 +1,4 @@
+import { LayerCard } from "@nocoo/basalt";
 import { Loader2 } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
@@ -41,13 +42,15 @@ export function PersonEditorPage() {
 
 	if (!workspaceId) {
 		return (
-			<div className="py-8 text-sm text-muted-foreground">Select a workspace to edit people</div>
+			<div className="py-8 text-sm text-basalt-muted-foreground">
+				Select a workspace to edit people
+			</div>
 		);
 	}
 
 	if (personList.isLoading) {
 		return (
-			<div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
+			<div className="flex items-center gap-2 py-8 text-sm text-basalt-muted-foreground">
 				<Loader2 className="h-4 w-4 animate-spin" />
 				Loading…
 			</div>
@@ -57,7 +60,7 @@ export function PersonEditorPage() {
 	if (personList.error) {
 		return (
 			<div
-				className="rounded-lg border border-destructive/25 bg-destructive/5 p-4 text-sm text-destructive"
+				className="rounded-lg border border-basalt-destructive/25 bg-basalt-destructive/5 p-4 text-sm text-basalt-destructive"
 				role="alert"
 			>
 				Failed to load people: {personList.error.message}
@@ -68,7 +71,7 @@ export function PersonEditorPage() {
 	if (!person) {
 		return (
 			<div className="space-y-3 py-8">
-				<p className="text-sm text-muted-foreground">Person not found.</p>
+				<p className="text-sm text-basalt-muted-foreground">Person not found.</p>
 				<PageBackLink to={backTo} ariaLabel="Back to Table">
 					Table
 				</PageBackLink>
@@ -78,26 +81,26 @@ export function PersonEditorPage() {
 
 	return (
 		<div className="flex h-full min-h-0 flex-col gap-4">
-			<header className="page-toolbar shrink-0 border-b border-border/60 pb-3">
+			<header className="page-toolbar shrink-0 border-b border-basalt-border/60 pb-3">
 				<PageBackLink to={backTo} ariaLabel="Back to Table" />
 				<PersonHover personId={person.id}>
 					<div className="flex min-w-0 items-center gap-3">
 						<PersonAvatar name={person.name} avatarUrl={person.avatarUrl} size="lg" />
 						<div className="min-w-0">
-							<h1 className="truncate text-lg font-semibold tracking-tight text-foreground">
+							<h1 className="truncate text-lg font-semibold tracking-tight text-basalt-foreground">
 								{person.name}
 							</h1>
 							{person.title ? (
-								<p className="truncate text-sm text-muted-foreground">{person.title}</p>
+								<p className="truncate text-sm text-basalt-muted-foreground">{person.title}</p>
 							) : (
-								<p className="truncate text-sm text-muted-foreground/70">No title</p>
+								<p className="truncate text-sm text-basalt-muted-foreground/70">No title</p>
 							)}
 						</div>
 					</div>
 				</PersonHover>
 			</header>
 
-			<div className="min-h-0 min-w-0 flex-1">
+			<LayerCard className="min-h-0 min-w-0 flex-1 overflow-y-auto">
 				<PersonEditorForm
 					key={person.id}
 					person={person}
@@ -113,7 +116,7 @@ export function PersonEditorPage() {
 					fieldValuesVm={fieldValuesVm}
 					variant="page"
 				/>
-			</div>
+			</LayerCard>
 		</div>
 	);
 }

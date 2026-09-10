@@ -1,3 +1,4 @@
+import { LayerCard } from "@nocoo/basalt";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
@@ -21,22 +22,19 @@ export function PeoplePage() {
 
 	return (
 		<div className="flex flex-col h-full">
-			<div className="shrink-0 px-4 pt-3 pb-2">
+			<div className="shrink-0 pb-3">
 				<TagFilter scope="person" selected={selectedTags} onChange={setSelectedTags} />
 			</div>
 			{selectedTags.length > 0 ? (
-				<div className="flex-1 overflow-y-auto px-4 pb-4">
+				<div className="flex-1 overflow-y-auto pb-4">
 					{(filteredPersons ?? []).length === 0 ? (
-						<p className="text-sm text-muted-foreground py-8 text-center">
+						<p className="text-sm text-basalt-muted-foreground py-8 text-center">
 							No people match the selected tags.
 						</p>
 					) : (
 						<div className="space-y-2">
 							{(filteredPersons ?? []).map((person) => (
-								<div
-									key={person.id}
-									className="flex items-center gap-3 rounded-lg border border-border bg-secondary px-4 py-3"
-								>
+								<LayerCard key={person.id} className="flex items-center gap-3 px-4 py-3">
 									<PersonHover personId={person.id}>
 										<Link
 											to={`/people/${person.id}`}
@@ -44,11 +42,13 @@ export function PeoplePage() {
 										>
 											<PersonAvatar name={person.name} avatarUrl={person.avatarUrl} size="lg" />
 											<div className="flex-1 min-w-0">
-												<p className="text-sm font-medium text-foreground truncate">
+												<p className="text-sm font-medium text-basalt-foreground truncate">
 													{person.name}
 												</p>
 												{person.title && (
-													<p className="text-xs text-muted-foreground truncate">{person.title}</p>
+													<p className="text-xs text-basalt-muted-foreground truncate">
+														{person.title}
+													</p>
 												)}
 											</div>
 										</Link>
@@ -60,7 +60,7 @@ export function PeoplePage() {
 											))}
 										</div>
 									)}
-								</div>
+								</LayerCard>
 							))}
 						</div>
 					)}

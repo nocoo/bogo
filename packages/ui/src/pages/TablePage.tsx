@@ -4,7 +4,17 @@ import {
 	DEFAULT_TABLE_VIEW_NAME,
 	fieldIdFromColumnKey,
 } from "@bogo/shared";
-import { Columns3, Plus, Trash2, X } from "lucide-react";
+import {
+	Badge,
+	Button,
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	Input,
+	LayerCard,
+} from "@nocoo/basalt";
+import { Columns3, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -245,23 +255,25 @@ export function TablePage() {
 						})}
 					</nav>
 
-					<button
-						type="button"
-						className="btn-icon h-7 w-7 shrink-0"
+					<Button
+						variant="ghost"
+						size="icon"
+						className="h-7 w-7 shrink-0"
 						onClick={openCreateDialog}
 						disabled={isSaving}
 						title="New view"
 						aria-label="New view"
 					>
 						<Plus className="h-3.5 w-3.5" strokeWidth={2} />
-					</button>
+					</Button>
 				</div>
 
 				{/* Active-view tools */}
 				<div className="page-toolbar">
-					<button
-						type="button"
-						className={cn("btn-secondary", configOpen && "bg-accent text-accent-foreground")}
+					<Button
+						variant="outline"
+						size="sm"
+						className={cn(configOpen && "bg-basalt-accent text-basalt-accent-foreground")}
 						onClick={() => {
 							if (!configOpen && activeView) {
 								setDraftColumns(activeView.columns as ColumnKey[]);
@@ -273,11 +285,12 @@ export function TablePage() {
 					>
 						<Columns3 className="h-3.5 w-3.5" strokeWidth={1.75} />
 						Columns
-					</button>
+					</Button>
 
-					<button
-						type="button"
-						className={cn("btn-secondary", filtersOpen && "bg-accent text-accent-foreground")}
+					<Button
+						variant="outline"
+						size="sm"
+						className={cn(filtersOpen && "bg-basalt-accent text-basalt-accent-foreground")}
 						onClick={() => {
 							if (!filtersOpen && activeView) {
 								setFilterDraft(activeView.filters);
@@ -290,37 +303,37 @@ export function TablePage() {
 					>
 						Filters
 						{activeFilterCount > 0 && (
-							<span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary/15 px-1.5 text-[11px] font-semibold text-primary">
+							<span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-basalt-primary/15 px-1.5 text-[11px] font-semibold text-basalt-primary">
 								{activeFilterCount}
 							</span>
 						)}
-					</button>
+					</Button>
 
-					<div className="mx-1 hidden h-4 w-px bg-border sm:block" aria-hidden />
+					<div className="mx-1 hidden h-4 w-px bg-basalt-border sm:block" aria-hidden />
 
 					{activeView?.isDefault ? (
 						<span
-							className="inline-flex h-8 items-center gap-1.5 px-1 text-xs text-muted-foreground"
+							className="inline-flex h-8 items-center gap-1.5 px-1 text-xs text-basalt-muted-foreground"
 							title="This view opens when you visit Table"
 						>
-							<span className="badge-soft">Default</span>
+							<Badge variant="outline">Default</Badge>
 							<span className="hidden sm:inline">Opens first</span>
 						</span>
 					) : (
-						<button
-							type="button"
-							className="btn-ghost"
+						<Button
+							variant="ghost"
+							size="sm"
 							onClick={handlePromoteDefault}
 							disabled={!activeView || isSaving}
 							title="Open this view first when visiting Table"
 						>
 							Make default
-						</button>
+						</Button>
 					)}
 
-					<button
-						type="button"
-						className="btn-destructive"
+					<Button
+						variant="destructive"
+						size="sm"
 						onClick={handleDeleteView}
 						disabled={!activeView || activeView.isDefault || isSaving}
 						title={
@@ -331,16 +344,16 @@ export function TablePage() {
 					>
 						<Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
 						Delete
-					</button>
+					</Button>
 				</div>
 			</header>
 
 			{/* L2 — Columns config panel (selected top / available bottom, drag reorder) */}
 			{configOpen && (
-				<section className="panel-l2 shrink-0 p-4">
+				<LayerCard className="shrink-0 p-4">
 					<div className="mb-3 flex items-center justify-between gap-2">
-						<h2 className="text-sm font-semibold text-foreground">Columns</h2>
-						<p className="text-xs text-muted-foreground">Name is always required</p>
+						<h2 className="text-sm font-semibold text-basalt-foreground">Columns</h2>
+						<p className="text-xs text-basalt-muted-foreground">Name is always required</p>
 					</div>
 					<ColumnPicker
 						selected={draftColumns}
@@ -348,9 +361,8 @@ export function TablePage() {
 						onChange={setDraftColumns}
 					/>
 					<div className="mt-4 flex justify-end gap-2">
-						<button
-							type="button"
-							className="btn-ghost"
+						<Button
+							variant="ghost"
 							onClick={() => {
 								if (activeView) {
 									setDraftColumns(activeView.columns as ColumnKey[]);
@@ -359,38 +371,33 @@ export function TablePage() {
 							}}
 						>
 							Cancel
-						</button>
-						<button type="button" className="btn-primary" onClick={saveColumns} disabled={isSaving}>
+						</Button>
+						<Button onClick={saveColumns} disabled={isSaving}>
 							Save columns
-						</button>
+						</Button>
 					</div>
-				</section>
+				</LayerCard>
 			)}
 
 			{/* L2 — Filters panel */}
 			{filtersOpen && (
-				<section className="panel-l2 shrink-0 p-4">
+				<LayerCard className="shrink-0 p-4">
 					<div className="mb-3 flex flex-wrap items-center gap-2">
-						<h2 className="text-sm font-semibold text-foreground">Filters</h2>
-						<span className="text-xs text-muted-foreground">AND across all rules</span>
+						<h2 className="text-sm font-semibold text-basalt-foreground">Filters</h2>
+						<span className="text-xs text-basalt-muted-foreground">AND across all rules</span>
 						<div className="ml-auto flex items-center gap-2">
-							<button
-								type="button"
-								className="btn-secondary btn-sm"
+							<Button
+								variant="outline"
+								size="sm"
 								onClick={() =>
 									setFilterDraft((d) => [...d, { key: "builtin:name", op: "contains", value: "" }])
 								}
 							>
 								Add filter
-							</button>
-							<button
-								type="button"
-								className="btn-primary btn-sm"
-								onClick={saveFilters}
-								disabled={isSaving}
-							>
+							</Button>
+							<Button size="sm" onClick={saveFilters} disabled={isSaving}>
 								Save filters
-							</button>
+							</Button>
 						</div>
 					</div>
 
@@ -501,7 +508,7 @@ export function TablePage() {
 							{filterError}
 						</p>
 					) : null}
-				</section>
+				</LayerCard>
 			)}
 
 			{/* L2 table shell */}
@@ -621,64 +628,42 @@ export function TablePage() {
 			</footer>
 
 			{createDialogOpen ? (
-				// biome-ignore lint/a11y/useKeyWithClickEvents: backdrop dismiss pattern
-				// biome-ignore lint/a11y/noStaticElementInteractions: backdrop overlay, ESC-closable
-				<div
-					className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[20vh] backdrop-blur-xs"
-					onClick={closeCreateDialog}
-				>
-					{/* biome-ignore lint/a11y/useKeyWithClickEvents: stop propagation for modal */}
-					<div
-						role="dialog"
-						aria-modal="true"
-						aria-labelledby="create-view-title"
-						className="w-full max-w-sm rounded-xl bg-card p-4 shadow-lg"
-						onClick={(e) => e.stopPropagation()}
-					>
-						<div className="mb-3 flex items-center justify-between gap-2">
-							<h3 id="create-view-title" className="text-sm font-semibold text-foreground">
-								New view
-							</h3>
-							<button
-								type="button"
-								className="btn-icon h-7 w-7"
-								onClick={closeCreateDialog}
-								aria-label="Close create view dialog"
-							>
-								<X className="h-4 w-4" strokeWidth={1.5} />
-							</button>
+				<Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle id="create-view-title">New view</DialogTitle>
+						</DialogHeader>
+						<div className="py-2">
+							<label htmlFor="create-view-name" className="text-xs text-basalt-muted-foreground">
+								Name
+							</label>
+							<Input
+								id="create-view-name"
+								className="mt-1 w-full"
+								value={newViewName}
+								onChange={(e) => setNewViewName(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === "Enter") void handleCreateView();
+									if (e.key === "Escape") closeCreateDialog();
+								}}
+								placeholder="e.g. Engineering"
+								autoFocus={true}
+							/>
 						</div>
-						<label htmlFor="create-view-name" className="text-xs text-muted-foreground">
-							Name
-						</label>
-						<input
-							id="create-view-name"
-							className="field mt-1 w-full"
-							value={newViewName}
-							onChange={(e) => setNewViewName(e.target.value)}
-							onKeyDown={(e) => {
-								if (e.key === "Enter") void handleCreateView();
-								if (e.key === "Escape") closeCreateDialog();
-							}}
-							placeholder="e.g. Engineering"
-							// biome-ignore lint/a11y/noAutofocus: open dialog focuses name field
-							autoFocus={true}
-						/>
 						<div className="mt-4 flex items-center justify-end gap-2">
-							<button type="button" className="btn-ghost btn-sm" onClick={closeCreateDialog}>
+							<Button variant="ghost" size="sm" onClick={closeCreateDialog}>
 								Cancel
-							</button>
-							<button
-								type="button"
-								className="btn-primary btn-sm"
+							</Button>
+							<Button
+								size="sm"
 								onClick={() => void handleCreateView()}
 								disabled={isSaving || !newViewName.trim()}
 							>
 								Create
-							</button>
+							</Button>
 						</div>
-					</div>
-				</div>
+					</DialogContent>
+				</Dialog>
 			) : null}
 		</div>
 	);

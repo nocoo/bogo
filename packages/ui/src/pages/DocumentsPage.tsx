@@ -1,4 +1,6 @@
 import type { DocumentSummary, Tag } from "@bogo/shared";
+import { Button, Input, LayerCard } from "@nocoo/basalt";
+import { PageHeader } from "@nocoo/basalt/components/page-header";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -30,7 +32,7 @@ export function DocumentsPage() {
 
 	if (!workspaceId) {
 		return (
-			<div className="flex items-center justify-center py-12 text-muted-foreground">
+			<div className="flex items-center justify-center py-12 text-basalt-muted-foreground">
 				Select a workspace to manage documents
 			</div>
 		);
@@ -39,14 +41,14 @@ export function DocumentsPage() {
 	if (vm.isLoading) {
 		return (
 			<div className="flex items-center justify-center py-12">
-				<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+				<Loader2 className="h-6 w-6 animate-spin text-basalt-muted-foreground" />
 			</div>
 		);
 	}
 
 	if (vm.error) {
 		return (
-			<div className="rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
+			<div className="rounded-lg bg-basalt-destructive/10 p-4 text-sm text-basalt-destructive">
 				Failed to load documents: {vm.error.message}
 			</div>
 		);
@@ -57,19 +59,20 @@ export function DocumentsPage() {
 
 	return (
 		<div className="space-y-4">
-			<div className="flex items-center justify-between">
-				<h2 className="text-base font-semibold text-foreground">Documents</h2>
-				<button
-					type="button"
-					onClick={() => setShowCreate(true)}
-					disabled={showCreate}
-					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-					aria-label="Create document"
-				>
-					<Plus className="h-4 w-4" strokeWidth={2} />
-					New Document
-				</button>
-			</div>
+			<PageHeader
+				title="Documents"
+				description="Manage notes, 1:1 records, architecture proposals, and promotion cases."
+				actions={
+					<Button
+						onClick={() => setShowCreate(true)}
+						disabled={showCreate}
+						aria-label="Create document"
+					>
+						<Plus className="h-4 w-4" strokeWidth={2} />
+						New Document
+					</Button>
+				}
+			/>
 
 			{showCreate && (
 				<CreateDocumentForm
@@ -92,7 +95,7 @@ export function DocumentsPage() {
 			/>
 
 			{filteredDocs.length === 0 && !showCreate && (
-				<div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+				<div className="flex flex-col items-center justify-center py-12 text-basalt-muted-foreground">
 					<FileText className="h-10 w-10 mb-3 opacity-50" />
 					<p className="text-sm">
 						{hasActiveFilters ? "No documents match your filters" : "No documents yet"}
@@ -175,43 +178,43 @@ function CreateDocumentForm({
 	}, [title, typeId, onSubmit]);
 
 	return (
-		<div className="rounded-lg border border-border bg-card p-4 space-y-3">
+		<LayerCard className="space-y-3">
 			<div className="flex items-center justify-between">
-				<span className="text-sm font-medium text-foreground">New Document</span>
-				<button
-					type="button"
+				<span className="text-sm font-medium text-basalt-foreground">New Document</span>
+				<Button
+					variant="ghost"
+					size="icon"
 					onClick={onCancel}
-					className="text-muted-foreground hover:text-foreground"
+					className="h-7 w-7 text-basalt-muted-foreground hover:text-basalt-foreground"
 					aria-label="Cancel create"
 				>
 					<X className="h-4 w-4" />
-				</button>
+				</Button>
 			</div>
 			<div>
-				<label htmlFor="doc-title" className="text-xs text-muted-foreground">
+				<label htmlFor="doc-title" className="text-xs text-basalt-muted-foreground">
 					Title
 				</label>
-				<input
+				<Input
 					id="doc-title"
 					type="text"
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
 					placeholder="Document title"
-					className="mt-1 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
-					// biome-ignore lint/a11y/noAutofocus: intentional focus on form open
+					className="mt-1 w-full"
 					autoFocus={true}
 				/>
 			</div>
 			{docTypes.length > 0 && (
 				<div>
-					<label htmlFor="doc-type-select" className="text-xs text-muted-foreground">
+					<label htmlFor="doc-type-select" className="text-xs text-basalt-muted-foreground">
 						Type
 					</label>
 					<select
 						id="doc-type-select"
 						value={typeId}
 						onChange={(e) => setTypeId(e.target.value)}
-						className="mt-1 w-full rounded-md border border-border bg-secondary pl-3 pr-8 py-2 text-sm text-foreground outline-none focus:border-primary"
+						className="field-select mt-1 w-full"
 					>
 						<option value="">None</option>
 						{docTypes.map((dt) => (
@@ -223,28 +226,20 @@ function CreateDocumentForm({
 				</div>
 			)}
 			<div className="flex items-center gap-2">
-				<button
-					type="button"
+				<Button
 					onClick={handleSubmit}
 					disabled={!title.trim() || isCreating}
-					className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+					loading={isCreating}
+					size="sm"
 				>
-					{isCreating ? (
-						<Loader2 className="h-3 w-3 animate-spin" />
-					) : (
-						<Plus className="h-3 w-3" strokeWidth={2} />
-					)}
+					<Plus className="h-3 w-3" strokeWidth={2} />
 					{isCreating ? "Creating..." : "Create"}
-				</button>
-				<button
-					type="button"
-					onClick={onCancel}
-					className="rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-				>
+				</Button>
+				<Button variant="ghost" size="sm" onClick={onCancel}>
 					Cancel
-				</button>
+				</Button>
 			</div>
-		</div>
+		</LayerCard>
 	);
 }
 
@@ -264,7 +259,7 @@ function DocumentRow({
 	isRemoving: boolean;
 }) {
 	return (
-		<div className="group rounded-card bg-secondary p-4 transition-colors hover:bg-secondary/80">
+		<LayerCard className="group transition-colors hover:bg-basalt-secondary/80">
 			<div className="flex items-center gap-3">
 				<Link
 					to={`/documents/${doc.id}`}
@@ -272,16 +267,16 @@ function DocumentRow({
 					aria-label={`Open ${doc.title}`}
 				>
 					<div
-						className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground"
+						className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-basalt-muted/60 text-basalt-muted-foreground"
 						aria-hidden="true"
 					>
 						<FileText className="h-4 w-4" strokeWidth={1.6} />
 					</div>
 					<div className="flex-1 min-w-0 space-y-1.5">
-						<h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
+						<h3 className="text-sm font-semibold text-basalt-foreground line-clamp-2 leading-snug">
 							{doc.title}
 						</h3>
-						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-basalt-muted-foreground">
 							{typeName && (
 								<span className="inline-flex items-center gap-1.5">
 									<span
@@ -312,11 +307,12 @@ function DocumentRow({
 						<PersonAvatarCluster people={people} max={4} size="sm" />
 					</span>
 				)}
-				<button
-					type="button"
+				<Button
+					variant="ghost"
+					size="icon"
 					onClick={() => onRemove(doc.id)}
 					disabled={isRemoving}
-					className="shrink-0 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-destructive disabled:opacity-50 transition-all"
+					className="h-7 w-7 text-basalt-muted-foreground opacity-0 group-hover:opacity-100 hover:text-basalt-destructive disabled:opacity-50 transition-all"
 					aria-label={`Delete ${doc.title}`}
 				>
 					{isRemoving ? (
@@ -324,8 +320,8 @@ function DocumentRow({
 					) : (
 						<Trash2 className="h-4 w-4" strokeWidth={1.5} />
 					)}
-				</button>
+				</Button>
 			</div>
-		</div>
+		</LayerCard>
 	);
 }

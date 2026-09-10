@@ -1,4 +1,7 @@
 import { BOGO_VERSION } from "@bogo/shared";
+import { Badge, LayerCard } from "@nocoo/basalt";
+import { PageHeader } from "@nocoo/basalt/components/page-header";
+import { SectionRule } from "@nocoo/basalt/components/section-rule";
 import {
 	AlertCircle,
 	ArrowDownRight,
@@ -90,72 +93,89 @@ export function OverviewPage() {
 	];
 
 	return (
-		<>
+		<div className="space-y-6">
+			<PageHeader
+				title="System Overview"
+				description="Worker metrics, edge status, and request performance."
+			/>
+
 			{/* Status cards */}
-			<div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-				<div className="rounded-card bg-secondary p-4 md:p-5">
-					<p className="text-xs md:text-sm text-muted-foreground mb-1">Status</p>
-					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
-						Online
-					</h3>
-					<span className="text-xs font-medium text-success">Healthy</span>
+			<SectionRule title="Service Status" hint="Live deployment and runtime status">
+				<div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+					<LayerCard>
+						<p className="text-xs md:text-sm text-basalt-muted-foreground mb-1">Status</p>
+						<h3 className="text-base font-semibold text-basalt-foreground font-display tracking-tight">
+							Online
+						</h3>
+						<Badge variant="success" className="mt-1">
+							Healthy
+						</Badge>
+					</LayerCard>
+					<LayerCard>
+						<p className="text-xs md:text-sm text-basalt-muted-foreground mb-1">Version</p>
+						<h3 className="text-base font-semibold text-basalt-foreground font-display tracking-tight">
+							{BOGO_VERSION}
+						</h3>
+						<Badge variant="outline" className="mt-1">
+							Latest
+						</Badge>
+					</LayerCard>
+					<LayerCard>
+						<p className="text-xs md:text-sm text-basalt-muted-foreground mb-1">Runtime</p>
+						<h3 className="text-base font-semibold text-basalt-foreground font-display tracking-tight">
+							Edge
+						</h3>
+						<Badge variant="outline" className="mt-1">
+							CF Workers
+						</Badge>
+					</LayerCard>
+					<LayerCard>
+						<p className="text-xs md:text-sm text-basalt-muted-foreground mb-1">Auth</p>
+						<h3 className="text-base font-semibold text-basalt-foreground font-display tracking-tight">
+							Active
+						</h3>
+						<Badge variant="success" className="mt-1">
+							CF Access
+						</Badge>
+					</LayerCard>
 				</div>
-				<div className="rounded-card bg-secondary p-4 md:p-5">
-					<p className="text-xs md:text-sm text-muted-foreground mb-1">Version</p>
-					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
-						{BOGO_VERSION}
-					</h3>
-					<span className="text-xs font-medium text-muted-foreground">Latest</span>
-				</div>
-				<div className="rounded-card bg-secondary p-4 md:p-5">
-					<p className="text-xs md:text-sm text-muted-foreground mb-1">Runtime</p>
-					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
-						Edge
-					</h3>
-					<span className="text-xs font-medium text-muted-foreground">CF Workers</span>
-				</div>
-				<div className="rounded-card bg-secondary p-4 md:p-5">
-					<p className="text-xs md:text-sm text-muted-foreground mb-1">Auth</p>
-					<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
-						Active
-					</h3>
-					<span className="text-xs font-medium text-success">CF Access</span>
-				</div>
-			</div>
+			</SectionRule>
 
 			{/* Analytics: traffic stats */}
-			<div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4 mt-4">
-				{[
-					{ label: "Total Requests", value: "24.5k", change: "+18%", up: true },
-					{ label: "Avg Latency", value: "23ms", change: "-5ms", up: true },
-					{ label: "Error Rate", value: "0.02%", change: "+0.01%", up: false },
-					{ label: "Cache Hit", value: "94.2%", change: "+2.1%", up: true },
-				].map((stat) => (
-					<div key={stat.label} className="rounded-card bg-secondary p-4 md:p-5">
-						<p className="text-xs md:text-sm text-muted-foreground mb-1">{stat.label}</p>
-						<h3 className="text-base font-semibold text-foreground font-display tracking-tight">
-							{stat.value}
-						</h3>
-						<span
-							className={`inline-flex items-center gap-1 text-xs font-medium ${stat.up ? "text-success" : "text-destructive"}`}
-						>
-							{stat.up ? (
-								<ArrowUpRight className="h-3 w-3" />
-							) : (
-								<ArrowDownRight className="h-3 w-3" />
-							)}
-							{stat.change}
-						</span>
-					</div>
-				))}
-			</div>
+			<SectionRule title="Traffic & Latency">
+				<div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+					{[
+						{ label: "Total Requests", value: "24.5k", change: "+18%", up: true },
+						{ label: "Avg Latency", value: "23ms", change: "-5ms", up: true },
+						{ label: "Error Rate", value: "0.02%", change: "+0.01%", up: false },
+						{ label: "Cache Hit", value: "94.2%", change: "+2.1%", up: true },
+					].map((stat) => (
+						<LayerCard key={stat.label}>
+							<p className="text-xs md:text-sm text-basalt-muted-foreground mb-1">{stat.label}</p>
+							<h3 className="text-base font-semibold text-basalt-foreground font-display tracking-tight">
+								{stat.value}
+							</h3>
+							<span
+								className={`inline-flex items-center gap-1 text-xs font-medium ${stat.up ? "text-basalt-success" : "text-basalt-destructive"}`}
+							>
+								{stat.up ? (
+									<ArrowUpRight className="h-3 w-3" />
+								) : (
+									<ArrowDownRight className="h-3 w-3" />
+								)}
+								{stat.change}
+							</span>
+						</LayerCard>
+					))}
+				</div>
+			</SectionRule>
 
 			{/* Analytics: charts */}
-			<div className="grid grid-cols-1 gap-4 mt-4 lg:grid-cols-2">
-				<div className="rounded-card bg-secondary p-5">
+			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+				<LayerCard>
 					<div className="flex items-center gap-3 mb-4">
-						<BarChart3 className="h-5 w-5 text-muted-foreground" />
-						<h3 className="font-semibold text-foreground">Requests by Endpoint</h3>
+						<BarChart3 className="h-5 w-5 text-basalt-muted-foreground" />
+						<h3 className="font-semibold text-basalt-foreground">Requests by Endpoint</h3>
 					</div>
 					<div className="space-y-3">
 						{[
@@ -165,21 +185,24 @@ export function OverviewPage() {
 						].map((row) => (
 							<div key={row.path}>
 								<div className="flex justify-between text-sm mb-1">
-									<span className="text-foreground font-mono">{row.path}</span>
-									<span className="text-muted-foreground">{row.count}</span>
+									<span className="text-basalt-foreground font-mono">{row.path}</span>
+									<span className="text-basalt-muted-foreground">{row.count}</span>
 								</div>
-								<div className="h-2 rounded-full bg-muted">
-									<div className="h-2 rounded-full bg-primary" style={{ width: `${row.pct}%` }} />
+								<div className="h-2 rounded-full bg-basalt-muted">
+									<div
+										className="h-2 rounded-full bg-basalt-primary"
+										style={{ width: `${row.pct}%` }}
+									/>
 								</div>
 							</div>
 						))}
 					</div>
-				</div>
+				</LayerCard>
 
-				<div className="rounded-card bg-secondary p-5">
+				<LayerCard>
 					<div className="flex items-center gap-3 mb-4">
-						<TrendingUp className="h-5 w-5 text-muted-foreground" />
-						<h3 className="font-semibold text-foreground">Response Times</h3>
+						<TrendingUp className="h-5 w-5 text-basalt-muted-foreground" />
+						<h3 className="font-semibold text-basalt-foreground">Response Times</h3>
 					</div>
 					<div className="space-y-3">
 						{[
@@ -190,42 +213,44 @@ export function OverviewPage() {
 						].map((row) => (
 							<div
 								key={row.label}
-								className="flex items-center justify-between py-2 border-b border-border last:border-0"
+								className="flex items-center justify-between py-2 border-b border-basalt-border last:border-0"
 							>
-								<span className="text-sm font-mono text-muted-foreground">{row.label}</span>
-								<span className="text-sm font-semibold text-foreground">{row.value}</span>
+								<span className="text-sm font-mono text-basalt-muted-foreground">{row.label}</span>
+								<span className="text-sm font-semibold text-basalt-foreground">{row.value}</span>
 							</div>
 						))}
 					</div>
-				</div>
+				</LayerCard>
 			</div>
 
 			{/* System metrics */}
-			<div className="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
-				{systemMetrics.map((m) => (
-					<div key={m.label} className="rounded-card bg-secondary p-5">
-						<div className="flex items-center gap-3 mb-3">
-							<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-								<m.icon className="h-5 w-5 text-primary" />
+			<SectionRule title="Resources">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					{systemMetrics.map((m) => (
+						<LayerCard key={m.label}>
+							<div className="flex items-center gap-3 mb-3">
+								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-basalt-primary/10">
+									<m.icon className="h-5 w-5 text-basalt-primary" />
+								</div>
+								<div>
+									<p className="text-xs text-basalt-muted-foreground">{m.label}</p>
+									<p className="text-base font-semibold text-basalt-foreground">{m.value}</p>
+								</div>
 							</div>
-							<div>
-								<p className="text-xs text-muted-foreground">{m.label}</p>
-								<p className="text-base font-semibold text-foreground">{m.value}</p>
+							<div className="h-2 rounded-full bg-basalt-muted">
+								<div
+									className="h-2 rounded-full bg-basalt-primary transition-all"
+									style={{ width: `${m.bar}%` }}
+								/>
 							</div>
-						</div>
-						<div className="h-2 rounded-full bg-muted">
-							<div
-								className="h-2 rounded-full bg-primary transition-all"
-								style={{ width: `${m.bar}%` }}
-							/>
-						</div>
-					</div>
-				))}
-			</div>
+						</LayerCard>
+					))}
+				</div>
+			</SectionRule>
 
 			{/* Runtime information */}
-			<div className="mt-4 rounded-card bg-secondary p-5">
-				<h3 className="font-semibold text-foreground mb-4">Runtime Information</h3>
+			<LayerCard>
+				<h3 className="font-semibold text-basalt-foreground mb-4">Runtime Information</h3>
 				<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 					{[
 						{ key: "Runtime", value: "Cloudflare Workers" },
@@ -237,20 +262,22 @@ export function OverviewPage() {
 					].map((row) => (
 						<div
 							key={row.key}
-							className="flex items-center justify-between py-2 border-b border-border"
+							className="flex items-center justify-between py-2 border-b border-basalt-border"
 						>
-							<span className="text-sm text-muted-foreground">{row.key}</span>
-							<span className="text-sm font-medium text-foreground font-mono">{row.value}</span>
+							<span className="text-sm text-basalt-muted-foreground">{row.key}</span>
+							<span className="text-sm font-medium text-basalt-foreground font-mono">
+								{row.value}
+							</span>
 						</div>
 					))}
 				</div>
-			</div>
+			</LayerCard>
 
 			{/* Recent logs */}
-			<div className="mt-4 rounded-card bg-secondary p-5">
+			<LayerCard>
 				<div className="flex items-center gap-3 mb-4">
-					<ScrollText className="h-5 w-5 text-muted-foreground" />
-					<h3 className="font-semibold text-foreground">Recent Logs</h3>
+					<ScrollText className="h-5 w-5 text-basalt-muted-foreground" />
+					<h3 className="font-semibold text-basalt-foreground">Recent Logs</h3>
 				</div>
 				<div className="space-y-1">
 					{MOCK_LOGS.map((log) => {
@@ -258,23 +285,23 @@ export function OverviewPage() {
 						return (
 							<div
 								key={`${log.timestamp}-${log.message}`}
-								className="flex items-start gap-3 py-2 border-b border-border last:border-0"
+								className="flex items-start gap-3 py-2 border-b border-basalt-border last:border-0"
 							>
 								<config.icon className={`h-4 w-4 mt-0.5 shrink-0 ${config.className}`} />
 								<div className="flex-1 min-w-0">
-									<p className="text-sm text-foreground truncate">{log.message}</p>
+									<p className="text-sm text-basalt-foreground truncate">{log.message}</p>
 									<div className="flex items-center gap-2 mt-0.5">
-										<span className="text-xs text-muted-foreground font-mono">
+										<span className="text-xs text-basalt-muted-foreground font-mono">
 											{new Date(log.timestamp).toLocaleTimeString()}
 										</span>
-										<span className="text-xs text-muted-foreground">{log.source}</span>
+										<span className="text-xs text-basalt-muted-foreground">{log.source}</span>
 									</div>
 								</div>
 							</div>
 						);
 					})}
 				</div>
-			</div>
-		</>
+			</LayerCard>
+		</div>
 	);
 }
