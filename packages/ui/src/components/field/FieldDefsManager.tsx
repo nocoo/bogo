@@ -15,11 +15,18 @@ const FIELD_TYPE_LABELS: Record<FieldType, string> = {
 export function FieldDefsManager({
 	vm,
 	showHeader = true,
+	showCreateOverride,
+	setShowCreateOverride,
 }: {
 	vm: FieldDefsVM;
 	showHeader?: boolean;
+	showCreateOverride?: boolean;
+	setShowCreateOverride?: (open: boolean) => void;
 }) {
-	const [showCreate, setShowCreate] = useState(false);
+	const [localShowCreate, setLocalShowCreate] = useState(false);
+	const showCreate = showCreateOverride !== undefined ? showCreateOverride : localShowCreate;
+	const setShowCreate =
+		setShowCreateOverride !== undefined ? setShowCreateOverride : setLocalShowCreate;
 
 	if (vm.isLoading) {
 		return (
@@ -412,7 +419,7 @@ function FieldDefRow({
 				<select
 					value={def.fieldType}
 					onChange={(e) => handleTypeChange(e.target.value as FieldType)}
-					className="rounded border border-border bg-secondary pl-2 pr-7 py-1 text-xs text-foreground outline-none focus:border-primary"
+					className="field-select field-sm"
 					aria-label={`Type for ${def.name}`}
 				>
 					{Object.entries(FIELD_TYPE_LABELS).map(([k, v]) => (
@@ -421,28 +428,28 @@ function FieldDefRow({
 						</option>
 					))}
 				</select>
-				<label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+				<label className="flex items-center gap-1.5 text-xs text-basalt-muted-foreground">
 					<input
 						type="checkbox"
 						checked={def.required}
 						onChange={handleRequiredToggle}
-						className="rounded border-border"
+						className="rounded border-basalt-border"
 						aria-label={`Required for ${def.name}`}
 					/>
 					Required
 				</label>
-				<label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+				<label className="flex items-center gap-1.5 text-xs text-basalt-muted-foreground">
 					<input
 						type="checkbox"
 						checked={def.showOnChart}
 						onChange={handleShowOnChartToggle}
-						className="rounded border-border"
+						className="rounded border-basalt-border"
 						aria-label={`Show on chart for ${def.name}`}
 					/>
 					Show on chart
 				</label>
 				{def.options && (
-					<span className="text-xs text-muted-foreground">{def.options.length} options</span>
+					<span className="text-xs text-basalt-muted-foreground">{def.options.length} options</span>
 				)}
 			</div>
 			{def.fieldType === "select" && (
@@ -453,7 +460,7 @@ function FieldDefRow({
 						onChange={(e) => setEditOptions(e.target.value)}
 						onBlur={handleOptionsBlur}
 						placeholder="Option 1, Option 2, ..."
-						className="w-full rounded border border-border bg-secondary px-2 py-1 text-xs text-foreground outline-none focus:border-primary placeholder:text-muted-foreground"
+						className="field field-sm w-full"
 						aria-label={`Options for ${def.name}`}
 					/>
 				</div>

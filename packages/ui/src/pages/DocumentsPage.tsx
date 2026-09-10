@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FileText, Filter, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { DocumentFilters, EMPTY_FILTERS } from "../components/DocumentFilters.js";
+import { countActive, DocumentFilters, EMPTY_FILTERS } from "../components/DocumentFilters.js";
 import { PersonAvatarCluster } from "../components/person/PersonAvatarCluster.js";
 import { TagBadge } from "../components/TagBadge.js";
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
@@ -26,15 +26,7 @@ export function DocumentsPage() {
 	const [filters, setFilters] = useState(EMPTY_FILTERS);
 	const [filtersOpen, setFiltersOpen] = useState(false);
 
-	const activeFilterCount = useMemo(() => {
-		let n = 0;
-		if (filters.keyword.trim() !== "") n++;
-		if (filters.typeId !== "all") n++;
-		if (filters.dateFrom || filters.dateTo) n++;
-		if (filters.tagIds.length > 0) n += filters.tagIds.length;
-		if (filters.personIds.length > 0) n += filters.personIds.length;
-		return n;
-	}, [filters]);
+	const activeFilterCount = useMemo(() => countActive(filters), [filters]);
 
 	const filteredDocs = useMemo(() => applyFilters(vm.documents, filters), [vm.documents, filters]);
 	const personsById = useMemo(
@@ -81,6 +73,8 @@ export function DocumentsPage() {
 							onClick={() => setFiltersOpen((o) => !o)}
 							className={cn(filtersOpen && "bg-basalt-accent text-basalt-accent-foreground")}
 							aria-label="Filter documents"
+							aria-expanded={filtersOpen}
+							aria-controls="document-filters-panel"
 						>
 							<Filter className="h-4 w-4" strokeWidth={1.6} />
 							Filters

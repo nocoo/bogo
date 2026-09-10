@@ -1,5 +1,5 @@
 import type { DocumentType, Person, Tag } from "@bogo/shared";
-import { Badge, Button, Input, LayerCard } from "@nocoo/basalt";
+import { Badge, Button, Input } from "@nocoo/basalt";
 import { Filter, X } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { PersonAvatar } from "./person/PersonAvatar.js";
@@ -78,7 +78,7 @@ export function DocumentFilters({
 	);
 
 	return (
-		<LayerCard className="p-4 space-y-4">
+		<div className="space-y-4 py-2">
 			<div className="flex items-center justify-between pb-1">
 				<div className="flex items-center gap-2">
 					<Filter className="h-4 w-4 text-basalt-muted-foreground" strokeWidth={1.6} />
@@ -218,7 +218,7 @@ export function DocumentFilters({
 					)}
 				</div>
 			</div>
-		</LayerCard>
+		</div>
 	);
 }
 
@@ -233,13 +233,13 @@ function FieldLabel({ label, htmlFor }: { label: string; htmlFor?: string }) {
 	);
 }
 
-function countActive(v: DocumentFiltersValue): number {
+export function countActive(v: DocumentFiltersValue): number {
 	let n = 0;
 	if (v.keyword.trim() !== "") n++;
 	if (v.typeId !== "all") n++;
 	if (v.dateFrom !== "") n++;
 	if (v.dateTo !== "") n++;
-	if (v.tagIds.length > 0) n++;
-	if (v.personIds.length > 0) n++;
+	if (v.tagIds.length > 0) n += v.tagIds.length;
+	if (v.personIds.length > 0) n += v.personIds.length;
 	return n;
 }

@@ -18,11 +18,18 @@ const PRESET_COLORS = [
 export function DocTypeManager({
 	vm,
 	showHeader = true,
+	showCreateOverride,
+	setShowCreateOverride,
 }: {
 	vm: DocTypesVM;
 	showHeader?: boolean;
+	showCreateOverride?: boolean;
+	setShowCreateOverride?: (open: boolean) => void;
 }) {
-	const [showCreate, setShowCreate] = useState(false);
+	const [localShowCreate, setLocalShowCreate] = useState(false);
+	const showCreate = showCreateOverride !== undefined ? showCreateOverride : localShowCreate;
+	const setShowCreate =
+		setShowCreateOverride !== undefined ? setShowCreateOverride : setLocalShowCreate;
 
 	if (vm.isLoading) {
 		return (

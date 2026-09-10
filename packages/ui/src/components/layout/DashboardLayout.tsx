@@ -94,9 +94,7 @@ export function DashboardLayout() {
 
 	const breadcrumbItems = resolveBreadcrumbs(location.pathname);
 	// In Basalt AppHeader, breadcrumbs are ancestors, and title is the current page
-	const currentItem = breadcrumbItems[breadcrumbItems.length - 1];
 	const ancestorCrumbs = breadcrumbItems.slice(0, -1);
-	const pageTitle = currentItem?.label ?? "";
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: pathname is intentionally the trigger — the effect closes the mobile drawer on any route change and doesn't read pathname in its body.
 	useEffect(() => {
@@ -146,12 +144,8 @@ export function DashboardLayout() {
 							</Button>
 						) : null
 					}
-					breadcrumbs={
-						isMobile && ancestorCrumbs.length > 0
-							? [ancestorCrumbs[ancestorCrumbs.length - 1]]
-							: ancestorCrumbs
-					}
-					title={isMobile && ancestorCrumbs.length > 0 ? undefined : pageTitle}
+					breadcrumbs={ancestorCrumbs}
+					title={undefined}
 					actions={
 						<>
 							<WorkspaceSelector />

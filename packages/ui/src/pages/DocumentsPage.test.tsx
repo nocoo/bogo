@@ -21,6 +21,7 @@ vi.mock("../components/TagFilter.js", () => ({
 
 vi.mock("../components/DocumentFilters.js", () => ({
 	DocumentFilters: () => <div data-testid="document-filters" />,
+	countActive: () => 0,
 	EMPTY_FILTERS: {
 		keyword: "",
 		typeId: "all",
