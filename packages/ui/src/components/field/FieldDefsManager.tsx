@@ -12,20 +12,26 @@ const FIELD_TYPE_LABELS: Record<FieldType, string> = {
 	boolean: "Boolean",
 };
 
-export function FieldDefsManager({ vm }: { vm: FieldDefsVM }) {
+export function FieldDefsManager({
+	vm,
+	showHeader = true,
+}: {
+	vm: FieldDefsVM;
+	showHeader?: boolean;
+}) {
 	const [showCreate, setShowCreate] = useState(false);
 
 	if (vm.isLoading) {
 		return (
 			<div className="flex items-center justify-center py-8">
-				<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+				<Loader2 className="h-5 w-5 animate-spin text-basalt-muted-foreground" />
 			</div>
 		);
 	}
 
 	if (vm.error) {
 		return (
-			<div className="rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
+			<div className="rounded-lg bg-basalt-destructive/10 p-4 text-sm text-basalt-destructive">
 				Failed to load field definitions: {vm.error.message}
 			</div>
 		);
@@ -33,18 +39,34 @@ export function FieldDefsManager({ vm }: { vm: FieldDefsVM }) {
 
 	return (
 		<div className="space-y-4">
-			<div className="flex items-center justify-between">
-				<h3 className="text-sm font-semibold text-basalt-foreground">Custom Fields</h3>
-				<Button
-					size="sm"
-					onClick={() => setShowCreate(true)}
-					disabled={showCreate}
-					aria-label="Add field definition"
-				>
-					<Plus className="h-3 w-3" strokeWidth={2} />
-					Add Field
-				</Button>
-			</div>
+			{showHeader ? (
+				<div className="flex items-center justify-between">
+					<h3 className="text-sm font-semibold text-basalt-foreground">Custom Fields</h3>
+					<Button
+						size="sm"
+						onClick={() => setShowCreate(true)}
+						disabled={showCreate}
+						aria-label="Add field definition"
+					>
+						<Plus className="h-3 w-3" strokeWidth={2} />
+						Add Field
+					</Button>
+				</div>
+			) : (
+				!showCreate && (
+					<div className="flex justify-end">
+						<Button
+							size="sm"
+							onClick={() => setShowCreate(true)}
+							disabled={showCreate}
+							aria-label="Add field definition"
+						>
+							<Plus className="h-3 w-3" strokeWidth={2} />
+							Add Field
+						</Button>
+					</div>
+				)
+			)}
 
 			{showCreate && (
 				<CreateFieldForm
@@ -315,7 +337,7 @@ function FieldDefRow({
 	}, [editOptions, def.id, def.options, onUpdate]);
 
 	return (
-		<div className="group rounded-lg border border-border bg-card px-3 py-2 space-y-1.5">
+		<LayerCard className="group px-3 py-2 space-y-1.5 bg-basalt-bright border border-basalt-border">
 			<div className="flex items-center gap-2">
 				<div className="flex flex-col">
 					<button
@@ -436,6 +458,6 @@ function FieldDefRow({
 					/>
 				</div>
 			)}
-		</div>
+		</LayerCard>
 	);
 }

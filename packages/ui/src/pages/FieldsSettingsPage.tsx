@@ -13,7 +13,7 @@ export function FieldsSettingsPage() {
 				description="Define custom metadata fields for person profiles and org charts."
 			/>
 			<LayerCard>
-				<FieldDefsManager vm={vm} />
+				<FieldDefsManager vm={vm} showHeader={false} />
 			</LayerCard>
 		</div>
 	);

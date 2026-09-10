@@ -631,7 +631,7 @@ export function TablePage() {
 				<Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
 					<DialogContent>
 						<DialogHeader>
-							<DialogTitle id="create-view-title">New view</DialogTitle>
+							<DialogTitle>New view</DialogTitle>
 						</DialogHeader>
 						<div className="py-2">
 							<label htmlFor="create-view-name" className="text-xs text-basalt-muted-foreground">

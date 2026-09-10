@@ -13,7 +13,7 @@ export function DocTypesSettingsPage() {
 				description="Manage document classifications, color coding, and sorting."
 			/>
 			<LayerCard>
-				<DocTypeManager vm={vm} />
+				<DocTypeManager vm={vm} showHeader={false} />
 			</LayerCard>
 		</div>
 	);

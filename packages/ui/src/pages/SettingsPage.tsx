@@ -22,7 +22,9 @@ export function SettingsPage() {
 						</div>
 						<div className="flex items-center justify-between py-2 border-b border-basalt-border">
 							<span className="text-sm text-basalt-muted-foreground">SSL</span>
-							<span className="text-sm text-basalt-success font-medium">Active</span>
+							<span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+								Active
+							</span>
 						</div>
 						<div className="flex items-center justify-between py-2">
 							<span className="text-sm text-basalt-muted-foreground">DNS Provider</span>
@@ -47,7 +49,9 @@ export function SettingsPage() {
 						</div>
 						<div className="flex items-center justify-between py-2">
 							<span className="text-sm text-basalt-muted-foreground">JWT Validation</span>
-							<span className="text-sm text-basalt-success font-medium">Enabled</span>
+							<span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+								Enabled
+							</span>
 						</div>
 					</div>
 				</LayerCard>
@@ -81,11 +85,11 @@ export function SettingsPage() {
 					<div className="space-y-3">
 						<div className="flex items-center justify-between py-2 border-b border-basalt-border">
 							<span className="text-sm text-basalt-muted-foreground">Deploy Alerts</span>
-							<span className="text-sm text-basalt-success font-medium">On</span>
+							<span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">On</span>
 						</div>
 						<div className="flex items-center justify-between py-2 border-b border-basalt-border">
 							<span className="text-sm text-basalt-muted-foreground">Error Alerts</span>
-							<span className="text-sm text-basalt-success font-medium">On</span>
+							<span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">On</span>
 						</div>
 						<div className="flex items-center justify-between py-2">
 							<span className="text-sm text-basalt-muted-foreground">Channel</span>

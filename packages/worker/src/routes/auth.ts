@@ -266,15 +266,21 @@ function renderConsentHtml(params: {
     }
     .badge-avatar img { width: 2.25rem; height: 2.25rem; }
     h1 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.25rem; color: inherit; }
-    p { font-size: 0.8rem; color: #737373; margin-bottom: 0.5rem; line-height: 1.4; }
-    .email { color: inherit; font-weight: 600; word-break: break-all; }
+    p { font-size: 0.8rem; color: #525252; margin-bottom: 0.4rem; line-height: 1.4; }
+    @media (prefers-color-scheme: dark) {
+      p { color: #d4d4d4; }
+    }
+    .email { color: #171717; font-weight: 600; word-break: break-all; }
+    @media (prefers-color-scheme: dark) {
+      .email { color: #fafafa; }
+    }
     .callback {
       font-family: ui-monospace, monospace; font-size: 0.7rem;
-      color: #737373; background: rgba(0,0,0,0.04); padding: 0.35rem 0.5rem;
-      border-radius: 6px; word-break: break-all; margin-bottom: 0.75rem; width: 100%;
+      color: #525252; background: rgba(0,0,0,0.04); padding: 0.35rem 0.5rem;
+      border-radius: 6px; word-break: break-all; margin-bottom: 0.6rem; width: 100%;
     }
     @media (prefers-color-scheme: dark) {
-      .callback { background: rgba(255,255,255,0.05); color: #a3a3a3; }
+      .callback { background: rgba(255,255,255,0.08); color: #e5e5e5; }
     }
     form { width: 100%; margin-top: auto; }
     button {
@@ -293,7 +299,7 @@ function renderConsentHtml(params: {
       color: #737373;
     }
     @media (prefers-color-scheme: dark) {
-      .badge-footer { border-top-color: rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+      .badge-footer { border-top-color: rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); color: #a3a3a3; }
     }
   </style>
 </head>
@@ -311,9 +317,9 @@ function renderConsentHtml(params: {
         <img src="/logo-24.png" alt="bogo">
       </div>
       <h1>Authorize bogo CLI</h1>
-      <p>Issue an API token to the CLI at:</p>
+      <p>Issue a long-lived API token to the CLI listening at:</p>
       <div class="callback">${callback}</div>
-      <p>Linked to <span class="email">${email}</span></p>
+      <p>The token will be linked to <span class="email">${email}</span> and will replace any previous CLI token for this account.</p>
       <form method="GET" action="/api/auth/cli">
         <input type="hidden" name="callback" value="${callback}">
         <input type="hidden" name="state" value="${state}">

@@ -15,20 +15,26 @@ const PRESET_COLORS = [
 	"#84cc16",
 ];
 
-export function DocTypeManager({ vm }: { vm: DocTypesVM }) {
+export function DocTypeManager({
+	vm,
+	showHeader = true,
+}: {
+	vm: DocTypesVM;
+	showHeader?: boolean;
+}) {
 	const [showCreate, setShowCreate] = useState(false);
 
 	if (vm.isLoading) {
 		return (
 			<div className="flex items-center justify-center py-8">
-				<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+				<Loader2 className="h-5 w-5 animate-spin text-basalt-muted-foreground" />
 			</div>
 		);
 	}
 
 	if (vm.error) {
 		return (
-			<div className="rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
+			<div className="rounded-lg bg-basalt-destructive/10 p-4 text-sm text-basalt-destructive">
 				Failed to load document types: {vm.error.message}
 			</div>
 		);
@@ -36,18 +42,34 @@ export function DocTypeManager({ vm }: { vm: DocTypesVM }) {
 
 	return (
 		<div className="space-y-4">
-			<div className="flex items-center justify-between">
-				<h3 className="text-sm font-semibold text-basalt-foreground">Document Types</h3>
-				<Button
-					size="sm"
-					onClick={() => setShowCreate(true)}
-					disabled={showCreate}
-					aria-label="Add document type"
-				>
-					<Plus className="h-3 w-3" strokeWidth={2} />
-					Add Type
-				</Button>
-			</div>
+			{showHeader ? (
+				<div className="flex items-center justify-between">
+					<h3 className="text-sm font-semibold text-basalt-foreground">Document Types</h3>
+					<Button
+						size="sm"
+						onClick={() => setShowCreate(true)}
+						disabled={showCreate}
+						aria-label="Add document type"
+					>
+						<Plus className="h-3 w-3" strokeWidth={2} />
+						Add Type
+					</Button>
+				</div>
+			) : (
+				!showCreate && (
+					<div className="flex justify-end">
+						<Button
+							size="sm"
+							onClick={() => setShowCreate(true)}
+							disabled={showCreate}
+							aria-label="Add document type"
+						>
+							<Plus className="h-3 w-3" strokeWidth={2} />
+							Add Type
+						</Button>
+					</div>
+				)
+			)}
 
 			{showCreate && (
 				<CreateDocTypeForm
@@ -224,7 +246,7 @@ function DocTypeRow({
 	}, [editName, docType, onUpdate]);
 
 	return (
-		<div className="group flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+		<LayerCard className="group flex items-center gap-2 px-3 py-2 bg-basalt-bright border border-basalt-border">
 			<div className="flex flex-col">
 				<button
 					type="button"
@@ -321,6 +343,6 @@ function DocTypeRow({
 					<Trash2 className="h-4 w-4" strokeWidth={1.5} />
 				)}
 			</button>
-		</div>
+		</LayerCard>
 	);
 }
