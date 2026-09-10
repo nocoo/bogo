@@ -73,6 +73,7 @@
 			"!**/packages/cli/build",
 			"!**/designs",
 			"!**/.superset",
+			"!**/.delta",
 			"!**/packages/ui/src/index.css"
 		]
 	}
