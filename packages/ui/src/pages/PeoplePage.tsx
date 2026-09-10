@@ -1,4 +1,5 @@
 import { LayerCard } from "@nocoo/basalt";
+import { PageHeader } from "@nocoo/basalt/components/page-header";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
@@ -21,8 +22,12 @@ export function PeoplePage() {
 	});
 
 	return (
-		<div className="flex flex-col h-full">
-			<div className="shrink-0 pb-3">
+		<div className="flex flex-col h-full space-y-4">
+			<PageHeader
+				title="People"
+				description="Organization chart, reporting lines, and personnel directory."
+			/>
+			<div className="shrink-0 pb-1">
 				<TagFilter scope="person" selected={selectedTags} onChange={setSelectedTags} />
 			</div>
 			{selectedTags.length > 0 ? (

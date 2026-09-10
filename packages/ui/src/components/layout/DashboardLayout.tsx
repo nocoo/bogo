@@ -140,14 +140,18 @@ export function DashboardLayout() {
 								size="icon"
 								onClick={() => setMobileOpen(true)}
 								aria-label="Open navigation"
-								className="h-8 w-8"
+								className="h-8 w-8 shrink-0"
 							>
 								<Menu className="h-5 w-5" aria-hidden="true" strokeWidth={1.5} />
 							</Button>
 						) : null
 					}
-					breadcrumbs={ancestorCrumbs}
-					title={pageTitle}
+					breadcrumbs={
+						isMobile && ancestorCrumbs.length > 0
+							? [ancestorCrumbs[ancestorCrumbs.length - 1]]
+							: ancestorCrumbs
+					}
+					title={isMobile && ancestorCrumbs.length > 0 ? undefined : pageTitle}
 					actions={
 						<>
 							<WorkspaceSelector />

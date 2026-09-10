@@ -96,6 +96,19 @@ export function WorkspaceSelector() {
 								<span className="truncate">{ws.name}</span>
 							</button>
 						))}
+					<div className="border-t border-basalt-border mt-1 pt-1">
+						<button
+							type="button"
+							onClick={() => {
+								setOpen(false);
+								navigate("/workspaces");
+							}}
+							className="flex w-full items-center gap-2 px-3 py-2 text-xs text-basalt-muted-foreground hover:bg-basalt-accent hover:text-basalt-foreground transition-colors"
+						>
+							<Settings className="h-3.5 w-3.5 shrink-0" strokeWidth={1.5} />
+							<span>Manage workspaces</span>
+						</button>
+					</div>
 				</div>
 			)}
 		</div>

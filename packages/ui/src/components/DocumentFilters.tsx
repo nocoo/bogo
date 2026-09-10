@@ -1,7 +1,7 @@
 import type { DocumentType, Person, Tag } from "@bogo/shared";
 import { Badge, Button, Input, LayerCard } from "@nocoo/basalt";
-import { ChevronDown, Filter, X } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { Filter, X } from "lucide-react";
+import { useCallback, useMemo } from "react";
 import { PersonAvatar } from "./person/PersonAvatar.js";
 import { PersonHover } from "./person/PersonHover.js";
 import { TagBadge } from "./TagBadge.js";
@@ -48,8 +48,6 @@ export function DocumentFilters({
 	allTags,
 	allPersons,
 }: DocumentFiltersProps) {
-	const [open, setOpen] = useState(false);
-
 	const activeCount = useMemo(() => countActive(value), [value]);
 
 	const patch = useCallback(
@@ -80,30 +78,17 @@ export function DocumentFilters({
 	);
 
 	return (
-		<LayerCard className="p-0 overflow-hidden">
-			{/* Collapsed bar */}
-			<div className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-basalt-foreground">
-				<button
-					type="button"
-					onClick={() => setOpen(!open)}
-					className="flex flex-1 items-center gap-2 text-left -my-1 py-1 rounded hover:bg-basalt-accent/40 transition-colors"
-					aria-expanded={open}
-					aria-controls="document-filters-panel"
-				>
-					<Filter className="h-4 w-4 shrink-0 text-basalt-muted-foreground" strokeWidth={1.6} />
-					<span className="font-medium">Filters</span>
+		<LayerCard className="p-4 space-y-4">
+			<div className="flex items-center justify-between pb-1">
+				<div className="flex items-center gap-2">
+					<Filter className="h-4 w-4 text-basalt-muted-foreground" strokeWidth={1.6} />
+					<span className="text-sm font-semibold text-basalt-foreground">Filter Documents</span>
 					{activeCount > 0 && (
-						<Badge variant="blue" className="h-5 min-w-[20px] px-1.5 text-[11px] font-semibold">
-							{activeCount}
+						<Badge variant="blue" className="h-5 px-1.5 text-[11px] font-semibold">
+							{activeCount} active
 						</Badge>
 					)}
-					<ChevronDown
-						className={`ml-auto h-4 w-4 text-basalt-muted-foreground transition-transform ${
-							open ? "rotate-180" : ""
-						}`}
-						strokeWidth={1.6}
-					/>
-				</button>
+				</div>
 				{activeCount > 0 && (
 					<Button
 						variant="ghost"
@@ -118,127 +103,121 @@ export function DocumentFilters({
 				)}
 			</div>
 
-			{/* Expanded panel */}
-			{open && (
-				<div
-					id="document-filters-panel"
-					className="grid gap-4 border-t border-basalt-border px-4 py-4 sm:grid-cols-2"
-				>
-					{/* Keyword */}
-					<div className="space-y-1.5 sm:col-span-2">
-						<FieldLabel htmlFor="filter-keyword" label="Keyword" />
+			<div id="document-filters-panel" className="grid gap-4 sm:grid-cols-2">
+				{/* Keyword */}
+				<div className="space-y-1.5 sm:col-span-2">
+					<FieldLabel htmlFor="filter-keyword" label="Keyword" />
+					<Input
+						id="filter-keyword"
+						type="text"
+						value={value.keyword}
+						onChange={(e) => patch({ keyword: e.target.value })}
+						placeholder="Search title…"
+						className="h-9 w-full"
+					/>
+				</div>
+
+				{/* Type */}
+				<div className="space-y-1.5">
+					<FieldLabel htmlFor="filter-type" label="Type" />
+					<select
+						id="filter-type"
+						value={value.typeId}
+						onChange={(e) => patch({ typeId: e.target.value })}
+						className="field-select h-9 w-full"
+					>
+						<option value="all">All types</option>
+						<option value="none">No type</option>
+						{docTypes.map((dt) => (
+							<option key={dt.id} value={dt.id}>
+								{dt.name}
+							</option>
+						))}
+					</select>
+				</div>
+
+				{/* Date range */}
+				<div className="space-y-1.5">
+					<FieldLabel label="Event date" />
+					<div className="flex items-center gap-2">
 						<Input
-							id="filter-keyword"
-							type="text"
-							value={value.keyword}
-							onChange={(e) => patch({ keyword: e.target.value })}
-							placeholder="Search title…"
+							type="date"
+							value={value.dateFrom}
+							onChange={(e) => patch({ dateFrom: e.target.value })}
 							className="h-9 w-full"
+							aria-label="Date from"
+						/>
+						<span className="text-basalt-muted-foreground text-xs shrink-0">to</span>
+						<Input
+							type="date"
+							value={value.dateTo}
+							onChange={(e) => patch({ dateTo: e.target.value })}
+							className="h-9 w-full"
+							aria-label="Date to"
 						/>
 					</div>
+				</div>
 
-					{/* Type */}
-					<div className="space-y-1.5">
-						<FieldLabel htmlFor="filter-type" label="Type" />
-						<select
-							id="filter-type"
-							value={value.typeId}
-							onChange={(e) => patch({ typeId: e.target.value })}
-							className="field-select h-9 w-full"
-						>
-							<option value="all">All types</option>
-							<option value="none">No type</option>
-							{docTypes.map((dt) => (
-								<option key={dt.id} value={dt.id}>
-									{dt.name}
-								</option>
-							))}
-						</select>
-					</div>
-
-					{/* Date range */}
-					<div className="space-y-1.5">
-						<FieldLabel label="Event date" />
-						<div className="flex items-center gap-2">
-							<Input
-								type="date"
-								value={value.dateFrom}
-								onChange={(e) => patch({ dateFrom: e.target.value })}
-								className="h-9 w-full"
-								aria-label="Date from"
-							/>
-							<span className="text-basalt-muted-foreground text-xs shrink-0">to</span>
-							<Input
-								type="date"
-								value={value.dateTo}
-								onChange={(e) => patch({ dateTo: e.target.value })}
-								className="h-9 w-full"
-								aria-label="Date to"
-							/>
+				{/* Tags */}
+				<div className="space-y-1.5 sm:col-span-2">
+					<FieldLabel label="Tags" />
+					{allTags.length === 0 ? (
+						<p className="text-xs text-basalt-muted-foreground">No tags defined</p>
+					) : (
+						<div className="flex flex-wrap items-center gap-1.5">
+							{allTags.map((tag) => {
+								const isActive = value.tagIds.includes(tag.id);
+								return (
+									<button
+										key={tag.id}
+										type="button"
+										onClick={() => toggleTag(tag.id)}
+										className={`transition-opacity ${
+											isActive ? "opacity-100" : "opacity-50 hover:opacity-80"
+										}`}
+										aria-pressed={isActive}
+										aria-label={`${isActive ? "Remove" : "Add"} tag filter ${tag.name}`}
+									>
+										<TagBadge name={tag.name} color={tag.color} size="sm" />
+									</button>
+								);
+							})}
 						</div>
-					</div>
+					)}
+				</div>
 
-					{/* Tags */}
-					<div className="space-y-1.5 sm:col-span-2">
-						<FieldLabel label="Tags" />
-						{allTags.length === 0 ? (
-							<p className="text-xs text-muted-foreground">No tags defined</p>
-						) : (
-							<div className="flex flex-wrap items-center gap-1.5">
-								{allTags.map((tag) => {
-									const isActive = value.tagIds.includes(tag.id);
-									return (
+				{/* People */}
+				<div className="space-y-1.5 sm:col-span-2">
+					<FieldLabel label="People" />
+					{allPersons.length === 0 ? (
+						<p className="text-xs text-basalt-muted-foreground">No people defined</p>
+					) : (
+						<div className="flex flex-wrap items-center gap-1.5">
+							{allPersons.map((p) => {
+								const isActive = value.personIds.includes(p.id);
+								return (
+									<PersonHover key={p.id} personId={p.id}>
 										<button
-											key={tag.id}
 											type="button"
-											onClick={() => toggleTag(tag.id)}
-											className={`transition-opacity ${
-												isActive ? "opacity-100" : "opacity-50 hover:opacity-80"
+											onClick={() => togglePerson(p.id)}
+											className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs transition-colors ${
+												isActive
+													? "border-basalt-primary bg-basalt-primary/10 text-basalt-foreground"
+													: "border-basalt-border text-basalt-muted-foreground hover:border-basalt-primary/40 hover:text-basalt-foreground"
 											}`}
 											aria-pressed={isActive}
-											aria-label={`${isActive ? "Remove" : "Add"} tag filter ${tag.name}`}
+											aria-label={`${isActive ? "Remove" : "Add"} person filter ${p.name}`}
 										>
-											<TagBadge name={tag.name} color={tag.color} size="sm" />
+											<PersonAvatar name={p.name} avatarUrl={p.avatarUrl} size="xs" />
+											<span className="truncate max-w-[120px]">{p.name}</span>
 										</button>
-									);
-								})}
-							</div>
-						)}
-					</div>
-
-					{/* People */}
-					<div className="space-y-1.5 sm:col-span-2">
-						<FieldLabel label="People" />
-						{allPersons.length === 0 ? (
-							<p className="text-xs text-basalt-muted-foreground">No people defined</p>
-						) : (
-							<div className="flex flex-wrap items-center gap-1.5">
-								{allPersons.map((p) => {
-									const isActive = value.personIds.includes(p.id);
-									return (
-										<PersonHover key={p.id} personId={p.id}>
-											<button
-												type="button"
-												onClick={() => togglePerson(p.id)}
-												className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs transition-colors ${
-													isActive
-														? "border-basalt-primary bg-basalt-primary/10 text-basalt-foreground"
-														: "border-basalt-border text-basalt-muted-foreground hover:border-basalt-primary/40 hover:text-basalt-foreground"
-												}`}
-												aria-pressed={isActive}
-												aria-label={`${isActive ? "Remove" : "Add"} person filter ${p.name}`}
-											>
-												<PersonAvatar name={p.name} avatarUrl={p.avatarUrl} size="xs" />
-												<span className="truncate max-w-[120px]">{p.name}</span>
-											</button>
-										</PersonHover>
-									);
-								})}
-							</div>
-						)}
-					</div>
+									</PersonHover>
+								);
+							})}
+						</div>
+					)}
 				</div>
-			)}
+			</div>
 		</LayerCard>
 	);
 }

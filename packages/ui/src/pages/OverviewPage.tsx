@@ -156,7 +156,7 @@ export function OverviewPage() {
 								{stat.value}
 							</h3>
 							<span
-								className={`inline-flex items-center gap-1 text-xs font-medium ${stat.up ? "text-emerald-600 dark:text-emerald-400" : "text-basalt-destructive"}`}
+								className={`inline-flex items-center gap-1 text-xs font-medium ${stat.up ? "text-emerald-700 dark:text-emerald-400" : "text-basalt-destructive"}`}
 							>
 								{stat.up ? (
 									<ArrowUpRight className="h-3 w-3" />

@@ -45,7 +45,7 @@ const PEOPLE: Person[] = [
 ];
 
 describe("DocumentFilters", () => {
-	it("is collapsed by default — panel is not in the DOM", () => {
+	it("renders panel fields directly", () => {
 		render(
 			<DocumentFilters
 				value={EMPTY_FILTERS}
@@ -55,20 +55,6 @@ describe("DocumentFilters", () => {
 				allPersons={PEOPLE}
 			/>,
 		);
-		expect(screen.queryByLabelText("Keyword")).toBeNull();
-	});
-
-	it("expands when the toggle is clicked", () => {
-		render(
-			<DocumentFilters
-				value={EMPTY_FILTERS}
-				onChange={vi.fn()}
-				docTypes={TYPES}
-				allTags={TAGS}
-				allPersons={PEOPLE}
-			/>,
-		);
-		fireEvent.click(screen.getByText("Filters"));
 		expect(screen.getByLabelText("Keyword")).toBeTruthy();
 		expect(screen.getByLabelText("Type")).toBeTruthy();
 		expect(screen.getByLabelText("Date from")).toBeTruthy();
@@ -86,7 +72,7 @@ describe("DocumentFilters", () => {
 				allPersons={PEOPLE}
 			/>,
 		);
-		expect(screen.getByText("2")).toBeTruthy();
+		expect(screen.getByText("2 active")).toBeTruthy();
 		fireEvent.click(screen.getByLabelText("Clear all filters"));
 		expect(onChange).toHaveBeenCalledWith(EMPTY_FILTERS);
 	});
@@ -102,7 +88,6 @@ describe("DocumentFilters", () => {
 				allPersons={PEOPLE}
 			/>,
 		);
-		fireEvent.click(screen.getByText("Filters"));
 		fireEvent.change(screen.getByLabelText("Keyword"), { target: { value: "alpha" } });
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ keyword: "alpha" }));
 	});
@@ -118,7 +103,6 @@ describe("DocumentFilters", () => {
 				allPersons={PEOPLE}
 			/>,
 		);
-		fireEvent.click(screen.getByText("Filters"));
 		fireEvent.change(screen.getByLabelText("Type"), { target: { value: "dt-1" } });
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ typeId: "dt-1" }));
 	});
@@ -134,7 +118,6 @@ describe("DocumentFilters", () => {
 				allPersons={PEOPLE}
 			/>,
 		);
-		fireEvent.click(screen.getByText("Filters"));
 		fireEvent.click(screen.getByLabelText("Add tag filter plan"));
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ tagIds: ["t-1"] }));
 	});
@@ -150,7 +133,6 @@ describe("DocumentFilters", () => {
 				allPersons={PEOPLE}
 			/>,
 		);
-		fireEvent.click(screen.getByText("Filters"));
 		fireEvent.click(screen.getByLabelText("Add person filter Alice"));
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ personIds: ["p-1"] }));
 	});
@@ -166,7 +148,6 @@ describe("DocumentFilters", () => {
 				allPersons={PEOPLE}
 			/>,
 		);
-		fireEvent.click(screen.getByText("Filters"));
 		fireEvent.click(screen.getByLabelText("Remove tag filter plan"));
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ tagIds: [] }));
 	});
@@ -181,7 +162,6 @@ describe("DocumentFilters", () => {
 				allPersons={PEOPLE}
 			/>,
 		);
-		fireEvent.click(screen.getByText("Filters"));
 		expect(screen.getByText("No tags defined")).toBeTruthy();
 	});
 
@@ -195,7 +175,6 @@ describe("DocumentFilters", () => {
 				allPersons={[]}
 			/>,
 		);
-		fireEvent.click(screen.getByText("Filters"));
 		expect(screen.getByText("No people defined")).toBeTruthy();
 	});
 });

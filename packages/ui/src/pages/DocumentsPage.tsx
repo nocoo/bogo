@@ -1,14 +1,15 @@
 import type { DocumentSummary, Tag } from "@bogo/shared";
-import { Button, Input, LayerCard } from "@nocoo/basalt";
+import { Badge, Button, Input, LayerCard } from "@nocoo/basalt";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Loader2, Plus, Trash2, X } from "lucide-react";
+import { FileText, Filter, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { DocumentFilters, EMPTY_FILTERS } from "../components/DocumentFilters.js";
 import { PersonAvatarCluster } from "../components/person/PersonAvatarCluster.js";
 import { TagBadge } from "../components/TagBadge.js";
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
+import { cn } from "../lib/utils.js";
 import { tagModel } from "../models/tag.model.js";
 import { useDocTypes } from "../viewmodels/document/use-doc-types.js";
 import { useDocuments } from "../viewmodels/document/use-documents.js";
@@ -23,6 +24,17 @@ export function DocumentsPage() {
 	const { data: allTags } = useQuery(tagModel.queryOptions(wid, "document"));
 	const [showCreate, setShowCreate] = useState(false);
 	const [filters, setFilters] = useState(EMPTY_FILTERS);
+	const [filtersOpen, setFiltersOpen] = useState(false);
+
+	const activeFilterCount = useMemo(() => {
+		let n = 0;
+		if (filters.keyword.trim() !== "") n++;
+		if (filters.typeId !== "all") n++;
+		if (filters.dateFrom || filters.dateTo) n++;
+		if (filters.tagIds.length > 0) n += filters.tagIds.length;
+		if (filters.personIds.length > 0) n += filters.personIds.length;
+		return n;
+	}, [filters]);
 
 	const filteredDocs = useMemo(() => applyFilters(vm.documents, filters), [vm.documents, filters]);
 	const personsById = useMemo(
@@ -63,14 +75,30 @@ export function DocumentsPage() {
 				title="Documents"
 				description="Manage notes, 1:1 records, architecture proposals, and promotion cases."
 				actions={
-					<Button
-						onClick={() => setShowCreate(true)}
-						disabled={showCreate}
-						aria-label="Create document"
-					>
-						<Plus className="h-4 w-4" strokeWidth={2} />
-						New Document
-					</Button>
+					<>
+						<Button
+							variant="outline"
+							onClick={() => setFiltersOpen((o) => !o)}
+							className={cn(filtersOpen && "bg-basalt-accent text-basalt-accent-foreground")}
+							aria-label="Filter documents"
+						>
+							<Filter className="h-4 w-4" strokeWidth={1.6} />
+							Filters
+							{activeFilterCount > 0 && (
+								<Badge variant="blue" className="ml-1 px-1.5 text-[10px]">
+									{activeFilterCount}
+								</Badge>
+							)}
+						</Button>
+						<Button
+							onClick={() => setShowCreate(true)}
+							disabled={showCreate}
+							aria-label="Create document"
+						>
+							<Plus className="h-4 w-4" strokeWidth={2} />
+							New Document
+						</Button>
+					</>
 				}
 			/>
 
@@ -86,13 +114,15 @@ export function DocumentsPage() {
 				/>
 			)}
 
-			<DocumentFilters
-				value={filters}
-				onChange={setFilters}
-				docTypes={docTypesVm.types}
-				allTags={(allTags ?? []) as Tag[]}
-				allPersons={personListVM.persons}
-			/>
+			{filtersOpen && (
+				<DocumentFilters
+					value={filters}
+					onChange={setFilters}
+					docTypes={docTypesVm.types}
+					allTags={(allTags ?? []) as Tag[]}
+					allPersons={personListVM.persons}
+				/>
+			)}
 
 			{filteredDocs.length === 0 && !showCreate && (
 				<div className="flex flex-col items-center justify-center py-12 text-basalt-muted-foreground">

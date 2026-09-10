@@ -269,10 +269,10 @@
 
 	/* ----- Surfaces ----- */
 	.panel-l2 {
-		@apply rounded-card bg-secondary text-secondary-foreground;
+		@apply rounded-card bg-basalt-secondary text-basalt-foreground;
 	}
 	.panel-l3 {
-		@apply rounded-lg bg-muted/50 text-foreground;
+		@apply rounded-lg bg-basalt-bright text-basalt-foreground border border-basalt-border;
 	}
 
 	/* ----- Controls (h-8 scale, shared radius) -----
@@ -287,31 +287,31 @@
 		@apply disabled:pointer-events-none disabled:opacity-50;
 	}
 	.btn-primary {
-		@apply bg-primary text-primary-foreground hover:bg-primary/90;
+		@apply bg-basalt-primary text-basalt-primary-foreground hover:bg-basalt-primary/90;
 	}
 	.btn-secondary {
-		@apply border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground;
+		@apply border border-basalt-border bg-basalt-control text-basalt-foreground hover:bg-basalt-accent hover:text-basalt-foreground;
 	}
 	.btn-ghost {
-		@apply text-muted-foreground hover:bg-accent hover:text-foreground;
+		@apply text-basalt-muted-foreground hover:bg-basalt-accent hover:text-basalt-foreground;
 	}
 	.btn-destructive {
-		@apply border border-destructive/25 bg-destructive/5 text-destructive hover:bg-destructive/10;
+		@apply border border-basalt-destructive/25 bg-basalt-destructive/5 text-basalt-destructive hover:bg-basalt-destructive/10;
 	}
 	.btn-sm {
 		@apply h-7 gap-1 px-2.5 text-xs;
 	}
 	.btn-icon {
-		@apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors;
-		@apply hover:bg-accent hover:text-foreground;
+		@apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-basalt-muted-foreground transition-colors;
+		@apply hover:bg-basalt-accent hover:text-basalt-foreground;
 		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50;
 		@apply disabled:pointer-events-none disabled:opacity-50;
 	}
 
 	.field,
 	.field-select {
-		@apply h-8 rounded-md border border-input bg-card px-2.5 text-sm text-foreground;
-		@apply placeholder:text-muted-foreground;
+		@apply h-8 rounded-md border border-basalt-border bg-basalt-control px-2.5 text-sm text-basalt-foreground;
+		@apply placeholder:text-basalt-muted-foreground;
 		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40;
 		@apply disabled:cursor-not-allowed disabled:opacity-50;
 	}
@@ -327,44 +327,44 @@
 		@apply flex flex-wrap items-center gap-2;
 	}
 	.page-toolbar-label {
-		@apply text-xs font-medium text-muted-foreground;
+		@apply text-xs font-medium text-basalt-muted-foreground;
 	}
 
 	/* Detail-page back control (← Label). Icon-only uses .btn-icon instead. */
 	.page-back {
 		@apply inline-flex h-7 shrink-0 items-center gap-1.5 self-start rounded-md px-1;
-		@apply text-xs font-medium text-muted-foreground transition-colors;
-		@apply hover:text-foreground;
+		@apply text-xs font-medium text-basalt-muted-foreground transition-colors;
+		@apply hover:text-basalt-foreground;
 		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50;
 	}
 
 	/* Horizontal view switcher (table multi-view, etc.) */
 	.view-switcher {
-		@apply flex min-w-0 items-center gap-0.5 overflow-x-auto rounded-lg bg-muted/70 p-1;
+		@apply flex min-w-0 items-center gap-0.5 overflow-x-auto rounded-lg bg-basalt-muted/70 p-1;
 	}
 	.view-tab {
 		@apply inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium;
-		@apply text-muted-foreground transition-colors;
-		@apply hover:bg-card/60 hover:text-foreground;
+		@apply text-basalt-muted-foreground transition-colors;
+		@apply hover:bg-basalt-card/60 hover:text-basalt-foreground;
 		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50;
 	}
 	.view-tab-active {
-		@apply bg-card text-foreground shadow-sm ring-1 ring-border/70;
-		@apply hover:bg-card hover:text-foreground;
+		@apply bg-basalt-card text-basalt-foreground shadow-sm ring-1 ring-basalt-border/70;
+		@apply hover:bg-basalt-card hover:text-basalt-foreground;
 	}
 	/* Soft status chip — e.g. "Default" on a view tab */
 	.badge-soft {
 		@apply inline-flex items-center rounded px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide;
-		@apply bg-primary/10 text-primary;
+		@apply bg-basalt-primary/10 text-basalt-primary;
 	}
 	.badge-soft-muted {
 		@apply inline-flex items-center rounded px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide;
-		@apply bg-muted text-muted-foreground;
+		@apply bg-basalt-muted text-basalt-muted-foreground;
 	}
 
 	/* Data table on L2 surface */
 	.data-table-shell {
-		@apply min-h-0 flex-1 overflow-auto rounded-card bg-secondary;
+		@apply min-h-0 flex-1 overflow-auto rounded-card bg-basalt-secondary border border-basalt-border;
 	}
 	.data-table {
 		@apply w-full min-w-max border-collapse text-sm;
