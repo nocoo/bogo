@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.9.0] - 2026-09-11
+
+### Added
+
+- Workspace overview with document and people counts, recent documents,
+  and links to profiles and workspace management.
+- Sidebar animation, mobile document scrolling, and color-picker keyboard
+  regression coverage.
+
+### Changed
+
+- Adopt Basalt application chrome, page headers, nested surfaces, and
+  shared controls across all pages and the CLI authorization screen.
+- Replace placeholder system metrics and settings with workspace content
+  and navigation; remove duplicated CSS and theme handling.
+- Adopt the approved bogo portrait identity and transparent application marks.
+- Refresh Chinese and English documentation, CLI hosting guidance, and
+  local development instructions.
+
+### Fixed
+
+- Keep the sidebar logo, navigation icons, and avatar on a fixed axis
+  throughout collapse and expansion.
+- Keep mobile breadcrumbs clickable, workspace management reachable, and
+  document metadata and version history available below the editor.
+- Synchronize charts, version diffs, toasts, and form controls with the
+  application theme and correct nested surface contrast.
+- Restore accessible dialog titles, keyboard-operable pickers, and
+  consistent page actions and filter counts.
+
 ## [0.8.1] - 2026-08-21
 
 ### Added

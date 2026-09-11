@@ -116,7 +116,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 								<span className="text-lg font-semibold tracking-tight text-basalt-foreground">
 									bogo.
 								</span>
-								<span className="ml-1 rounded-md bg-basalt-secondary px-1.5 py-0.5 text-[10px] font-medium text-basalt-muted-foreground">
+								<span className="ml-1 rounded-md bg-basalt-secondary px-1.5 py-0.5 font-mono text-[10px] font-medium text-basalt-muted-foreground">
 									v{BOGO_VERSION}
 								</span>
 							</>
