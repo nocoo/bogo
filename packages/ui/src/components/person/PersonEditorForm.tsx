@@ -1,5 +1,5 @@
 import type { CustomFieldDefinition, Person, UpdatePersonInput } from "@bogo/shared";
-import { LayerCard } from "@nocoo/basalt";
+import { Button, Input, LayerCard } from "@nocoo/basalt";
 import { Loader2, Save, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
@@ -104,20 +104,18 @@ export function PersonEditorForm({
 
 	const eligibleDottedManagers = persons.filter((p) => p.id !== person.id && p.id !== managerId);
 	const isPage = variant === "page";
-	const fieldClass = isPage ? "field mt-1 w-full" : "field field-sm mt-1 w-full bg-background";
-	const selectClass = isPage
-		? "field-select mt-1 w-full"
-		: "field-select field-sm mt-1 w-full bg-background";
+	const fieldClass = "mt-1 w-full";
+	const selectClass = isPage ? "field-select mt-1 w-full" : "field-select h-8 text-xs mt-1 w-full";
 
 	const hasCustomFields = Boolean(fieldDefs && fieldValuesVm && fieldDefs.length > 0);
 
 	const avatarBlock = (
 		<div>
-			<span className="text-xs font-medium text-muted-foreground">Avatar</span>
+			<span className="text-xs font-medium text-basalt-muted-foreground">Avatar</span>
 			<div className="mt-1.5 flex items-center gap-3">
 				<PersonAvatar name={name || person.name} avatarUrl={avatarUrl || null} size="lg" />
 				<div className="min-w-0 flex-1 space-y-1">
-					<input
+					<Input
 						id="edit-avatar"
 						type="url"
 						value={avatarUrl}
@@ -126,7 +124,7 @@ export function PersonEditorForm({
 						className={fieldClass}
 						aria-label="Avatar URL"
 					/>
-					<p className="text-[11px] text-muted-foreground">
+					<p className="text-[11px] text-basalt-muted-foreground">
 						Leave blank to use a colored letter avatar.
 					</p>
 				</div>
@@ -137,10 +135,10 @@ export function PersonEditorForm({
 	const nameTitleBlock = (
 		<div className={isPage ? "grid gap-4 sm:grid-cols-2" : "space-y-3"}>
 			<div>
-				<label htmlFor="edit-name" className="text-xs font-medium text-muted-foreground">
+				<label htmlFor="edit-name" className="text-xs font-medium text-basalt-muted-foreground">
 					Name
 				</label>
-				<input
+				<Input
 					id="edit-name"
 					type="text"
 					value={name}
@@ -149,10 +147,10 @@ export function PersonEditorForm({
 				/>
 			</div>
 			<div>
-				<label htmlFor="edit-title" className="text-xs font-medium text-muted-foreground">
+				<label htmlFor="edit-title" className="text-xs font-medium text-basalt-muted-foreground">
 					Title
 				</label>
-				<input
+				<Input
 					id="edit-title"
 					type="text"
 					value={title}
@@ -168,7 +166,10 @@ export function PersonEditorForm({
 		<div className={isPage ? "grid gap-4 sm:grid-cols-2" : "space-y-3"}>
 			{!person.isRoot && (
 				<div>
-					<label htmlFor="edit-manager" className="text-xs font-medium text-muted-foreground">
+					<label
+						htmlFor="edit-manager"
+						className="text-xs font-medium text-basalt-muted-foreground"
+					>
 						Manager
 					</label>
 					<select
@@ -186,7 +187,7 @@ export function PersonEditorForm({
 				</div>
 			)}
 			<div>
-				<label htmlFor="edit-dotted" className="text-xs font-medium text-muted-foreground">
+				<label htmlFor="edit-dotted" className="text-xs font-medium text-basalt-muted-foreground">
 					Dotted-line manager
 				</label>
 				<select
@@ -210,21 +211,22 @@ export function PersonEditorForm({
 		<div
 			className={
 				isPage
-					? "page-toolbar border-t border-border/60 pt-3"
-					: "flex items-center justify-between border-t border-border pt-2"
+					? "flex flex-wrap items-center gap-2 pt-1"
+					: "flex items-center justify-between border-t border-basalt-border pt-2"
 			}
 		>
-			<button type="button" onClick={handleSave} className="btn-primary">
+			<Button onClick={handleSave} disabled={!name.trim()}>
 				<Save className="h-3.5 w-3.5" strokeWidth={2} />
 				Save
-			</button>
+			</Button>
 
 			{!person.isRoot && (
-				<button
+				<Button
 					type="button"
 					onClick={() => onRemove(person.id)}
 					disabled={isRemoving}
-					className="btn-destructive ml-auto"
+					variant="outline"
+					className="ml-auto text-basalt-danger hover:text-basalt-danger"
 					aria-label={`Delete ${person.name}`}
 				>
 					{isRemoving ? (
@@ -233,7 +235,7 @@ export function PersonEditorForm({
 						<Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
 					)}
 					Delete
-				</button>
+				</Button>
 			)}
 		</div>
 	);
@@ -281,11 +283,14 @@ export function PersonEditorForm({
 			</div>
 
 			{hasCustomFields && fieldDefs && fieldValuesVm ? (
-				<PersonFieldValues defs={fieldDefs} vm={fieldValuesVm} />
+				<section className="space-y-2">
+					<h3 className="text-xs font-medium text-basalt-muted-foreground">Custom Fields</h3>
+					<PersonFieldValues defs={fieldDefs} vm={fieldValuesVm} />
+				</section>
 			) : null}
 
 			<div>
-				<span className="text-xs font-medium text-muted-foreground">Tags</span>
+				<span className="text-xs font-medium text-basalt-muted-foreground">Tags</span>
 				<div className="mt-1.5">
 					<TagPicker scope="person" entityId={person.id} assignedTags={person.tags} />
 				</div>

@@ -58,7 +58,7 @@ export function PersonEditorPage() {
 	if (personList.error) {
 		return (
 			<div
-				className="rounded-lg border border-basalt-destructive/25 bg-basalt-destructive/5 p-4 text-sm text-basalt-destructive"
+				className="rounded-lg border border-basalt-destructive/25 bg-basalt-destructive/5 p-4 text-sm text-basalt-danger"
 				role="alert"
 			>
 				Failed to load people: {personList.error.message}
@@ -78,10 +78,10 @@ export function PersonEditorPage() {
 	}
 
 	return (
-		<div className="flex h-full min-h-0 flex-col gap-4">
+		<div className="space-y-5">
 			<PageHeader
 				title={person.name}
-				description={person.title || "No title"}
+				description={person.title || "Profile, reporting relationships, and custom fields."}
 				actions={
 					<PageBackLink to={backTo} ariaLabel="Back to Table">
 						Table
@@ -89,7 +89,7 @@ export function PersonEditorPage() {
 				}
 			/>
 
-			<div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+			<div className="min-w-0">
 				<PersonEditorForm
 					key={person.id}
 					person={person}

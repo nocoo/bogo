@@ -32,15 +32,6 @@ interface DocumentFiltersProps {
 	allPersons: Person[];
 }
 
-/**
- * Collapsible filter bar for the documents list. Collapsed by default;
- * the toggle row shows an active-count and a Clear shortcut. Expanded
- * panel offers four dimensions: keyword (title contains), type, event
- * date range, tag set, and people set.
- *
- * Filtering itself is owned by the parent — this component is a pure
- * controlled input.
- */
 export function DocumentFilters({
 	value,
 	onChange,
@@ -78,7 +69,7 @@ export function DocumentFilters({
 	);
 
 	return (
-		<div className="space-y-4 py-2">
+		<div id="document-filters-panel" className="space-y-4 py-1">
 			{activeCount > 0 && (
 				<div className="flex items-center justify-end pb-1">
 					<Button
@@ -94,9 +85,9 @@ export function DocumentFilters({
 				</div>
 			)}
 
-			<div id="document-filters-panel" className="grid gap-4 sm:grid-cols-2">
+			<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 				{/* Keyword */}
-				<div className="space-y-1.5 sm:col-span-2">
+				<div className="space-y-1.5">
 					<FieldLabel htmlFor="filter-keyword" label="Keyword" />
 					<Input
 						id="filter-keyword"
@@ -104,7 +95,7 @@ export function DocumentFilters({
 						value={value.keyword}
 						onChange={(e) => patch({ keyword: e.target.value })}
 						placeholder="Search title…"
-						className="h-9 w-full"
+						className="h-9 min-w-0 w-full"
 					/>
 				</div>
 
@@ -128,14 +119,14 @@ export function DocumentFilters({
 				</div>
 
 				{/* Date range */}
-				<div className="space-y-1.5">
+				<div className="space-y-1.5 md:col-span-2 xl:col-span-1">
 					<FieldLabel label="Event date" />
 					<div className="flex items-center gap-2">
 						<Input
 							type="date"
 							value={value.dateFrom}
 							onChange={(e) => patch({ dateFrom: e.target.value })}
-							className="h-9 w-full"
+							className="h-9 min-w-0 w-full"
 							aria-label="Date from"
 						/>
 						<span className="text-basalt-muted-foreground text-xs shrink-0">to</span>
@@ -143,14 +134,14 @@ export function DocumentFilters({
 							type="date"
 							value={value.dateTo}
 							onChange={(e) => patch({ dateTo: e.target.value })}
-							className="h-9 w-full"
+							className="h-9 min-w-0 w-full"
 							aria-label="Date to"
 						/>
 					</div>
 				</div>
 
 				{/* Tags */}
-				<div className="space-y-1.5 sm:col-span-2">
+				<div className="space-y-1.5 md:col-span-2 xl:col-span-3">
 					<FieldLabel label="Tags" />
 					{allTags.length === 0 ? (
 						<p className="text-xs text-basalt-muted-foreground">No tags defined</p>
@@ -163,9 +154,7 @@ export function DocumentFilters({
 										key={tag.id}
 										type="button"
 										onClick={() => toggleTag(tag.id)}
-										className={`transition-opacity ${
-											isActive ? "opacity-100" : "opacity-50 hover:opacity-80"
-										}`}
+										className={`rounded-full transition-shadow ${isActive ? "ring-2 ring-basalt-primary ring-offset-2 ring-offset-basalt-card" : "hover:ring-2 hover:ring-basalt-border"}`}
 										aria-pressed={isActive}
 										aria-label={`${isActive ? "Remove" : "Add"} tag filter ${tag.name}`}
 									>
@@ -178,7 +167,7 @@ export function DocumentFilters({
 				</div>
 
 				{/* People */}
-				<div className="space-y-1.5 sm:col-span-2">
+				<div className="space-y-1.5 md:col-span-2 xl:col-span-3">
 					<FieldLabel label="People" />
 					{allPersons.length === 0 ? (
 						<p className="text-xs text-basalt-muted-foreground">No people defined</p>

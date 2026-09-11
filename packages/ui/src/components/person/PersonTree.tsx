@@ -1,4 +1,5 @@
-import { Button } from "@nocoo/basalt";
+import { Button, LayerCard } from "@nocoo/basalt";
+import { useTheme } from "@nocoo/basalt/providers/theme";
 import { useQuery } from "@tanstack/react-query";
 import {
 	Background,
@@ -34,6 +35,7 @@ export function getNodeCenter(nodeId: string): { x: number; y: number } | null {
 }
 
 function PersonTreeInner() {
+	const { theme } = useTheme();
 	const { workspaceId } = useWorkspaceContext();
 	const wid = workspaceId ?? "";
 	const fieldDefsVm = useFieldDefs();
@@ -125,7 +127,7 @@ function PersonTreeInner() {
 	if (!workspaceId) {
 		return (
 			<div className="flex items-center justify-center h-full min-h-[400px]">
-				<p className="text-sm text-muted-foreground">Select a workspace first</p>
+				<p className="text-sm text-basalt-muted-foreground">Select a workspace first</p>
 			</div>
 		);
 	}
@@ -133,7 +135,7 @@ function PersonTreeInner() {
 	if (vm.isLoading) {
 		return (
 			<div className="flex items-center justify-center h-full min-h-[400px]">
-				<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+				<Loader2 className="h-6 w-6 animate-spin text-basalt-muted-foreground" />
 			</div>
 		);
 	}
@@ -141,9 +143,9 @@ function PersonTreeInner() {
 	if (vm.error) {
 		return (
 			<div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-				<AlertCircle className="h-8 w-8 text-destructive" strokeWidth={1.5} />
-				<p className="mt-2 text-sm text-destructive">Failed to load people</p>
-				<p className="mt-1 text-xs text-muted-foreground">{vm.error.message}</p>
+				<AlertCircle className="h-8 w-8 text-basalt-danger" strokeWidth={1.5} />
+				<p className="mt-2 text-sm text-basalt-danger">Failed to load people</p>
+				<p className="mt-1 text-xs text-basalt-muted-foreground">{vm.error.message}</p>
 			</div>
 		);
 	}
@@ -153,8 +155,9 @@ function PersonTreeInner() {
 	}
 
 	return (
-		<div className="relative h-full min-h-[500px]">
+		<LayerCard padding="none" className="person-tree relative h-full min-h-[500px] overflow-hidden">
 			<ReactFlow
+				colorMode={theme}
 				nodes={vm.nodes}
 				edges={vm.edges}
 				nodeTypes={nodeTypes}
@@ -171,14 +174,19 @@ function PersonTreeInner() {
 			</ReactFlow>
 
 			<div className="absolute top-3 left-3 z-10">
-				<Button onClick={() => setShowCreate(true)} className="shadow-md" aria-label="Add person">
+				<Button
+					onClick={() => setShowCreate(true)}
+					variant="outline"
+					className="shadow-sm"
+					aria-label="Add person"
+				>
 					<Plus className="h-4 w-4" strokeWidth={1.5} />
 					Add
 				</Button>
 			</div>
 
 			{showCreate && (
-				<div className="absolute top-14 left-3 z-10">
+				<div className="absolute top-14 inset-x-3 z-20 sm:right-auto">
 					<CreatePersonDialog
 						persons={vm.persons}
 						onSubmit={handleCreate}
@@ -189,36 +197,32 @@ function PersonTreeInner() {
 			)}
 
 			{selectedPerson && (
-				<>
-					<div className="absolute top-3 right-[304px] z-10">
-						<PersonDocTimeline personId={selectedPerson.id} onClose={() => vm.selectPerson(null)} />
-					</div>
-					<div className="absolute top-3 right-3 z-10">
-						<EditPersonPanel
-							person={selectedPerson}
-							persons={vm.persons}
-							onUpdate={vm.update}
-							onMove={vm.move}
-							onRemove={vm.remove}
-							onClose={() => vm.selectPerson(null)}
-							isRemoving={vm.isRemoving}
-							fieldDefs={fieldDefsVm.defs}
-							fieldValuesVm={fieldValuesVm}
-						/>
-					</div>
-				</>
+				<div className="absolute inset-x-3 top-14 bottom-3 z-10 flex flex-col items-end gap-3 overflow-y-auto lg:inset-x-auto lg:top-3 lg:right-3 lg:bottom-auto lg:max-h-[calc(100%-1.5rem)] lg:flex-row lg:items-start">
+					<EditPersonPanel
+						person={selectedPerson}
+						persons={vm.persons}
+						onUpdate={vm.update}
+						onMove={vm.move}
+						onRemove={vm.remove}
+						onClose={() => vm.selectPerson(null)}
+						isRemoving={vm.isRemoving}
+						fieldDefs={fieldDefsVm.defs}
+						fieldValuesVm={fieldValuesVm}
+					/>
+					<PersonDocTimeline personId={selectedPerson.id} onClose={() => vm.selectPerson(null)} />
+				</div>
 			)}
 
 			{vm.dropError && (
 				<div className="absolute bottom-3 left-3 right-3 z-10">
-					<div className="rounded-lg bg-destructive/10 px-4 py-2 flex items-center justify-between">
-						<p className="text-xs text-destructive">{vm.dropError}</p>
+					<div className="rounded-lg bg-basalt-destructive/10 px-4 py-2 flex items-center justify-between">
+						<p className="text-xs text-basalt-danger">{vm.dropError}</p>
 						<button
 							type="button"
 							onClick={() => {
 								vm.clearDropError();
 							}}
-							className="text-destructive hover:text-destructive/80 ml-2"
+							className="text-basalt-danger hover:text-basalt-danger/80 ml-2"
 							aria-label="Dismiss error"
 						>
 							<AlertCircle className="h-3.5 w-3.5" />
@@ -226,7 +230,7 @@ function PersonTreeInner() {
 					</div>
 				</div>
 			)}
-		</div>
+		</LayerCard>
 	);
 }
 

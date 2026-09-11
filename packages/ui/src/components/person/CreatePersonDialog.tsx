@@ -26,7 +26,7 @@ export function CreatePersonDialog({
 	}, [name, managerId, onSubmit]);
 
 	return (
-		<LayerCard className="w-80 shadow-lg">
+		<LayerCard className="w-full shadow-lg sm:w-80">
 			<div className="flex items-center justify-between mb-3">
 				<h3 className="text-sm font-semibold text-basalt-foreground">Add Person</h3>
 				<Button
@@ -104,9 +104,9 @@ export function CreatePersonDialog({
 export function EmptyPersonState() {
 	return (
 		<div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-			<UserX className="h-12 w-12 text-muted-foreground" strokeWidth={1} />
-			<p className="mt-4 text-sm text-muted-foreground">No people in this workspace yet</p>
-			<p className="mt-1 text-xs text-muted-foreground">
+			<UserX className="h-12 w-12 text-basalt-muted-foreground" strokeWidth={1} />
+			<p className="mt-4 text-sm text-basalt-muted-foreground">No people in this workspace yet</p>
+			<p className="mt-1 text-xs text-basalt-muted-foreground">
 				The workspace root person is created automatically
 			</p>
 		</div>

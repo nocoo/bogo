@@ -54,9 +54,9 @@ export function PersonChip({
 			>
 				<PersonAvatar name={name} avatarUrl={avatarUrl} size={avatarSize} />
 				<div className="flex min-w-0 flex-col leading-tight">
-					<span className="truncate text-foreground font-medium">{name}</span>
+					<span className="truncate text-basalt-foreground font-medium">{name}</span>
 					{subtitle && (
-						<span className="truncate text-muted-foreground text-[11px]">{subtitle}</span>
+						<span className="truncate text-basalt-muted-foreground text-[11px]">{subtitle}</span>
 					)}
 				</div>
 				{onRemove && (
@@ -64,7 +64,7 @@ export function PersonChip({
 						type="button"
 						onClick={onRemove}
 						disabled={isRemoving}
-						className="shrink-0 ml-auto text-muted-foreground hover:text-destructive disabled:opacity-50 transition-colors"
+						className="shrink-0 ml-auto text-basalt-muted-foreground hover:text-basalt-danger disabled:opacity-50 transition-colors"
 						aria-label={`Remove ${name}`}
 					>
 						<X className="h-3.5 w-3.5" strokeWidth={1.8} />

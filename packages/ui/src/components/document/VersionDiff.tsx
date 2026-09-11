@@ -1,4 +1,5 @@
 import type { DocumentVersion } from "@bogo/shared";
+import { useTheme } from "@nocoo/basalt/providers/theme";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { lazy, Suspense } from "react";
@@ -27,6 +28,7 @@ export function VersionDiff({
 	oldVersion: number;
 	newVersion: number;
 }) {
+	const { theme } = useTheme();
 	const oldQ = useQuery({
 		queryKey: documentKeys.version(wid, documentId, oldVersion),
 		queryFn: () => api.documents.getVersion(wid, documentId, oldVersion),
@@ -43,14 +45,14 @@ export function VersionDiff({
 				role="status"
 				aria-label="Loading diff"
 			>
-				<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+				<Loader2 className="h-5 w-5 animate-spin text-basalt-muted-foreground" />
 			</div>
 		);
 	}
 
 	if (oldQ.error || newQ.error || !oldQ.data || !newQ.data) {
 		return (
-			<div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+			<div className="rounded-md border border-basalt-destructive/30 bg-basalt-destructive/5 p-3 text-xs text-basalt-danger">
 				Failed to load version content.
 			</div>
 		);
@@ -61,17 +63,17 @@ export function VersionDiff({
 
 	return (
 		<div className="space-y-3">
-			<div className="flex items-center gap-2 text-xs text-muted-foreground">
+			<div className="flex items-center gap-2 text-xs text-basalt-muted-foreground">
 				<span>
 					Comparing v{oldV.version} → v{newV.version}
 				</span>
 			</div>
 			{oldV.title !== newV.title && (
-				<div className="rounded-md border border-border p-2 text-xs">
-					<span className="text-muted-foreground">Title: </span>
-					<span className="line-through text-destructive">{oldV.title}</span>
+				<div className="rounded-md border border-basalt-border p-2 text-xs">
+					<span className="text-basalt-muted-foreground">Title: </span>
+					<span className="line-through text-basalt-danger">{oldV.title}</span>
 					<span className="mx-1">→</span>
-					<span className="text-success">{newV.title}</span>
+					<span className="text-emerald-700 dark:text-emerald-400">{newV.title}</span>
 				</div>
 			)}
 			<Suspense
@@ -81,7 +83,7 @@ export function VersionDiff({
 						role="status"
 						aria-label="Loading diff"
 					>
-						<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+						<Loader2 className="h-5 w-5 animate-spin text-basalt-muted-foreground" />
 					</div>
 				}
 			>
@@ -90,6 +92,7 @@ export function VersionDiff({
 					newFile={{ name: "document.md", contents: newV.content, lang: "markdown" }}
 					options={{
 						diffStyle: "unified",
+						themeType: theme,
 						theme: { dark: "github-dark", light: "github-light" },
 					}}
 				/>

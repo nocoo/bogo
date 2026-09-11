@@ -1,3 +1,4 @@
+import { LayerCard } from "@nocoo/basalt";
 import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { GripVertical } from "lucide-react";
 import { memo } from "react";
@@ -11,21 +12,21 @@ export const PersonNode = memo(function PersonNode({
 	selected,
 }: NodeProps & { data: PersonNodeData }) {
 	return (
-		<div
-			className={`group flex w-[240px] items-center gap-3 rounded-card bg-secondary px-4 py-3 transition-colors ${
-				selected ? "ring-2 ring-primary" : "hover:bg-secondary/80"
+		<LayerCard
+			className={`group flex w-[240px] items-center gap-3 px-4 py-3 transition-shadow ${
+				selected ? "ring-2 ring-basalt-primary" : "hover:ring-1 hover:ring-basalt-border"
 			}`}
 		>
-			<Handle type="target" position={Position.Top} className="!bg-primary !w-2 !h-2" />
+			<Handle type="target" position={Position.Top} className="!bg-basalt-primary !w-2 !h-2" />
 
 			<PersonHover personId={data.person.id}>
 				<PersonAvatar name={data.person.name} avatarUrl={data.person.avatarUrl} size="lg" />
 			</PersonHover>
 
 			<div className="flex-1 min-w-0">
-				<p className="text-sm font-medium text-foreground truncate">{data.person.name}</p>
+				<p className="text-sm font-medium text-basalt-foreground truncate">{data.person.name}</p>
 				{data.person.title && (
-					<p className="text-xs text-muted-foreground truncate">{data.person.title}</p>
+					<p className="text-xs text-basalt-muted-foreground truncate">{data.person.title}</p>
 				)}
 				{data.person.tags.length > 0 && (
 					<div className="flex gap-1 mt-1 flex-wrap">
@@ -37,8 +38,8 @@ export const PersonNode = memo(function PersonNode({
 				{data.fields.length > 0 && (
 					<ul className="mt-1 space-y-0.5">
 						{data.fields.map((f) => (
-							<li key={f.fieldDefId} className="text-xs text-muted-foreground truncate">
-								<span className="text-foreground/70">{f.name}:</span>{" "}
+							<li key={f.fieldDefId} className="text-xs text-basalt-muted-foreground truncate">
+								<span className="text-basalt-foreground/70">{f.name}:</span>{" "}
 								{f.value || <span className="italic opacity-60">—</span>}
 							</li>
 						))}
@@ -47,10 +48,10 @@ export const PersonNode = memo(function PersonNode({
 			</div>
 
 			<div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab">
-				<GripVertical className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+				<GripVertical className="h-4 w-4 text-basalt-muted-foreground" strokeWidth={1.5} />
 			</div>
 
-			<Handle type="source" position={Position.Bottom} className="!bg-primary !w-2 !h-2" />
-		</div>
+			<Handle type="source" position={Position.Bottom} className="!bg-basalt-primary !w-2 !h-2" />
+		</LayerCard>
 	);
 });

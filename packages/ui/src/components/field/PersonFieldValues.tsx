@@ -1,4 +1,5 @@
 import type { CustomFieldDefinition } from "@bogo/shared";
+import { Input } from "@nocoo/basalt";
 import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
@@ -13,14 +14,14 @@ export function PersonFieldValues({
 	if (vm.isLoading) {
 		return (
 			<div className="flex items-center justify-center py-4">
-				<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+				<Loader2 className="h-4 w-4 animate-spin text-basalt-muted-foreground" />
 			</div>
 		);
 	}
 
 	if (vm.error) {
 		return (
-			<div className="rounded-md bg-destructive/10 p-3 text-xs text-destructive">
+			<div className="rounded-md bg-basalt-destructive/10 p-3 text-xs text-basalt-danger">
 				Failed to load field values: {vm.error.message}
 			</div>
 		);
@@ -32,10 +33,6 @@ export function PersonFieldValues({
 
 	return (
 		<div className="space-y-2">
-			<h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-				Custom Fields
-			</h4>
-
 			{defs.map((def) => (
 				<FieldValueRow key={def.id} def={def} vm={vm} />
 			))}
@@ -73,10 +70,10 @@ function FieldValueRow({ def, vm }: { def: CustomFieldDefinition; vm: FieldValue
 
 	return (
 		<div>
-			<label htmlFor={`field-${def.id}`} className="text-xs text-muted-foreground">
+			<label htmlFor={`field-${def.id}`} className="text-xs text-basalt-muted-foreground">
 				{def.name}
 				{def.required && (
-					<span className="text-warning ml-1" aria-hidden="true">
+					<span className="text-basalt-warning ml-1" aria-hidden="true">
 						*
 					</span>
 				)}
@@ -89,7 +86,7 @@ function FieldValueRow({ def, vm }: { def: CustomFieldDefinition; vm: FieldValue
 				onBlur={handleBlur}
 			/>
 			{validationError && (
-				<p className="mt-0.5 text-xs text-destructive" role="alert">
+				<p className="mt-0.5 text-xs text-basalt-danger" role="alert">
 					{validationError}
 				</p>
 			)}
@@ -110,10 +107,7 @@ function FieldInput({
 	onChange: (value: string) => void;
 	onBlur: () => void;
 }) {
-	const baseClass =
-		"mt-1 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground outline-none focus:border-primary";
-	const selectClass =
-		"mt-1 w-full rounded-md border border-border bg-secondary pl-3 pr-8 py-2 text-sm text-foreground outline-none focus:border-primary";
+	const selectClass = "field-select mt-1 w-full";
 
 	switch (def.fieldType) {
 		case "boolean":
@@ -147,37 +141,15 @@ function FieldInput({
 					))}
 				</select>
 			);
-		case "date":
-			return (
-				<input
-					id={id}
-					type="date"
-					value={value}
-					onChange={(e) => onChange(e.target.value)}
-					onBlur={onBlur}
-					className={baseClass}
-				/>
-			);
-		case "number":
-			return (
-				<input
-					id={id}
-					type="number"
-					value={value}
-					onChange={(e) => onChange(e.target.value)}
-					onBlur={onBlur}
-					className={baseClass}
-				/>
-			);
 		default:
 			return (
-				<input
+				<Input
 					id={id}
-					type="text"
+					type={def.fieldType}
 					value={value}
 					onChange={(e) => onChange(e.target.value)}
 					onBlur={onBlur}
-					className={baseClass}
+					className="mt-1 w-full"
 				/>
 			);
 	}

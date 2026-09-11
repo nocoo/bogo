@@ -1,278 +1,212 @@
 import type { TagScope } from "@bogo/shared";
-import { LayerCard } from "@nocoo/basalt";
+import {
+	Button,
+	Input,
+	LayerCard,
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+} from "@nocoo/basalt";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
-import { Check, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
-import { useCallback, useState } from "react";
-import { TagBadge } from "../components/TagBadge.js";
-import { PRESET_HEX_VALUES } from "../lib/tag-colors.js";
-import { useTags } from "../viewmodels/tag/use-tags.js";
+import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import { TagBadge } from "@/components/TagBadge";
+import { PRESET_HEX_VALUES } from "@/lib/tag-colors";
+import { useTags } from "@/viewmodels/tag/use-tags";
 
 export function TagsSettingsPage() {
 	const [scope, setScope] = useState<TagScope>("document");
-
-	return (
-		<div className="space-y-6">
-			<PageHeader
-				title="Tags"
-				description="Organize documents and people with color-coded label tags."
-			/>
-			<LayerCard>
-				<div className="flex gap-1 mb-4 border-b border-basalt-border" role="tablist">
-					<button
-						type="button"
-						role="tab"
-						aria-label="Document Tags"
-						aria-selected={scope === "document"}
-						onClick={() => setScope("document")}
-						className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-							scope === "document"
-								? "border-basalt-primary text-basalt-primary"
-								: "border-transparent text-basalt-muted-foreground hover:text-basalt-foreground"
-						}`}
-					>
-						Document Tags
-					</button>
-					<button
-						type="button"
-						role="tab"
-						aria-label="Person Tags"
-						aria-selected={scope === "person"}
-						onClick={() => setScope("person")}
-						className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-							scope === "person"
-								? "border-basalt-primary text-basalt-primary"
-								: "border-transparent text-basalt-muted-foreground hover:text-basalt-foreground"
-						}`}
-					>
-						Person Tags
-					</button>
-				</div>
-
-				<TagList scope={scope} />
-			</LayerCard>
-		</div>
-	);
-}
-
-function TagList({ scope }: { scope: TagScope }) {
-	const vm = useTags(scope);
-	const [creating, setCreating] = useState(false);
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [deletingId, setDeletingId] = useState<string | null>(null);
-
-	if (vm.isLoading) {
-		return (
-			<div className="flex items-center justify-center py-8">
-				<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-			</div>
-		);
-	}
+	const vm = useTags(scope);
 
 	return (
-		<div className="space-y-3">
-			{vm.tags.length === 0 && !creating && (
-				<p className="text-sm text-muted-foreground py-4 text-center">
-					No tags defined for this scope yet.
-				</p>
-			)}
-
-			{vm.tags.map((tag) =>
-				editingId === tag.id ? (
-					<EditRow
-						key={tag.id}
-						name={tag.name}
-						color={tag.color}
-						onSave={(name, color) => {
-							vm.update(tag.id, { name, color });
-							setEditingId(null);
-						}}
-						onCancel={() => setEditingId(null)}
-					/>
-				) : deletingId === tag.id ? (
-					<div
-						key={tag.id}
-						className="flex items-center gap-3 py-2 px-3 rounded-md bg-destructive/10"
+		<div className="space-y-5">
+			<PageHeader
+				title="Tags"
+				description="Keep related people and documents connected with shared labels."
+				actions={
+					<Button
+						onClick={() => setEditingId("new")}
+						disabled={editingId === "new" || vm.isLoading}
+						aria-label="Create tag"
 					>
-						<span className="text-sm text-foreground flex-1">Delete &quot;{tag.name}&quot;?</span>
-						<button
-							type="button"
-							onClick={() => {
-								vm.remove(tag.id);
-								setDeletingId(null);
-							}}
-							className="text-xs font-medium text-destructive hover:text-destructive/80"
-						>
-							Confirm
-						</button>
-						<button
-							type="button"
-							onClick={() => setDeletingId(null)}
-							className="text-xs font-medium text-muted-foreground hover:text-foreground"
-						>
-							Cancel
-						</button>
-					</div>
-				) : (
-					<div
-						key={tag.id}
-						className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-accent/50 transition-colors"
-					>
-						<TagBadge name={tag.name} color={tag.color} />
-						<span className="text-xs text-muted-foreground ml-auto">{tag.assignedCount}</span>
-						<button
-							type="button"
-							onClick={() => setEditingId(tag.id)}
-							className="text-muted-foreground hover:text-foreground transition-colors"
-							aria-label={`Edit ${tag.name}`}
-						>
-							<Pencil className="h-3.5 w-3.5" />
-						</button>
-						<button
-							type="button"
-							onClick={() => setDeletingId(tag.id)}
-							className="text-muted-foreground hover:text-destructive transition-colors"
-							aria-label={`Delete ${tag.name}`}
-						>
-							<Trash2 className="h-3.5 w-3.5" />
-						</button>
-					</div>
-				),
-			)}
-
-			{creating ? (
-				<CreateRow
-					scope={scope}
-					onCreate={(name, color) => {
-						vm.create({ name, scope, color });
-						setCreating(false);
-					}}
-					onCancel={() => setCreating(false)}
-				/>
-			) : (
-				<button
-					type="button"
-					onClick={() => setCreating(true)}
-					className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
-					aria-label="Create tag"
-				>
-					<Plus className="h-4 w-4" />
-					Add tag
-				</button>
-			)}
+						<Plus className="h-4 w-4" strokeWidth={1.5} />
+						Add tag
+					</Button>
+				}
+			/>
+			<Tabs
+				value={scope}
+				onValueChange={(value) => {
+					setScope(value as TagScope);
+					setEditingId(null);
+					setDeletingId(null);
+				}}
+			>
+				<TabsList aria-label="Tag scope">
+					<TabsTrigger value="document">Document Tags</TabsTrigger>
+					<TabsTrigger value="person">Person Tags</TabsTrigger>
+				</TabsList>
+				<TabsContent value={scope} className="mt-4">
+					<LayerCard className="space-y-3">
+						{vm.isLoading ? (
+							<LayerCard.Loading label="Loading tags" />
+						) : vm.error ? (
+							<p className="text-sm text-basalt-danger" role="alert">
+								Failed to load tags: {vm.error.message}
+							</p>
+						) : (
+							<>
+								{editingId === "new" && (
+									<TagForm
+										scope={scope}
+										onSubmit={(name, color) => {
+											vm.create({ name, scope, color });
+											setEditingId(null);
+										}}
+										onCancel={() => setEditingId(null)}
+									/>
+								)}
+								{vm.tags.length === 0 && editingId !== "new" && (
+									<p className="py-8 text-center text-sm text-basalt-muted-foreground">
+										No tags defined for this scope yet.
+									</p>
+								)}
+								{vm.tags.map((tag) =>
+									editingId === tag.id ? (
+										<TagForm
+											key={tag.id}
+											scope={scope}
+											initialTag={tag}
+											onSubmit={(name, color) => {
+												vm.update(tag.id, { name, color });
+												setEditingId(null);
+											}}
+											onCancel={() => setEditingId(null)}
+										/>
+									) : deletingId === tag.id ? (
+										<div
+											key={tag.id}
+											className="flex flex-wrap items-center gap-2 rounded-lg bg-basalt-danger-tint p-3"
+										>
+											<span className="min-w-0 flex-1 break-words text-sm">
+												Delete &quot;{tag.name}&quot;?
+											</span>
+											<Button
+												size="sm"
+												variant="destructive"
+												disabled={vm.isRemoving}
+												onClick={() => {
+													vm.remove(tag.id);
+													setDeletingId(null);
+												}}
+											>
+												Confirm
+											</Button>
+											<Button size="sm" variant="ghost" onClick={() => setDeletingId(null)}>
+												Cancel
+											</Button>
+										</div>
+									) : (
+										<div
+											key={tag.id}
+											className="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-basalt-accent/50"
+										>
+											<TagBadge name={tag.name} color={tag.color} />
+											<span
+												className="ml-auto text-xs tabular-nums text-basalt-muted-foreground"
+												title="Assigned items"
+											>
+												{tag.assignedCount}
+											</span>
+											<Button
+												variant="ghost"
+												size="icon"
+												className="h-8 w-8"
+												aria-label={`Edit ${tag.name}`}
+												onClick={() => setEditingId(tag.id)}
+											>
+												<Pencil className="h-4 w-4" strokeWidth={1.5} />
+											</Button>
+											<Button
+												variant="ghost"
+												size="icon"
+												className="h-8 w-8 text-basalt-muted-foreground hover:text-basalt-danger"
+												aria-label={`Delete ${tag.name}`}
+												onClick={() => setDeletingId(tag.id)}
+											>
+												<Trash2 className="h-4 w-4" strokeWidth={1.5} />
+											</Button>
+										</div>
+									),
+								)}
+							</>
+						)}
+					</LayerCard>
+				</TabsContent>
+			</Tabs>
 		</div>
 	);
 }
 
-function CreateRow({
+function TagForm({
 	scope,
-	onCreate,
+	initialTag,
+	onSubmit,
 	onCancel,
 }: {
 	scope: TagScope;
-	onCreate: (name: string, color: string | null) => void;
+	initialTag?: { name: string; color: string | null };
+	onSubmit: (name: string, color: string | null) => void;
 	onCancel: () => void;
 }) {
-	const [name, setName] = useState("");
-	const [color, setColor] = useState<string | null>(null);
-
-	const handleSubmit = useCallback(() => {
-		if (!name.trim()) {
-			return;
-		}
-		onCreate(name.trim(), color);
-	}, [name, color, onCreate]);
-
+	const [name, setName] = useState(initialTag?.name ?? "");
+	const [color, setColor] = useState(initialTag?.color ?? null);
 	return (
-		<div className="flex items-center gap-3 py-2 px-3 rounded-md border border-border bg-background">
-			<ColorPicker value={color} onChange={setColor} />
-			<input
-				type="text"
-				value={name}
-				onChange={(e) => setName(e.target.value)}
-				placeholder={`New ${scope} tag name…`}
-				className="flex-1 bg-transparent text-sm text-foreground outline-none"
-				aria-label="Tag name"
-				ref={(el) => el?.focus()}
-				onKeyDown={(e) => {
-					if (e.key === "Enter") {
-						handleSubmit();
-					}
-					if (e.key === "Escape") {
-						onCancel();
-					}
+		<LayerCard.Well className="p-3">
+			<form
+				className="flex flex-wrap items-center gap-2"
+				onSubmit={(event) => {
+					event.preventDefault();
+					if (name.trim()) onSubmit(name.trim(), color);
 				}}
-			/>
-			<button
-				type="button"
-				onClick={handleSubmit}
-				disabled={!name.trim()}
-				className="text-sm font-medium text-primary hover:text-primary/80 disabled:opacity-50"
-			>
-				Create
-			</button>
-			<button
-				type="button"
-				onClick={onCancel}
-				className="text-muted-foreground hover:text-foreground transition-colors"
-				aria-label="Cancel create"
-			>
-				<X className="h-4 w-4" />
-			</button>
-		</div>
-	);
-}
-
-function EditRow({
-	name: initialName,
-	color: initialColor,
-	onSave,
-	onCancel,
-}: {
-	name: string;
-	color: string | null;
-	onSave: (name: string, color: string | null) => void;
-	onCancel: () => void;
-}) {
-	const [name, setName] = useState(initialName);
-	const [color, setColor] = useState<string | null>(initialColor);
-
-	return (
-		<div className="flex items-center gap-3 py-2 px-3 rounded-md border border-primary/30 bg-background">
-			<ColorPicker value={color} onChange={setColor} />
-			<input
-				type="text"
-				value={name}
-				onChange={(e) => setName(e.target.value)}
-				className="flex-1 bg-transparent text-sm text-foreground outline-none"
-				aria-label="Edit tag name"
-				ref={(el) => el?.focus()}
-				onKeyDown={(e) => {
-					if (e.key === "Enter") {
-						onSave(name.trim(), color);
-					}
-					if (e.key === "Escape") {
-						onCancel();
-					}
+				onKeyDown={(event) => {
+					if (event.key === "Escape") onCancel();
 				}}
-			/>
-			<button
-				type="button"
-				onClick={() => onSave(name.trim(), color)}
-				disabled={!name.trim()}
-				className="text-primary hover:text-primary/80 transition-colors"
-				aria-label="Save tag"
 			>
-				<Check className="h-4 w-4" />
-			</button>
-			<button
-				type="button"
-				onClick={onCancel}
-				className="text-muted-foreground hover:text-foreground transition-colors"
-				aria-label="Cancel edit"
-			>
-				<X className="h-4 w-4" />
-			</button>
-		</div>
+				<ColorPicker value={color} onChange={setColor} />
+				<Input
+					value={name}
+					onChange={(event) => setName(event.target.value)}
+					className="min-w-0 flex-1"
+					aria-label={initialTag ? "Edit tag name" : "Tag name"}
+					placeholder={`New ${scope} tag name…`}
+					autoFocus
+				/>
+				<Button
+					type="submit"
+					size="sm"
+					disabled={!name.trim()}
+					aria-label={initialTag ? "Save tag" : "Create"}
+				>
+					{initialTag ? <Check className="h-4 w-4" strokeWidth={1.5} /> : "Create"}
+				</Button>
+				<Button
+					variant="ghost"
+					size="icon"
+					className="h-8 w-8"
+					onClick={onCancel}
+					aria-label={initialTag ? "Cancel edit" : "Cancel create"}
+				>
+					<X className="h-4 w-4" strokeWidth={1.5} />
+				</Button>
+			</form>
+		</LayerCard.Well>
 	);
 }
 
@@ -285,76 +219,68 @@ function ColorPicker({
 }) {
 	const [open, setOpen] = useState(false);
 	const [hexInput, setHexInput] = useState("");
-
 	const isValidHex = /^#[0-9a-fA-F]{6}$/.test(hexInput);
-
+	const pick = (color: string | null) => {
+		onChange(color);
+		setOpen(false);
+		setHexInput("");
+	};
 	return (
-		<div className="relative">
-			<button
-				type="button"
-				onClick={() => setOpen(!open)}
-				className={`h-5 w-5 rounded-full border border-border shrink-0 ${value ? "" : "bg-muted"}`}
-				style={value ? { backgroundColor: value } : undefined}
-				aria-label="Pick color"
-			/>
-			{open && (
-				<div className="absolute top-7 left-0 z-10 rounded-lg bg-popover p-2 shadow-md">
-					<div className="grid grid-cols-6 gap-1">
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger asChild>
+				<Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Pick color">
+					<span
+						className="h-5 w-5 rounded-full border border-basalt-border bg-basalt-muted"
+						style={value ? { backgroundColor: value } : undefined}
+					/>
+				</Button>
+			</PopoverTrigger>
+			<PopoverContent align="start" className="w-56 p-3" aria-label="Tag color">
+				<div className="grid grid-cols-6 gap-2">
+					<button
+						type="button"
+						onClick={() => pick(null)}
+						className="h-6 w-6 rounded-full border border-basalt-border bg-basalt-muted"
+						aria-label="No color"
+					/>
+					{PRESET_HEX_VALUES.map((hex) => (
 						<button
+							key={hex}
 							type="button"
-							onClick={() => {
-								onChange(null);
-								setOpen(false);
-							}}
-							className="h-5 w-5 rounded-full border border-border bg-muted"
-							aria-label="No color"
+							onClick={() => pick(hex)}
+							className={`h-6 w-6 rounded-full border border-basalt-border ${value === hex ? "ring-2 ring-basalt-foreground ring-offset-2 ring-offset-basalt-control" : ""}`}
+							style={{ backgroundColor: hex }}
+							aria-label={`Color ${hex}`}
+							aria-pressed={value === hex}
 						/>
-						{PRESET_HEX_VALUES.map((hex) => (
-							<button
-								key={hex}
-								type="button"
-								onClick={() => {
-									onChange(hex);
-									setOpen(false);
-								}}
-								className={`h-5 w-5 rounded-full border ${value === hex ? "border-foreground ring-1 ring-foreground" : "border-border"}`}
-								style={{ backgroundColor: hex }}
-								aria-label={`Color ${hex}`}
-							/>
-						))}
-					</div>
-					<div className="mt-2 flex items-center gap-1 border-t border-border pt-2">
-						<input
-							type="text"
-							value={hexInput}
-							onChange={(e) => setHexInput(e.target.value)}
-							onKeyDown={(e) => {
-								if (e.key === "Enter" && isValidHex) {
-									onChange(hexInput.toLowerCase());
-									setHexInput("");
-									setOpen(false);
-								}
-							}}
-							placeholder="#000000"
-							className="w-[5.5rem] rounded border border-border bg-background px-1.5 py-0.5 text-xs text-foreground placeholder:text-muted-foreground"
-							aria-label="Custom hex color"
-						/>
-						{isValidHex && (
-							<button
-								type="button"
-								onClick={() => {
-									onChange(hexInput.toLowerCase());
-									setHexInput("");
-									setOpen(false);
-								}}
-								className="h-5 w-5 rounded-full border border-border"
-								style={{ backgroundColor: hexInput }}
-								aria-label="Apply custom color"
-							/>
-						)}
-					</div>
+					))}
 				</div>
-			)}
-		</div>
+				<div className="mt-3 flex items-center gap-2">
+					<Input
+						size="sm"
+						value={hexInput}
+						onChange={(event) => setHexInput(event.target.value)}
+						placeholder="#000000"
+						aria-label="Custom hex color"
+						onKeyDown={(event) => {
+							if (event.key === "Enter") {
+								event.preventDefault();
+								if (isValidHex) pick(hexInput.toLowerCase());
+							}
+						}}
+					/>
+					<Button
+						size="icon"
+						variant="outline"
+						className="h-8 w-8 shrink-0"
+						disabled={!isValidHex}
+						onClick={() => pick(hexInput.toLowerCase())}
+						aria-label="Apply custom color"
+					>
+						<Check className="h-4 w-4" strokeWidth={1.5} />
+					</Button>
+				</div>
+			</PopoverContent>
+		</Popover>
 	);
 }

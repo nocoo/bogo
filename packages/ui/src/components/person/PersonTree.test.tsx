@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@nocoo/basalt";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -127,11 +128,13 @@ function renderWithProviders(ui: ReactNode) {
 	});
 	return render(
 		<MemoryRouter>
-			<QueryClientProvider client={queryClient}>
-				<WorkspaceProvider>
-					<WorkspaceSwitcher>{ui}</WorkspaceSwitcher>
-				</WorkspaceProvider>
-			</QueryClientProvider>
+			<ThemeProvider persist={false}>
+				<QueryClientProvider client={queryClient}>
+					<WorkspaceProvider>
+						<WorkspaceSwitcher>{ui}</WorkspaceSwitcher>
+					</WorkspaceProvider>
+				</QueryClientProvider>
+			</ThemeProvider>
 		</MemoryRouter>,
 	);
 }

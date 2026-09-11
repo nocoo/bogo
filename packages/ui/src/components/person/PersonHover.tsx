@@ -203,13 +203,13 @@ function PersonHoverPanel({ personId }: { personId: string }) {
 	const name = person?.name ?? "Person";
 
 	return (
-		<div className="rounded-xl border border-border bg-popover p-3 text-left shadow-lg">
+		<div className="rounded-xl border border-basalt-border bg-basalt-popover p-3 text-left shadow-lg">
 			<div className="flex items-start gap-3">
 				<PersonAvatar name={name} avatarUrl={person?.avatarUrl} size="lg" />
 				<div className="min-w-0 flex-1">
-					<p className="truncate text-sm font-semibold text-foreground">{name}</p>
+					<p className="truncate text-sm font-semibold text-basalt-foreground">{name}</p>
 					{person?.title ? (
-						<p className="truncate text-xs text-muted-foreground">{person.title}</p>
+						<p className="truncate text-xs text-basalt-muted-foreground">{person.title}</p>
 					) : null}
 				</div>
 			</div>
@@ -217,14 +217,14 @@ function PersonHoverPanel({ personId }: { personId: string }) {
 			<dl className="mt-3 space-y-1 text-xs">
 				{manager ? (
 					<div className="flex justify-between gap-2">
-						<dt className="text-muted-foreground">Manager</dt>
-						<dd className="truncate font-medium text-foreground">{manager.name}</dd>
+						<dt className="text-basalt-muted-foreground">Manager</dt>
+						<dd className="truncate font-medium text-basalt-foreground">{manager.name}</dd>
 					</div>
 				) : null}
 				{fields.map((f) => (
 					<div key={f.name} className="flex justify-between gap-2">
-						<dt className="text-muted-foreground">{f.name}</dt>
-						<dd className="truncate font-medium text-foreground">{f.value}</dd>
+						<dt className="text-basalt-muted-foreground">{f.name}</dt>
+						<dd className="truncate font-medium text-basalt-foreground">{f.value}</dd>
 					</div>
 				))}
 			</dl>
@@ -239,7 +239,7 @@ function PersonHoverPanel({ personId }: { personId: string }) {
 
 			<Link
 				to={`/people/${personId}`}
-				className="mt-3 inline-flex text-xs font-medium text-primary hover:underline"
+				className="mt-3 inline-flex text-xs font-medium text-basalt-primary hover:underline"
 			>
 				Open profile
 			</Link>

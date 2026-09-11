@@ -30,7 +30,7 @@ export function EditPersonPanel({
 	fieldValuesVm?: FieldValuesVM;
 }) {
 	return (
-		<LayerCard className="w-80 max-h-[min(85vh,40rem)] overflow-y-auto p-4 shadow-lg">
+		<LayerCard className="w-full shrink-0 p-4 shadow-lg sm:w-80">
 			<div className="mb-3 flex items-center justify-between">
 				<h3 className="text-sm font-semibold text-basalt-foreground">Edit Person</h3>
 				<Button

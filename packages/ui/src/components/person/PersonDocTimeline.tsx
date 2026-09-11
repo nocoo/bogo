@@ -46,7 +46,7 @@ export function PersonDocTimeline({
 	}, [documents]);
 
 	return (
-		<LayerCard className="w-72 p-4 shadow-lg">
+		<LayerCard className="w-full shrink-0 p-4 shadow-lg sm:w-72">
 			<div className="flex items-center justify-between mb-4">
 				<h3 className="text-sm font-semibold text-basalt-foreground">Documents</h3>
 				<Button
@@ -112,7 +112,7 @@ export function PersonDocTimeline({
 
 function SectionLabel({ label }: { label: string }) {
 	return (
-		<div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground pt-1">
+		<div className="text-[10px] font-medium uppercase tracking-wider text-basalt-muted-foreground pt-1">
 			{label}
 		</div>
 	);
@@ -131,12 +131,12 @@ function DocCard({
 		<button
 			type="button"
 			onClick={onClick}
-			className="group w-full text-left rounded-md border border-border bg-background px-3 py-2.5 hover:border-primary/40 hover:bg-accent/40 transition-colors space-y-1.5"
+			className="group w-full text-left rounded-md border border-basalt-border bg-basalt-control px-3 py-2.5 hover:border-basalt-primary/40 hover:bg-basalt-accent/40 transition-colors space-y-1.5"
 		>
-			<h4 className="text-sm font-medium text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+			<h4 className="text-sm font-medium text-basalt-foreground line-clamp-2 leading-snug group-hover:text-basalt-primary transition-colors">
 				{doc.title}
 			</h4>
-			<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+			<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-basalt-muted-foreground">
 				{type && (
 					<span className="inline-flex items-center gap-1">
 						<span

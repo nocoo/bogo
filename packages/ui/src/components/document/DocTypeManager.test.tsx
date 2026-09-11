@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { DocTypesVM } from "../../viewmodels/document/use-doc-types.js";
 import { DocTypeManager } from "./DocTypeManager.js";
@@ -226,6 +226,21 @@ describe("DocTypeManager", () => {
 	});
 
 	describe("color edit", () => {
+		it("dismisses on Escape and returns focus without changing the color", async () => {
+			const vm = createVM({ types: [TYPE_A] });
+			render(<DocTypeManager vm={vm} />);
+			const trigger = screen.getByLabelText(`Change color for ${TYPE_A.name}`);
+			fireEvent.click(trigger);
+
+			fireEvent.keyDown(screen.getByLabelText("Select color #ef4444"), { key: "Escape" });
+
+			await waitFor(() => {
+				expect(screen.queryByRole("dialog")).toBeNull();
+				expect(document.activeElement).toBe(trigger);
+			});
+			expect(vm.update).not.toHaveBeenCalled();
+		});
+
 		it("opens color picker on swatch click and updates color", () => {
 			const update = vi.fn();
 			const vm = createVM({ types: [TYPE_A], update });

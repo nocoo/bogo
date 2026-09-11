@@ -199,13 +199,13 @@ describe("PersonEditorPage", () => {
 		expect(screen.getByText("Table page")).toBeTruthy();
 	});
 
-	it("shows No title placeholder when person has empty title", () => {
+	it("shows helpful description when person has empty title", () => {
 		withWorkspace("ws-1");
 		mockUsePersonList.mockReturnValue(basePersonList({ persons: [{ ...ALICE, title: "" }] }));
 
 		renderAtPath("/people/p-alice");
 		expect(screen.getByRole("heading", { name: "Alice" })).toBeTruthy();
-		expect(screen.getByText("No title")).toBeTruthy();
+		expect(screen.getByText("Profile, reporting relationships, and custom fields.")).toBeTruthy();
 		expect(screen.queryByText("Engineer")).toBeNull();
 	});
 

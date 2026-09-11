@@ -86,8 +86,9 @@ describe("WorkspaceList", () => {
 
 		fireEvent.click(screen.getByText("Corp"));
 		await waitFor(() => {
-			const item = screen.getByText("Corp").closest("div[class*='primary/10']");
-			expect(item).not.toBeNull();
+			expect(screen.getByRole("button", { name: "Select Corp" }).getAttribute("aria-pressed")).toBe(
+				"true",
+			);
 		});
 	});
 
@@ -96,7 +97,7 @@ describe("WorkspaceList", () => {
 		renderWithProviders(<WorkspaceList />);
 		await waitFor(() => expect(screen.getByText("Corp")).toBeTruthy());
 
-		fireEvent.click(screen.getByText("New"));
+		fireEvent.click(screen.getByRole("button", { name: "New workspace" }));
 		const input = screen.getByPlaceholderText("Workspace name");
 		expect(input).toBeTruthy();
 
@@ -120,7 +121,7 @@ describe("WorkspaceList", () => {
 		renderWithProviders(<WorkspaceList />);
 		await waitFor(() => expect(screen.getByText("Corp")).toBeTruthy());
 
-		fireEvent.click(screen.getByText("New"));
+		fireEvent.click(screen.getByRole("button", { name: "New workspace" }));
 		expect(screen.getByPlaceholderText("Workspace name")).toBeTruthy();
 
 		fireEvent.click(screen.getByText("Cancel"));
@@ -205,7 +206,7 @@ describe("WorkspaceList", () => {
 		renderWithProviders(<WorkspaceList />);
 		await waitFor(() => expect(screen.getByText("Corp")).toBeTruthy());
 
-		fireEvent.click(screen.getByText("New"));
+		fireEvent.click(screen.getByRole("button", { name: "New workspace" }));
 		const input = screen.getByPlaceholderText("Workspace name");
 		fireEvent.change(input, { target: { value: "KeyWS" } });
 
@@ -227,7 +228,7 @@ describe("WorkspaceList", () => {
 		renderWithProviders(<WorkspaceList />);
 		await waitFor(() => expect(screen.getByText("Corp")).toBeTruthy());
 
-		fireEvent.click(screen.getByText("New"));
+		fireEvent.click(screen.getByRole("button", { name: "New workspace" }));
 		const input = screen.getByPlaceholderText("Workspace name");
 		fireEvent.change(input, { target: { value: "Nope" } });
 		fireEvent.keyDown(input, { key: "Escape" });

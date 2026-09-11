@@ -22,7 +22,7 @@ export function PeoplePage() {
 	});
 
 	return (
-		<div className="flex flex-col h-full space-y-4">
+		<div className="flex h-full min-h-[36rem] min-w-0 flex-col gap-4">
 			<PageHeader
 				title="People"
 				description="Organization chart, reporting lines, and personnel directory."
@@ -39,7 +39,7 @@ export function PeoplePage() {
 					) : (
 						<div className="space-y-2">
 							{(filteredPersons ?? []).map((person) => (
-								<LayerCard key={person.id} className="flex items-center gap-3 px-4 py-3">
+								<LayerCard key={person.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
 									<PersonHover personId={person.id}>
 										<Link
 											to={`/people/${person.id}`}

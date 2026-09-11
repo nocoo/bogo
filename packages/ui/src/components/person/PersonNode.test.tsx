@@ -58,14 +58,14 @@ describe("PersonNode", () => {
 		// biome-ignore lint/suspicious/noExplicitAny: test mock props
 		const { container } = render(<PersonNode {...(props as any)} />);
 		const node = container.firstChild as HTMLElement;
-		expect(node.className).toContain("ring-primary");
+		expect(node.className).toContain("ring-basalt-primary");
 	});
 
 	it("applies default style when not selected", () => {
 		// biome-ignore lint/suspicious/noExplicitAny: test mock props
 		const { container } = render(<PersonNode {...(BASE_PROPS as any)} />);
 		const node = container.firstChild as HTMLElement;
-		expect(node.className).toContain("hover:bg-secondary/80");
+		expect(node.className).toContain("hover:ring-basalt-border");
 	});
 
 	it("renders chart fields in the order given", () => {

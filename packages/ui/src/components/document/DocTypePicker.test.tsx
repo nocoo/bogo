@@ -35,9 +35,9 @@ describe("DocTypePicker", () => {
 
 	it("opens the menu on click and lists all types plus Unset", () => {
 		render(<DocTypePicker types={TYPES} value="dt-1" onChange={vi.fn()} />);
-		fireEvent.click(screen.getByLabelText("Change document type"));
+		fireEvent.keyDown(screen.getByLabelText("Change document type"), { key: "ArrowDown" });
 
-		const options = screen.getAllByRole("option");
+		const options = screen.getAllByRole("menuitemradio");
 		// Unset + 2 types
 		expect(options.length).toBe(3);
 		expect(screen.getAllByText("Connect").length).toBeGreaterThan(0);
@@ -48,7 +48,7 @@ describe("DocTypePicker", () => {
 	it("calls onChange with the selected typeId", () => {
 		const onChange = vi.fn();
 		render(<DocTypePicker types={TYPES} value="dt-1" onChange={onChange} />);
-		fireEvent.click(screen.getByLabelText("Change document type"));
+		fireEvent.keyDown(screen.getByLabelText("Change document type"), { key: "ArrowDown" });
 		fireEvent.click(screen.getByText("Meeting"));
 		expect(onChange).toHaveBeenCalledWith("dt-2");
 	});
@@ -56,27 +56,27 @@ describe("DocTypePicker", () => {
 	it("calls onChange with null when selecting 'No type'", () => {
 		const onChange = vi.fn();
 		render(<DocTypePicker types={TYPES} value="dt-1" onChange={onChange} />);
-		fireEvent.click(screen.getByLabelText("Change document type"));
+		fireEvent.keyDown(screen.getByLabelText("Change document type"), { key: "ArrowDown" });
 		// pick the menu row, not the trigger button
 		const noTypeOption = screen
-			.getAllByRole("option")
+			.getAllByRole("menuitemradio")
 			.find((el) => el.textContent?.includes("No type"));
 		fireEvent.click(noTypeOption ?? screen.getAllByText("No type")[1]);
 		expect(onChange).toHaveBeenCalledWith(null);
 	});
 
-	it("marks the currently selected type with aria-selected", () => {
+	it("marks the currently selected type with aria-checked", () => {
 		render(<DocTypePicker types={TYPES} value="dt-2" onChange={vi.fn()} />);
-		fireEvent.click(screen.getByLabelText("Change document type"));
+		fireEvent.keyDown(screen.getByLabelText("Change document type"), { key: "ArrowDown" });
 		const meetingOption = screen
-			.getAllByRole("option")
+			.getAllByRole("menuitemradio")
 			.find((el) => el.textContent?.includes("Meeting"));
-		expect(meetingOption?.getAttribute("aria-selected")).toBe("true");
+		expect(meetingOption?.getAttribute("aria-checked")).toBe("true");
 	});
 
 	it("shows an empty-state message when no types are defined", () => {
 		render(<DocTypePicker types={[]} value={null} onChange={vi.fn()} />);
-		fireEvent.click(screen.getByLabelText("Change document type"));
+		fireEvent.keyDown(screen.getByLabelText("Change document type"), { key: "ArrowDown" });
 		expect(screen.getByText("No types defined")).toBeTruthy();
 	});
 
@@ -85,27 +85,27 @@ describe("DocTypePicker", () => {
 		const btn = screen.getByLabelText("Change document type") as HTMLButtonElement;
 		expect(btn.disabled).toBe(true);
 		fireEvent.click(btn);
-		expect(screen.queryAllByRole("option").length).toBe(0);
+		expect(screen.queryAllByRole("menuitemradio").length).toBe(0);
 	});
 
 	it("closes the menu after picking", () => {
 		render(<DocTypePicker types={TYPES} value="dt-1" onChange={vi.fn()} />);
-		fireEvent.click(screen.getByLabelText("Change document type"));
-		expect(screen.getAllByRole("option").length).toBeGreaterThan(0);
+		fireEvent.keyDown(screen.getByLabelText("Change document type"), { key: "ArrowDown" });
+		expect(screen.getAllByRole("menuitemradio").length).toBeGreaterThan(0);
 		fireEvent.click(screen.getByText("Meeting"));
-		expect(screen.queryAllByRole("option").length).toBe(0);
+		expect(screen.queryAllByRole("menuitemradio").length).toBe(0);
 	});
 
-	it("closes the menu on outside click", () => {
+	it("closes the menu on Escape", () => {
 		render(
 			<div>
 				<button type="button">outside</button>
 				<DocTypePicker types={TYPES} value="dt-1" onChange={vi.fn()} />
 			</div>,
 		);
-		fireEvent.click(screen.getByLabelText("Change document type"));
-		expect(screen.getAllByRole("option").length).toBeGreaterThan(0);
-		fireEvent.mouseDown(screen.getByText("outside"));
-		expect(screen.queryAllByRole("option").length).toBe(0);
+		fireEvent.keyDown(screen.getByLabelText("Change document type"), { key: "ArrowDown" });
+		expect(screen.getAllByRole("menuitemradio").length).toBeGreaterThan(0);
+		fireEvent.keyDown(screen.getByRole("menu"), { key: "Escape" });
+		expect(screen.queryAllByRole("menuitemradio").length).toBe(0);
 	});
 });

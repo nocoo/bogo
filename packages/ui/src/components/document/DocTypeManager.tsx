@@ -1,5 +1,14 @@
 import type { DocumentType } from "@bogo/shared";
-import { Button, Input, LayerCard } from "@nocoo/basalt";
+import {
+	Button,
+	Input,
+	LayerCard,
+	Popover,
+	PopoverClose,
+	PopoverContent,
+	PopoverTrigger,
+} from "@nocoo/basalt";
+import { PageHeader } from "@nocoo/basalt/components/page-header";
 import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { DocTypesVM } from "../../viewmodels/document/use-doc-types.js";
@@ -15,21 +24,8 @@ const PRESET_COLORS = [
 	"#84cc16",
 ];
 
-export function DocTypeManager({
-	vm,
-	showHeader = true,
-	showCreateOverride,
-	setShowCreateOverride,
-}: {
-	vm: DocTypesVM;
-	showHeader?: boolean;
-	showCreateOverride?: boolean;
-	setShowCreateOverride?: (open: boolean) => void;
-}) {
-	const [localShowCreate, setLocalShowCreate] = useState(false);
-	const showCreate = showCreateOverride !== undefined ? showCreateOverride : localShowCreate;
-	const setShowCreate =
-		setShowCreateOverride !== undefined ? setShowCreateOverride : setLocalShowCreate;
+export function DocTypeManager({ vm }: { vm: DocTypesVM }) {
+	const [showCreate, setShowCreate] = useState(false);
 
 	if (vm.isLoading) {
 		return (
@@ -41,7 +37,7 @@ export function DocTypeManager({
 
 	if (vm.error) {
 		return (
-			<div className="rounded-lg bg-basalt-destructive/10 p-4 text-sm text-basalt-destructive">
+			<div className="rounded-lg bg-basalt-destructive/10 p-4 text-sm text-basalt-danger">
 				Failed to load document types: {vm.error.message}
 			</div>
 		);
@@ -49,65 +45,66 @@ export function DocTypeManager({
 
 	return (
 		<div className="space-y-4">
-			{showHeader && (
-				<div className="flex items-center justify-between">
-					<h3 className="text-sm font-semibold text-basalt-foreground">Document Types</h3>
+			<PageHeader
+				title="Document Types"
+				description="Classify documents with reusable types and colors."
+				actions={
 					<Button
-						size="sm"
 						onClick={() => setShowCreate(true)}
 						disabled={showCreate}
 						aria-label="Add document type"
 					>
-						<Plus className="h-3 w-3" strokeWidth={2} />
+						<Plus className="h-4 w-4" strokeWidth={1.5} />
 						Add Type
 					</Button>
-				</div>
-			)}
-
-			{showCreate && (
-				<CreateDocTypeForm
-					onSubmit={(input) => {
-						vm.create(input);
-						setShowCreate(false);
-					}}
-					onCancel={() => setShowCreate(false)}
-					isCreating={vm.isCreating}
-				/>
-			)}
-
-			{vm.types.length === 0 && !showCreate && (
-				<p className="py-4 text-center text-sm text-muted-foreground">
-					No document types defined yet
-				</p>
-			)}
-
-			<div className="space-y-2">
-				{vm.types.map((dt, idx) => (
-					<DocTypeRow
-						key={dt.id}
-						docType={dt}
-						isFirst={idx === 0}
-						isLast={idx === vm.types.length - 1}
-						onMoveUp={() => {
-							if (idx > 0) {
-								const prev = vm.types[idx - 1];
-								vm.reorder(dt.id, prev.sortOrder);
-								vm.reorder(prev.id, dt.sortOrder);
-							}
+				}
+			/>
+			<LayerCard className="space-y-4">
+				{showCreate && (
+					<CreateDocTypeForm
+						onSubmit={(input) => {
+							vm.create(input);
+							setShowCreate(false);
 						}}
-						onMoveDown={() => {
-							if (idx < vm.types.length - 1) {
-								const next = vm.types[idx + 1];
-								vm.reorder(dt.id, next.sortOrder);
-								vm.reorder(next.id, dt.sortOrder);
-							}
-						}}
-						onUpdate={vm.update}
-						onRemove={vm.remove}
-						isRemoving={vm.isRemoving}
+						onCancel={() => setShowCreate(false)}
+						isCreating={vm.isCreating}
 					/>
-				))}
-			</div>
+				)}
+
+				{vm.types.length === 0 && !showCreate && (
+					<p className="py-4 text-center text-sm text-basalt-muted-foreground">
+						No document types defined yet
+					</p>
+				)}
+
+				<div className="space-y-2">
+					{vm.types.map((dt, idx) => (
+						<DocTypeRow
+							key={dt.id}
+							docType={dt}
+							isFirst={idx === 0}
+							isLast={idx === vm.types.length - 1}
+							onMoveUp={() => {
+								if (idx > 0) {
+									const prev = vm.types[idx - 1];
+									vm.reorder(dt.id, prev.sortOrder);
+									vm.reorder(prev.id, dt.sortOrder);
+								}
+							}}
+							onMoveDown={() => {
+								if (idx < vm.types.length - 1) {
+									const next = vm.types[idx + 1];
+									vm.reorder(dt.id, next.sortOrder);
+									vm.reorder(next.id, dt.sortOrder);
+								}
+							}}
+							onUpdate={vm.update}
+							onRemove={vm.remove}
+							isRemoving={vm.isRemoving}
+						/>
+					))}
+				</div>
+			</LayerCard>
 		</div>
 	);
 }
@@ -218,17 +215,11 @@ function DocTypeRow({
 	isRemoving: boolean;
 }) {
 	const [editing, setEditing] = useState(false);
-	const [editingColor, setEditingColor] = useState(false);
 	const [editName, setEditName] = useState(docType.name);
 
 	useEffect(() => {
 		setEditName(docType.name);
 	}, [docType.name]);
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: docType.color is intentionally the trigger — the effect exits the inline color-editor UI when the row's saved color changes, and doesn't read the color in its body.
-	useEffect(() => {
-		setEditingColor(false);
-	}, [docType.color]);
 
 	const handleSave = useCallback(() => {
 		const trimmed = editName.trim();
@@ -239,13 +230,13 @@ function DocTypeRow({
 	}, [editName, docType, onUpdate]);
 
 	return (
-		<LayerCard className="group flex items-center gap-2 px-3 py-2 bg-basalt-bright border border-basalt-border">
+		<LayerCard className="group flex items-center gap-2 px-3 py-2 ">
 			<div className="flex flex-col">
 				<button
 					type="button"
 					onClick={onMoveUp}
 					disabled={isFirst}
-					className="text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+					className="text-basalt-muted-foreground hover:text-basalt-foreground disabled:opacity-30 transition-colors"
 					aria-label={`Move ${docType.name} up`}
 				>
 					<ChevronUp className="h-3 w-3" />
@@ -254,43 +245,45 @@ function DocTypeRow({
 					type="button"
 					onClick={onMoveDown}
 					disabled={isLast}
-					className="text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+					className="text-basalt-muted-foreground hover:text-basalt-foreground disabled:opacity-30 transition-colors"
 					aria-label={`Move ${docType.name} down`}
 				>
 					<ChevronDown className="h-3 w-3" />
 				</button>
 			</div>
-			<div className="relative">
-				<button
-					type="button"
-					onClick={() => setEditingColor(!editingColor)}
-					className="h-4 w-4 shrink-0 rounded-full border border-border hover:scale-125 transition-transform"
-					style={{ backgroundColor: docType.color ?? "#6b7280" }}
-					aria-label={`Change color for ${docType.name}`}
-				/>
-				{editingColor && (
-					<div className="absolute left-0 top-6 z-10 flex gap-1 rounded-md bg-popover p-2 shadow-md">
-						{PRESET_COLORS.map((c) => (
+			<Popover>
+				<PopoverTrigger asChild>
+					<button
+						type="button"
+						className="h-4 w-4 shrink-0 rounded-full border border-basalt-border hover:scale-125 transition-transform"
+						style={{ backgroundColor: docType.color ?? "#6b7280" }}
+						aria-label={`Change color for ${docType.name}`}
+					/>
+				</PopoverTrigger>
+				<PopoverContent
+					align="start"
+					className="grid grid-cols-4 gap-2 p-3"
+					aria-label={`Color for ${docType.name}`}
+				>
+					{PRESET_COLORS.map((c) => (
+						<PopoverClose key={c} asChild>
 							<button
-								key={c}
 								type="button"
-								onClick={() => {
-									onUpdate(docType.id, { color: c });
-									setEditingColor(false);
-								}}
-								className={`h-5 w-5 rounded-full border-2 transition-all ${
-									docType.color === c ? "border-foreground scale-110" : "border-transparent"
+								onClick={() => onUpdate(docType.id, { color: c })}
+								className={`h-6 w-6 rounded-full border-2 transition-all ${
+									docType.color === c ? "border-basalt-foreground scale-110" : "border-transparent"
 								}`}
 								style={{ backgroundColor: c }}
 								aria-label={`Select color ${c}`}
+								aria-pressed={docType.color === c}
 							/>
-						))}
-					</div>
-				)}
-			</div>
+						</PopoverClose>
+					))}
+				</PopoverContent>
+			</Popover>
 			<div className="flex-1 min-w-0">
 				{editing ? (
-					<input
+					<Input
 						type="text"
 						value={editName}
 						onChange={(e) => setEditName(e.target.value)}
@@ -305,19 +298,18 @@ function DocTypeRow({
 							}
 						}}
 						className="w-full rounded border border-basalt-border bg-basalt-control px-2 py-0.5 text-sm text-basalt-foreground outline-none"
-						// biome-ignore lint/a11y/noAutofocus: intentional focus on inline edit
 						autoFocus={true}
 						aria-label={`Edit name for ${docType.name}`}
 					/>
 				) : (
-					<span className="text-sm text-foreground truncate">{docType.name}</span>
+					<span className="text-sm text-basalt-foreground truncate">{docType.name}</span>
 				)}
 			</div>
 			{!editing && (
 				<button
 					type="button"
 					onClick={() => setEditing(true)}
-					className="shrink-0 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+					className="shrink-0 text-basalt-muted-foreground hover:text-basalt-foreground sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity"
 					aria-label={`Edit ${docType.name}`}
 				>
 					<Pencil className="h-3.5 w-3.5" strokeWidth={1.5} />
@@ -327,7 +319,7 @@ function DocTypeRow({
 				type="button"
 				onClick={() => onRemove(docType.id)}
 				disabled={isRemoving}
-				className="shrink-0 text-muted-foreground hover:text-destructive disabled:opacity-50 transition-colors"
+				className="shrink-0 text-basalt-muted-foreground hover:text-basalt-danger disabled:opacity-50 transition-colors"
 				aria-label={`Delete ${docType.name}`}
 			>
 				{isRemoving ? (

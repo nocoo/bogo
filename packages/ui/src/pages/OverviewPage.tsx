@@ -1,307 +1,198 @@
-import { BOGO_VERSION } from "@bogo/shared";
-import { Badge, LayerCard } from "@nocoo/basalt";
+import { Button, LayerCard } from "@nocoo/basalt";
+import { Empty } from "@nocoo/basalt/components/empty";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
 import { SectionRule } from "@nocoo/basalt/components/section-rule";
-import {
-	AlertCircle,
-	ArrowDownRight,
-	ArrowUpRight,
-	BarChart3,
-	CheckCircle,
-	Cpu,
-	HardDrive,
-	Info,
-	ScrollText,
-	Thermometer,
-	TrendingUp,
-	Wifi,
-} from "lucide-react";
-
-type LogLevel = "info" | "warn" | "error" | "success";
-
-interface LogEntry {
-	timestamp: string;
-	level: LogLevel;
-	message: string;
-	source: string;
-}
-
-const MOCK_LOGS: LogEntry[] = [
-	{
-		timestamp: "2026-05-24T08:30:01Z",
-		level: "info",
-		message: "Worker started",
-		source: "runtime",
-	},
-	{
-		timestamp: "2026-05-24T08:29:55Z",
-		level: "success",
-		message: "Health check passed",
-		source: "monitor",
-	},
-	{
-		timestamp: "2026-05-24T08:29:12Z",
-		level: "info",
-		message: "GET /api/live 200 12ms",
-		source: "worker",
-	},
-	{
-		timestamp: "2026-05-24T08:28:45Z",
-		level: "warn",
-		message: "Slow response: 245ms on /api/persons",
-		source: "worker",
-	},
-	{
-		timestamp: "2026-05-24T08:27:30Z",
-		level: "info",
-		message: "CF Access JWT validated",
-		source: "auth",
-	},
-	{
-		timestamp: "2026-05-24T08:26:01Z",
-		level: "error",
-		message: "Rate limit exceeded for 192.168.1.1",
-		source: "firewall",
-	},
-	{
-		timestamp: "2026-05-24T08:25:00Z",
-		level: "info",
-		message: "Static assets served: index.html",
-		source: "assets",
-	},
-	{
-		timestamp: "2026-05-24T08:24:30Z",
-		level: "success",
-		message: "Deploy complete v0.1.0",
-		source: "deploy",
-	},
-];
-
-const LEVEL_CONFIG: Record<LogLevel, { icon: React.ElementType; className: string }> = {
-	info: { icon: Info, className: "text-info" },
-	warn: { icon: AlertCircle, className: "text-warning" },
-	error: { icon: AlertCircle, className: "text-destructive" },
-	success: { icon: CheckCircle, className: "text-success" },
-};
+import { useQuery } from "@tanstack/react-query";
+import { ArrowUpRight, Building2, FileText, Network, Table2 } from "lucide-react";
+import { Link } from "react-router";
+import { PersonAvatar } from "@/components/person/PersonAvatar";
+import { useWorkspaceContext } from "@/contexts/workspace-context";
+import { documentModel } from "@/models/document.model";
+import { personModel } from "@/models/person.model";
 
 export function OverviewPage() {
-	const systemMetrics = [
-		{ label: "CPU", value: "12%", icon: Cpu, bar: 12 },
-		{ label: "Memory", value: "128MB", icon: HardDrive, bar: 45 },
-		{ label: "Network I/O", value: "2.4 MB/s", icon: Wifi, bar: 30 },
-		{ label: "Worker Temp", value: "Normal", icon: Thermometer, bar: 22 },
-	];
+	const { workspace, workspaceId } = useWorkspaceContext();
+	const documents = useQuery(documentModel.listQueryOptions(workspaceId ?? ""));
+	const people = useQuery(personModel.listQueryOptions(workspaceId ?? ""));
+	const recent = [...(documents.data ?? [])]
+		.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+		.slice(0, 6);
 
 	return (
 		<div className="space-y-6">
 			<PageHeader
-				title="System Overview"
-				description="Worker metrics, edge status, and request performance."
+				title="Overview"
+				description={
+					workspace
+						? `${workspace.name} · Your people, documents, and shared context.`
+						: "A place for your people and the knowledge around them."
+				}
+				actions={
+					<Button asChild variant="outline">
+						<Link to="/workspaces">
+							<Building2 className="h-4 w-4" strokeWidth={1.5} />
+							Workspaces
+						</Link>
+					</Button>
+				}
 			/>
-
-			{/* Status cards */}
-			<SectionRule title="Service Status" hint="Live deployment and runtime status">
-				<div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-					<LayerCard>
-						<p className="text-xs md:text-sm text-basalt-muted-foreground mb-1">Status</p>
-						<h3 className="text-base font-semibold text-basalt-foreground font-display tracking-tight">
-							Online
-						</h3>
-						<Badge variant="success" className="mt-1">
-							Healthy
-						</Badge>
-					</LayerCard>
-					<LayerCard>
-						<p className="text-xs md:text-sm text-basalt-muted-foreground mb-1">Version</p>
-						<h3 className="text-base font-semibold text-basalt-foreground font-display tracking-tight">
-							{BOGO_VERSION}
-						</h3>
-						<Badge variant="outline" className="mt-1">
-							Latest
-						</Badge>
-					</LayerCard>
-					<LayerCard>
-						<p className="text-xs md:text-sm text-basalt-muted-foreground mb-1">Runtime</p>
-						<h3 className="text-base font-semibold text-basalt-foreground font-display tracking-tight">
-							Edge
-						</h3>
-						<Badge variant="outline" className="mt-1">
-							CF Workers
-						</Badge>
-					</LayerCard>
-					<LayerCard>
-						<p className="text-xs md:text-sm text-basalt-muted-foreground mb-1">Auth</p>
-						<h3 className="text-base font-semibold text-basalt-foreground font-display tracking-tight">
-							Active
-						</h3>
-						<Badge variant="success" className="mt-1">
-							CF Access
-						</Badge>
-					</LayerCard>
-				</div>
-			</SectionRule>
-
-			{/* Analytics: traffic stats */}
-			<SectionRule title="Traffic & Latency">
-				<div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-					{[
-						{ label: "Total Requests", value: "24.5k", change: "+18%", up: true },
-						{ label: "Avg Latency", value: "23ms", change: "-5ms", up: true },
-						{ label: "Error Rate", value: "0.02%", change: "+0.01%", up: false },
-						{ label: "Cache Hit", value: "94.2%", change: "+2.1%", up: true },
-					].map((stat) => (
-						<LayerCard key={stat.label}>
-							<p className="text-xs md:text-sm text-basalt-muted-foreground mb-1">{stat.label}</p>
-							<h3 className="text-base font-semibold text-basalt-foreground font-display tracking-tight">
-								{stat.value}
-							</h3>
-							<span
-								className={`inline-flex items-center gap-1 text-xs font-medium ${stat.up ? "text-emerald-700 dark:text-emerald-400" : "text-basalt-destructive"}`}
-							>
-								{stat.up ? (
-									<ArrowUpRight className="h-3 w-3" />
-								) : (
-									<ArrowDownRight className="h-3 w-3" />
-								)}
-								{stat.change}
-							</span>
-						</LayerCard>
-					))}
-				</div>
-			</SectionRule>
-
-			{/* Analytics: charts */}
-			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-				<LayerCard>
-					<div className="flex items-center gap-3 mb-4">
-						<BarChart3 className="h-5 w-5 text-basalt-muted-foreground" />
-						<h3 className="font-semibold text-basalt-foreground">Requests by Endpoint</h3>
-					</div>
-					<div className="space-y-3">
+			{!workspaceId ? (
+				<Empty
+					icon={<Building2 />}
+					title="Start with a workspace"
+					description="Create or select a workspace to organize your people and documents."
+					action={
+						<Button asChild>
+							<Link to="/workspaces">Manage workspaces</Link>
+						</Button>
+					}
+				/>
+			) : (
+				<>
+					<div className="grid gap-4 sm:grid-cols-2">
 						{[
-							{ path: "/api/documents", count: 8420, pct: 85 },
-							{ path: "/api/persons", count: 1050, pct: 42 },
-							{ path: "/api/workspaces", count: 320, pct: 13 },
-						].map((row) => (
-							<div key={row.path}>
-								<div className="flex justify-between text-sm mb-1">
-									<span className="text-basalt-foreground font-mono">{row.path}</span>
-									<span className="text-basalt-muted-foreground">{row.count}</span>
-								</div>
-								<div className="h-2 rounded-full bg-basalt-muted">
-									<div
-										className="h-2 rounded-full bg-basalt-primary"
-										style={{ width: `${row.pct}%` }}
-									/>
-								</div>
-							</div>
-						))}
-					</div>
-				</LayerCard>
-
-				<LayerCard>
-					<div className="flex items-center gap-3 mb-4">
-						<TrendingUp className="h-5 w-5 text-basalt-muted-foreground" />
-						<h3 className="font-semibold text-basalt-foreground">Response Times</h3>
-					</div>
-					<div className="space-y-3">
-						{[
-							{ label: "p50", value: "12ms" },
-							{ label: "p90", value: "45ms" },
-							{ label: "p95", value: "78ms" },
-							{ label: "p99", value: "156ms" },
-						].map((row) => (
-							<div
-								key={row.label}
-								className="flex items-center justify-between py-2 border-b border-basalt-border last:border-0"
+							{
+								title: "Documents",
+								href: "/documents",
+								icon: FileText,
+								query: documents,
+								hint: "Notes, conversations, and decisions",
+							},
+							{
+								title: "People",
+								href: "/people",
+								icon: Network,
+								query: people,
+								hint: "Profiles and reporting relationships",
+							},
+						].map(({ title, href, icon: Icon, query, hint }) => (
+							<LayerCard
+								key={href}
+								padding="none"
+								className="transition-shadow hover:ring-1 hover:ring-basalt-border"
 							>
-								<span className="text-sm font-mono text-basalt-muted-foreground">{row.label}</span>
-								<span className="text-sm font-semibold text-basalt-foreground">{row.value}</span>
-							</div>
-						))}
-					</div>
-				</LayerCard>
-			</div>
-
-			{/* System metrics */}
-			<SectionRule title="Resources">
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					{systemMetrics.map((m) => (
-						<LayerCard key={m.label}>
-							<div className="flex items-center gap-3 mb-3">
-								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-basalt-primary/10">
-									<m.icon className="h-5 w-5 text-basalt-primary" />
-								</div>
-								<div>
-									<p className="text-xs text-basalt-muted-foreground">{m.label}</p>
-									<p className="text-base font-semibold text-basalt-foreground">{m.value}</p>
-								</div>
-							</div>
-							<div className="h-2 rounded-full bg-basalt-muted">
-								<div
-									className="h-2 rounded-full bg-basalt-primary transition-all"
-									style={{ width: `${m.bar}%` }}
-								/>
-							</div>
-						</LayerCard>
-					))}
-				</div>
-			</SectionRule>
-
-			{/* Runtime information */}
-			<LayerCard>
-				<h3 className="font-semibold text-basalt-foreground mb-4">Runtime Information</h3>
-				<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-					{[
-						{ key: "Runtime", value: "Cloudflare Workers" },
-						{ key: "Region", value: "Global (Edge)" },
-						{ key: "Wrangler", value: "v4.94.0" },
-						{ key: "Compatibility", value: "2025-03-14" },
-						{ key: "Framework", value: "Hono v4" },
-						{ key: "Assets", value: "SPA (run_worker_first)" },
-					].map((row) => (
-						<div
-							key={row.key}
-							className="flex items-center justify-between py-2 border-b border-basalt-border"
-						>
-							<span className="text-sm text-basalt-muted-foreground">{row.key}</span>
-							<span className="text-sm font-medium text-basalt-foreground font-mono">
-								{row.value}
-							</span>
-						</div>
-					))}
-				</div>
-			</LayerCard>
-
-			{/* Recent logs */}
-			<LayerCard>
-				<div className="flex items-center gap-3 mb-4">
-					<ScrollText className="h-5 w-5 text-basalt-muted-foreground" />
-					<h3 className="font-semibold text-basalt-foreground">Recent Logs</h3>
-				</div>
-				<div className="space-y-1">
-					{MOCK_LOGS.map((log) => {
-						const config = LEVEL_CONFIG[log.level];
-						return (
-							<div
-								key={`${log.timestamp}-${log.message}`}
-								className="flex items-start gap-3 py-2 border-b border-basalt-border last:border-0"
-							>
-								<config.icon className={`h-4 w-4 mt-0.5 shrink-0 ${config.className}`} />
-								<div className="flex-1 min-w-0">
-									<p className="text-sm text-basalt-foreground truncate">{log.message}</p>
-									<div className="flex items-center gap-2 mt-0.5">
-										<span className="text-xs text-basalt-muted-foreground font-mono">
-											{new Date(log.timestamp).toLocaleTimeString()}
-										</span>
-										<span className="text-xs text-basalt-muted-foreground">{log.source}</span>
+								<Link
+									to={href}
+									className="group flex items-start justify-between gap-4 rounded-basalt-card p-5"
+								>
+									<div className="min-w-0">
+										<p className="flex items-center gap-2 text-sm text-basalt-muted-foreground">
+											<Icon className="h-4 w-4" strokeWidth={1.5} />
+											{title}
+										</p>
+										<p className="my-3 text-3xl font-semibold tracking-tight tabular-nums">
+											{query.isLoading || query.isError ? "—" : (query.data?.length ?? 0)}
+										</p>
+										<p className="text-xs text-basalt-muted-foreground">
+											{query.isError ? "Could not load this collection" : hint}
+										</p>
 									</div>
-								</div>
-							</div>
-						);
-					})}
-				</div>
-			</LayerCard>
+									<ArrowUpRight
+										className="h-4 w-4 text-basalt-muted-foreground transition-colors group-hover:text-basalt-primary"
+										strokeWidth={1.5}
+									/>
+								</Link>
+							</LayerCard>
+						))}
+					</div>
+					<div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+						<SectionRule
+							title="Recent documents"
+							actions={
+								<Button asChild variant="ghost" size="sm">
+									<Link to="/documents">
+										View all
+										<ArrowUpRight className="h-4 w-4" strokeWidth={1.5} />
+									</Link>
+								</Button>
+							}
+						>
+							<LayerCard padding="none">
+								{documents.isLoading ? (
+									<LayerCard.Loading label="Loading documents" />
+								) : documents.isError ? (
+									<p role="alert" className="p-5 text-sm text-basalt-danger">
+										Could not load recent documents.
+									</p>
+								) : recent.length === 0 ? (
+									<Empty
+										title="No documents yet"
+										description="Keep your first note, decision, or conversation here."
+									/>
+								) : (
+									<ul className="divide-y divide-basalt-border/60">
+										{recent.map((doc) => (
+											<li key={doc.id}>
+												<Link
+													to={`/documents/${doc.id}`}
+													className="flex items-center gap-3 rounded-lg px-4 py-4 transition-colors hover:bg-basalt-accent/50"
+												>
+													<FileText
+														className="h-4 w-4 shrink-0 text-basalt-muted-foreground"
+														strokeWidth={1.5}
+													/>
+													<div className="min-w-0 flex-1">
+														<p className="truncate text-sm font-medium">{doc.title}</p>
+														<p className="mt-1 text-xs text-basalt-muted-foreground">
+															Updated {new Date(doc.updatedAt).toLocaleDateString()}
+														</p>
+													</div>
+													<ArrowUpRight
+														className="h-4 w-4 shrink-0 text-basalt-muted-foreground"
+														strokeWidth={1.5}
+													/>
+												</Link>
+											</li>
+										))}
+									</ul>
+								)}
+							</LayerCard>
+						</SectionRule>
+						<SectionRule
+							title="People"
+							actions={
+								<Button asChild variant="ghost" size="sm">
+									<Link to="/table">
+										<Table2 className="h-4 w-4" strokeWidth={1.5} />
+										Table view
+									</Link>
+								</Button>
+							}
+						>
+							<LayerCard padding="none">
+								{people.isLoading ? (
+									<LayerCard.Loading label="Loading people" />
+								) : people.isError ? (
+									<p role="alert" className="p-5 text-sm text-basalt-danger">
+										Could not load people.
+									</p>
+								) : !people.data?.length ? (
+									<Empty title="No people yet" description="Your organization will appear here." />
+								) : (
+									<ul className="divide-y divide-basalt-border/60">
+										{people.data.slice(0, 5).map((person) => (
+											<li key={person.id}>
+												<Link
+													to={`/people/${person.id}`}
+													className="flex items-center gap-3 rounded-lg p-4 transition-colors hover:bg-basalt-accent/50"
+												>
+													<PersonAvatar name={person.name} avatarUrl={person.avatarUrl} size="lg" />
+													<div className="min-w-0">
+														<p className="truncate text-sm font-medium">{person.name}</p>
+														<p className="mt-0.5 truncate text-xs text-basalt-muted-foreground">
+															{person.title || "View profile"}
+														</p>
+													</div>
+												</Link>
+											</li>
+										))}
+									</ul>
+								)}
+							</LayerCard>
+						</SectionRule>
+					</div>
+				</>
+			)}
 		</div>
 	);
 }

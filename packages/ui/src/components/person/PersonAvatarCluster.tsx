@@ -53,14 +53,14 @@ export function PersonAvatarCluster({
 						name={p.name}
 						avatarUrl={p.avatarUrl}
 						size={size}
-						className={cn("ring-card", i === 0 ? "ml-0" : ringOffset)}
+						className={cn("ring-basalt-card", i === 0 ? "ml-0" : ringOffset)}
 					/>
 				</PersonHover>
 			))}
 			{overflow > 0 && (
 				<span
 					className={cn(
-						"inline-flex items-center justify-center rounded-full bg-muted text-muted-foreground font-medium px-1 ring-card",
+						"inline-flex items-center justify-center rounded-full bg-basalt-muted text-basalt-muted-foreground font-medium px-1 ring-basalt-card",
 						ringOffset,
 						overflowSize,
 					)}

@@ -1,5 +1,6 @@
 import type { CustomFieldDefinition, FieldType, UpdateFieldDefInput } from "@bogo/shared";
 import { Button, Input, LayerCard } from "@nocoo/basalt";
+import { PageHeader } from "@nocoo/basalt/components/page-header";
 import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { FieldDefsVM } from "../../viewmodels/field/use-field-defs.js";
@@ -12,21 +13,8 @@ const FIELD_TYPE_LABELS: Record<FieldType, string> = {
 	boolean: "Boolean",
 };
 
-export function FieldDefsManager({
-	vm,
-	showHeader = true,
-	showCreateOverride,
-	setShowCreateOverride,
-}: {
-	vm: FieldDefsVM;
-	showHeader?: boolean;
-	showCreateOverride?: boolean;
-	setShowCreateOverride?: (open: boolean) => void;
-}) {
-	const [localShowCreate, setLocalShowCreate] = useState(false);
-	const showCreate = showCreateOverride !== undefined ? showCreateOverride : localShowCreate;
-	const setShowCreate =
-		setShowCreateOverride !== undefined ? setShowCreateOverride : setLocalShowCreate;
+export function FieldDefsManager({ vm }: { vm: FieldDefsVM }) {
+	const [showCreate, setShowCreate] = useState(false);
 
 	if (vm.isLoading) {
 		return (
@@ -38,7 +26,7 @@ export function FieldDefsManager({
 
 	if (vm.error) {
 		return (
-			<div className="rounded-lg bg-basalt-destructive/10 p-4 text-sm text-basalt-destructive">
+			<div className="rounded-lg bg-basalt-destructive/10 p-4 text-sm text-basalt-danger">
 				Failed to load field definitions: {vm.error.message}
 			</div>
 		);
@@ -46,65 +34,66 @@ export function FieldDefsManager({
 
 	return (
 		<div className="space-y-4">
-			{showHeader && (
-				<div className="flex items-center justify-between">
-					<h3 className="text-sm font-semibold text-basalt-foreground">Custom Fields</h3>
+			<PageHeader
+				title="Custom Fields"
+				description="Define profile fields and choose what appears on the organization chart."
+				actions={
 					<Button
-						size="sm"
 						onClick={() => setShowCreate(true)}
 						disabled={showCreate}
 						aria-label="Add field definition"
 					>
-						<Plus className="h-3 w-3" strokeWidth={2} />
+						<Plus className="h-4 w-4" strokeWidth={1.5} />
 						Add Field
 					</Button>
-				</div>
-			)}
-
-			{showCreate && (
-				<CreateFieldForm
-					onSubmit={(input) => {
-						vm.create(input);
-						setShowCreate(false);
-					}}
-					onCancel={() => setShowCreate(false)}
-					isCreating={vm.isCreating}
-				/>
-			)}
-
-			{vm.defs.length === 0 && !showCreate && (
-				<p className="py-4 text-center text-sm text-muted-foreground">
-					No custom fields defined yet
-				</p>
-			)}
-
-			<div className="space-y-2">
-				{vm.defs.map((def, idx) => (
-					<FieldDefRow
-						key={def.id}
-						def={def}
-						isFirst={idx === 0}
-						isLast={idx === vm.defs.length - 1}
-						onMoveUp={() => {
-							if (idx > 0) {
-								const prev = vm.defs[idx - 1];
-								vm.reorder(def.id, prev.sortOrder);
-								vm.reorder(prev.id, def.sortOrder);
-							}
+				}
+			/>
+			<LayerCard className="space-y-4">
+				{showCreate && (
+					<CreateFieldForm
+						onSubmit={(input) => {
+							vm.create(input);
+							setShowCreate(false);
 						}}
-						onMoveDown={() => {
-							if (idx < vm.defs.length - 1) {
-								const next = vm.defs[idx + 1];
-								vm.reorder(def.id, next.sortOrder);
-								vm.reorder(next.id, def.sortOrder);
-							}
-						}}
-						onUpdate={vm.update}
-						onRemove={vm.remove}
-						isRemoving={vm.isRemoving}
+						onCancel={() => setShowCreate(false)}
+						isCreating={vm.isCreating}
 					/>
-				))}
-			</div>
+				)}
+
+				{vm.defs.length === 0 && !showCreate && (
+					<p className="py-4 text-center text-sm text-basalt-muted-foreground">
+						No custom fields defined yet
+					</p>
+				)}
+
+				<div className="space-y-2">
+					{vm.defs.map((def, idx) => (
+						<FieldDefRow
+							key={def.id}
+							def={def}
+							isFirst={idx === 0}
+							isLast={idx === vm.defs.length - 1}
+							onMoveUp={() => {
+								if (idx > 0) {
+									const prev = vm.defs[idx - 1];
+									vm.reorder(def.id, prev.sortOrder);
+									vm.reorder(prev.id, def.sortOrder);
+								}
+							}}
+							onMoveDown={() => {
+								if (idx < vm.defs.length - 1) {
+									const next = vm.defs[idx + 1];
+									vm.reorder(def.id, next.sortOrder);
+									vm.reorder(next.id, def.sortOrder);
+								}
+							}}
+							onUpdate={vm.update}
+							onRemove={vm.remove}
+							isRemoving={vm.isRemoving}
+						/>
+					))}
+				</div>
+			</LayerCard>
 		</div>
 	);
 }
@@ -174,7 +163,7 @@ function CreateFieldForm({
 					<X className="h-4 w-4" />
 				</Button>
 			</div>
-			<div className="grid grid-cols-2 gap-2">
+			<div className="grid gap-3 sm:grid-cols-2">
 				<div>
 					<label htmlFor="field-name" className="text-xs text-basalt-muted-foreground">
 						Name
@@ -330,14 +319,14 @@ function FieldDefRow({
 	}, [editOptions, def.id, def.options, onUpdate]);
 
 	return (
-		<LayerCard className="group px-3 py-2 space-y-1.5 bg-basalt-bright border border-basalt-border">
+		<LayerCard className="group px-3 py-2 space-y-1.5 ">
 			<div className="flex items-center gap-2">
 				<div className="flex flex-col">
 					<button
 						type="button"
 						onClick={onMoveUp}
 						disabled={isFirst}
-						className="text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+						className="text-basalt-muted-foreground hover:text-basalt-foreground disabled:opacity-30 transition-colors"
 						aria-label={`Move ${def.name} up`}
 					>
 						<ChevronUp className="h-3 w-3" />
@@ -346,7 +335,7 @@ function FieldDefRow({
 						type="button"
 						onClick={onMoveDown}
 						disabled={isLast}
-						className="text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+						className="text-basalt-muted-foreground hover:text-basalt-foreground disabled:opacity-30 transition-colors"
 						aria-label={`Move ${def.name} down`}
 					>
 						<ChevronDown className="h-3 w-3" />
@@ -354,7 +343,7 @@ function FieldDefRow({
 				</div>
 				<div className="flex-1 min-w-0">
 					{editing ? (
-						<input
+						<Input
 							type="text"
 							value={editName}
 							onChange={(e) => setEditName(e.target.value)}
@@ -369,19 +358,18 @@ function FieldDefRow({
 								}
 							}}
 							className="w-full rounded border border-basalt-border bg-basalt-control px-2 py-1 text-sm text-basalt-foreground outline-none"
-							// biome-ignore lint/a11y/noAutofocus: intentional focus on inline edit
 							autoFocus={true}
 							aria-label={`Edit name for ${def.name}`}
 						/>
 					) : (
-						<span className="text-sm text-foreground truncate">{def.name}</span>
+						<span className="text-sm text-basalt-foreground truncate">{def.name}</span>
 					)}
 				</div>
 				{!editing && (
 					<button
 						type="button"
 						onClick={() => setEditing(true)}
-						className="shrink-0 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+						className="shrink-0 text-basalt-muted-foreground hover:text-basalt-foreground sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity"
 						aria-label={`Edit ${def.name}`}
 					>
 						<Pencil className="h-3.5 w-3.5" strokeWidth={1.5} />
@@ -391,7 +379,7 @@ function FieldDefRow({
 					type="button"
 					onClick={() => onRemove(def.id)}
 					disabled={isRemoving}
-					className="shrink-0 text-muted-foreground hover:text-destructive disabled:opacity-50 transition-colors"
+					className="shrink-0 text-basalt-muted-foreground hover:text-basalt-danger disabled:opacity-50 transition-colors"
 					aria-label={`Delete ${def.name}`}
 				>
 					{isRemoving ? (
@@ -401,11 +389,11 @@ function FieldDefRow({
 					)}
 				</button>
 			</div>
-			<div className="flex items-center gap-3 pl-6">
+			<div className="flex flex-wrap items-center gap-x-4 gap-y-2 pl-6">
 				<select
 					value={def.fieldType}
 					onChange={(e) => handleTypeChange(e.target.value as FieldType)}
-					className="field-select field-sm"
+					className="field-select h-8 text-xs"
 					aria-label={`Type for ${def.name}`}
 				>
 					{Object.entries(FIELD_TYPE_LABELS).map(([k, v]) => (
@@ -440,13 +428,13 @@ function FieldDefRow({
 			</div>
 			{def.fieldType === "select" && (
 				<div className="pl-6">
-					<input
+					<Input
 						type="text"
 						value={editOptions}
 						onChange={(e) => setEditOptions(e.target.value)}
 						onBlur={handleOptionsBlur}
 						placeholder="Option 1, Option 2, ..."
-						className="field field-sm w-full"
+						className="h-8 w-full"
 						aria-label={`Options for ${def.name}`}
 					/>
 				</div>

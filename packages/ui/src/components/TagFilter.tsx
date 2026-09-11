@@ -31,7 +31,7 @@ export function TagFilter({ scope, selected, onChange }: TagFilterProps) {
 
 	return (
 		<div className="flex items-center gap-2 flex-wrap">
-			<Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+			<Filter className="h-3.5 w-3.5 text-basalt-muted-foreground shrink-0" />
 			{allTags.map((tag) => {
 				const isActive = selected.includes(tag.id);
 				return (
@@ -39,7 +39,7 @@ export function TagFilter({ scope, selected, onChange }: TagFilterProps) {
 						key={tag.id}
 						type="button"
 						onClick={() => toggle(tag.id)}
-						className={`transition-opacity ${isActive ? "opacity-100" : "opacity-40 hover:opacity-70"}`}
+						className={`rounded-full transition-shadow ${isActive ? "ring-2 ring-basalt-primary ring-offset-2 ring-offset-basalt-card" : "hover:ring-2 hover:ring-basalt-border"}`}
 						aria-label={`${isActive ? "Remove" : "Add"} filter ${tag.name}`}
 						aria-pressed={isActive}
 					>

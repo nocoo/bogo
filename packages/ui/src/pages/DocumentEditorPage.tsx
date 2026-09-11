@@ -15,7 +15,7 @@ export function DocumentEditorPage() {
 
 	if (!workspaceId) {
 		return (
-			<div className="flex items-center justify-center py-12 text-muted-foreground">
+			<div className="flex items-center justify-center py-12 text-basalt-muted-foreground">
 				Select a workspace to view documents
 			</div>
 		);

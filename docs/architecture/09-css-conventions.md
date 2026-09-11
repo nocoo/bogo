@@ -1,118 +1,49 @@
-# 10. CSS Conventions
+# CSS conventions
 
-Single source of truth for styling decisions in `packages/ui`. Tailwind v4 + `@tailwindcss/typography` + Basalt design tokens.
+The frontend uses `@nocoo/basalt`. Its installed `ai/INTEGRATION.md` is the component integration reference. `packages/ui/src/index.css` contains the Tailwind imports, base resets, and the few application-specific rules for native selects, the people table, the organization chart, and rendered Markdown.
 
-## TL;DR
+## Surfaces and colors
 
-- **Use Tailwind utilities by default.** Reach for a custom class only when a pattern is reused or a className exceeds ~6–8 visual concerns.
-- **Never use color hex/oklch in component code.** Use theme tokens (`bg-card`, `text-foreground`, etc.).
-- **`prose-invert` is always `dark:prose-invert`.** Unscoped `prose-invert` makes light-mode text near-white on near-white background.
-- **All custom rules go in `src/index.css`.** No CSS modules, no inline `<style>`, no per-component `.css` files.
+Use `basalt-` prefixed tokens. Do not maintain a second application palette or copy Basalt component styles into CSS classes.
 
-## File structure (`src/index.css`)
-
-Six sections, in this order — see the file's own banner comments:
-
-| § | Section | What lives here |
+| Level | Component | Purpose |
 |---|---|---|
-| 1 | Imports + plugins | `@import "tailwindcss"`, `@plugin "@tailwindcss/typography"` |
-| 2 | Variants | `@custom-variant dark` |
-| 3 | `@theme inline` | Maps semantic vars → Tailwind utility names |
-| 4 | `:root` / `.dark` | Raw oklch design tokens |
-| 5 | `@layer base` | Element-level resets + body typography only |
-| 6 | `@layer components` | Reusable component classes + themed element chrome |
+| L0 | `AppShell`, `Sidebar`, `AppHeader` | Application chrome |
+| L1 | `ContentIsland` | The page content area |
+| L2 | First `LayerCard` inside the island | Lists, editor panes, settings sections, chart canvas |
+| L3 | Nested `LayerCard` or `LayerCard.Well` | Rows and controls within a card |
 
-Do **not** create additional `.css` files. The file is small (<200 lines today) and easier to reason about as one ordered document.
+The components establish both the surface markers and the inherited control fill. A background utility alone does not establish a level. Use `bg-basalt-control` for native controls so they follow their containing surface. Do not force `bg-basalt-background` onto fields inside a card.
 
-## Color tokens — when to use which
+Use `text-basalt-muted-foreground` for supporting copy, `text-basalt-primary` for links, and `text-basalt-danger` for error text. Success text uses `text-emerald-700 dark:text-emerald-400`. Do not lower text opacity to distinguish unselected filters; use an outline or selected-state ring.
 
-Four luminance layers (aligned with pew Basalt tiers). Prefer the semantic
-component classes in `index.css` (`.panel-l2`, `.btn-*`, `.field`, `.data-table-*`)
-over ad-hoc utility soup.
+User-selected tag/type colors and deterministic avatar colors are data, so they may use inline styles. Keep the tag contrast calculation in `lib/tag-colors.ts`. Other surfaces and text use Basalt tokens.
 
-| Token / class | Luminance tier | Use for |
-|---|---|---|
-| `bg-background` | **L0** | App shell, sidebar, root canvas |
-| `bg-card` (+ DashboardLayout island) | **L1** | Page content island lifted off L0 |
-| `bg-secondary` / `.panel-l2` | **L2** | Section panels nested in L1 (filters, config, table shell) |
-| `bg-muted` / `.panel-l3` | **L3** | Deepest nests (sticky table header, checklist rows inside L2) |
-| `bg-popover` | L1 elevated | Popovers, dropdowns, modals |
-| `bg-accent` | — | Hovered/selected list items |
-| `bg-primary` / `.btn-primary` | — | Call-to-action buttons, active state |
-| `bg-destructive` / `.btn-destructive` | — | Delete/danger buttons, error toasts |
-| `border-border` | — | Default borders (already applied to `*` in base) |
-| `border-input` / `.field` | — | Form field borders |
-| `ring-ring` | — | Focus rings |
+## Controls and page layout
 
-**Controls**: use `.btn-primary` / `.btn-secondary` / `.btn-ghost` / `.btn-destructive`
-(+ optional `.btn-sm`) and `.field` / `.field-select` so height (`h-8`), radius, and
-focus rings stay consistent. Do not invent one-off `px-2 py-1 text-xs` buttons.
+- Use Basalt `Button`, `Input`, `InputArea`, `Dialog`, `DropdownMenu`, `Popover`, and `Tabs`. Use `Button asChild` with React Router `Link` for navigation actions.
+- Native `<select className="field-select">` retains native keyboard and mobile behavior while matching the current Basalt surface. Do not recreate `.btn-*`, `.field`, or `.panel-l*` classes.
+- Start every application page with `PageHeader`, flush on the content island. Put primary page actions in `actions`, with creation last.
+- Show document filters directly below the page header. Keep their labels and Clear action; avoid another title or wrapping card.
+- Use `SectionRule` for separate page sections, and `LayerCard` for grouped content.
+- Keep table scrolling inside its card. Document metadata and history remain available below the editor on smaller screens. Chart detail panels stack inside the viewport when they cannot sit alongside each other.
+- Keep `ContentIsland` positioned (`relative`) so absolute accessibility labels scroll inside it instead of extending the document viewport.
+- Keep icon actions visible on touch screens and when their row contains keyboard focus.
 
-**View switcher**: multi-named configs (e.g. Table views) use `.view-switcher` +
-`.view-tab` / `.view-tab-active`. Mark the workspace default with `.badge-soft`
-(active) / `.badge-soft-muted` (inactive) — never a star glyph or icon-only “Default” button.
+## Navigation
 
-**Detail navigation** (document / person editors):
+`AppHeader` renders ancestor breadcrumbs only. The current page title belongs to `PageHeader`. On narrow screens show the direct parent; every displayed ancestor has a working route.
 
-1. Shell **breadcrumbs**: `Home › Parent list › Edit …` (no raw ids).
-2. In-page **`PageBackLink`** to the same parent — icon-only left of the title /
-   identity row, or `.page-back` text variant when a label is needed.
-3. Do not invent a third back control; list parents are `/documents` and `/table`.
+The sidebar uses the center of its 68px rail as a fixed **34px icon axis**. The 24px logo starts at 22px; 16px navigation/search icons start at 26px. Header and navigation content keep a fixed width during the sidebar transition, so neither the logo nor the icon axis follows the animating container center. The avatar shares the same axis.
 
-**Never** put raw `oklch(...)`, `#...`, `rgb(...)` in `.tsx` files. If you find yourself wanting one, the token is missing — add it to `:root` + `.dark` + `@theme inline`, then use it.
+`PageBackLink` uses Basalt buttons and the same parent routes as the breadcrumbs: `/documents` or `/table`, preserving the source table view when provided.
 
-## When to abstract into a component class
+## Theme and Markdown
 
-Keep className inline **unless any of these are true**:
+Basalt's theme provider owns the theme. The entry point applies its pre-hydration classes before React renders. Controls, toasts, page surfaces, ReactFlow, and version diffs follow that theme; do not add localStorage readers or DOM mutation observers to individual components. Keep the stylesheet import order from `INTEGRATION.md`: Basalt source scan, Basalt Tailwind styles, then Tailwind.
 
-1. **The same long combination appears in ≥2 places.** Extract.
-2. **A single className exceeds ~200 characters / ~12 utility tokens.** Extract.
-3. **The styling encodes a domain concept** (e.g., "this is the markdown surface", "this is a kbd hint"). Extract under a semantic name.
+Markdown uses the typography plugin with prose variables mapped to Basalt tokens. This keeps headings, body copy, code, tables, and links consistent in both themes without a separate inverted palette.
 
-When extracting:
+## Verification
 
-- Put it in `@layer components` (utilities can still override at call sites).
-- Use a semantic, BEM-like name: `.markdown-surface`, `.kbd-hint`, `.field-row` — not `.flex-blue-thing`.
-- Apply theme tokens via `@apply`, not raw values.
-- Pair `.dark` variants right after the base rule.
-
-Example:
-
-```css
-@layer components {
-  .markdown-surface {
-    @apply prose prose-sm max-w-none rounded-lg border border-border bg-secondary p-6 text-foreground;
-  }
-  .dark .markdown-surface {
-    @apply prose-invert;
-  }
-}
-```
-
-Then in `.tsx`:
-
-```tsx
-<article className="markdown-surface flex-1 w-full" />
-```
-
-## Typography (prose)
-
-We use `@tailwindcss/typography` for rendered markdown.
-
-- **Always** wrap `prose-invert` in `dark:` (or `.dark .your-class`). Unconditional `prose-invert` forces near-white text on light backgrounds → invisible bold text bug we fixed in `1984521`.
-- Tune `prose-h*`, `prose-p`, `prose-a` modifiers at the call site rather than overriding global prose vars.
-
-## Element chrome
-
-A bare HTML element that needs themed defaults (e.g., `<select>` arrow) goes in `@layer components`, **not** `@layer base`:
-
-- `@layer base` is for resets and global typography.
-- `@layer components` lets utilities override it, and signals "this is a component default, not a reset."
-
-## Avoid
-
-- ❌ `style={{ ... }}` for layout/color. Allowed only for genuinely dynamic values (e.g., a chart bar width tied to data).
-- ❌ `className={cn("a", "b", isFoo && "c")}` for conditional **classNames** — fine. But avoid `cn` to glue together what should be one semantic class.
-- ❌ `!important` overrides. If you need it, you're fighting a misplaced rule — fix the source.
-- ❌ Raw colors anywhere in `.tsx`.
-- ❌ Adding `.css` files outside `src/index.css`.
+Run the UI tests, UI build (including TypeScript), and repository lint. Check the sidebar throughout both width transitions, page/breadcrumb hit targets, native controls, and overflow at mobile and desktop widths in both themes. Retain semantic HTML and keyboard operation when replacing a custom widget with a library component.

@@ -1,4 +1,5 @@
 import type { CustomFieldDefinition, ViewFilter } from "@bogo/shared";
+import { Button, Input } from "@nocoo/basalt";
 import type { ColumnMeta } from "@/viewmodels/table/column-catalog";
 
 /**
@@ -30,7 +31,7 @@ export function FilterValueInput({
 		const v = typeof filter.value === "string" ? filter.value : "";
 		return (
 			<select
-				className="field-select field-sm min-w-[8rem] flex-1"
+				className="field-select h-8 text-xs min-w-[8rem] flex-1"
 				value={v === "true" || v === "false" ? v : ""}
 				onChange={(e) => onChange(e.target.value)}
 				aria-label="Filter value"
@@ -49,7 +50,7 @@ export function FilterValueInput({
 		const v = typeof filter.value === "string" ? filter.value : "";
 		return (
 			<select
-				className="field-select field-sm min-w-[8rem] flex-1"
+				className="field-select h-8 text-xs min-w-[8rem] flex-1"
 				value={v}
 				onChange={(e) => onChange(e.target.value)}
 				aria-label="Filter value"
@@ -66,103 +67,46 @@ export function FilterValueInput({
 		);
 	}
 
-	if (kind === "select" && op === "in") {
+	if (op === "in" && (kind === "select" || kind === "tags")) {
 		const selected = new Set(Array.isArray(filter.value) ? filter.value : []);
-		const options = def?.options ?? [];
-		return (
-			<fieldset className="m-0 flex min-w-[10rem] flex-1 flex-wrap gap-1 border-0 p-0">
-				<legend className="sr-only">Filter values</legend>
-				{options.map((opt) => {
-					const on = selected.has(opt);
-					return (
-						<button
-							key={opt}
-							type="button"
-							className={
-								on
-									? "btn-secondary btn-sm bg-accent text-accent-foreground"
-									: "btn-secondary btn-sm"
-							}
-							aria-pressed={on}
-							onClick={() => {
-								const next = new Set(selected);
-								if (on) next.delete(opt);
-								else next.add(opt);
-								onChange([...next]);
-							}}
-						>
-							{opt}
-						</button>
-					);
-				})}
-			</fieldset>
-		);
-	}
-
-	if (kind === "tags" && op === "in") {
-		const selected = new Set(Array.isArray(filter.value) ? filter.value : []);
-		if (personTags.length === 0) {
-			return <span className="text-xs text-muted-foreground">No person tags defined</span>;
+		const options =
+			kind === "tags" ? personTags : (def?.options ?? []).map((name) => ({ id: name, name }));
+		if (options.length === 0) {
+			return (
+				<span className="text-xs text-basalt-muted-foreground">
+					{kind === "tags" ? "No person tags defined" : "No options defined"}
+				</span>
+			);
 		}
 		return (
-			<fieldset className="m-0 flex min-w-[10rem] flex-1 flex-wrap gap-1 border-0 p-0">
-				<legend className="sr-only">Filter tags</legend>
-				{personTags.map((t) => {
-					const on = selected.has(t.id);
-					return (
-						<button
-							key={t.id}
-							type="button"
-							className={
-								on
-									? "btn-secondary btn-sm bg-accent text-accent-foreground"
-									: "btn-secondary btn-sm"
-							}
-							aria-pressed={on}
-							onClick={() => {
-								const next = new Set(selected);
-								if (on) next.delete(t.id);
-								else next.add(t.id);
-								onChange([...next]);
-							}}
-						>
-							{t.name}
-						</button>
-					);
-				})}
+			<fieldset className="m-0 flex min-w-0 flex-1 flex-wrap gap-1 border-0 p-0">
+				<legend className="sr-only">{kind === "tags" ? "Filter tags" : "Filter values"}</legend>
+				{options.map((option) => (
+					<Button
+						key={option.id}
+						variant="outline"
+						size="sm"
+						aria-pressed={selected.has(option.id)}
+						className={selected.has(option.id) ? "bg-basalt-accent" : undefined}
+						onClick={() => {
+							const next = new Set(selected);
+							if (next.has(option.id)) next.delete(option.id);
+							else next.add(option.id);
+							onChange([...next]);
+						}}
+					>
+						{option.name}
+					</Button>
+				))}
 			</fieldset>
-		);
-	}
-
-	if (kind === "number") {
-		return (
-			<input
-				type="number"
-				className="field field-sm min-w-[8rem] flex-1"
-				value={typeof filter.value === "string" ? filter.value : ""}
-				onChange={(e) => onChange(e.target.value)}
-				aria-label="Filter value"
-			/>
-		);
-	}
-
-	if (kind === "date" || kind === "date-day") {
-		return (
-			<input
-				type="date"
-				className="field field-sm min-w-[8rem] flex-1"
-				value={typeof filter.value === "string" ? filter.value : ""}
-				onChange={(e) => onChange(e.target.value)}
-				aria-label="Filter value"
-			/>
 		);
 	}
 
 	// text, person-ref, and remaining `in` freeform
 	if (op === "in") {
 		return (
-			<input
-				className="field field-sm min-w-[10rem] flex-1"
+			<Input
+				className="h-8 min-w-[10rem] flex-1"
 				placeholder={
 					kind === "person-ref" ? "Names or ids, comma-separated" : "comma-separated values"
 				}
@@ -180,8 +124,9 @@ export function FilterValueInput({
 	}
 
 	return (
-		<input
-			className="field field-sm min-w-[8rem] flex-1"
+		<Input
+			type={kind === "number" ? "number" : kind === "date" || kind === "date-day" ? "date" : "text"}
+			className="h-8 min-w-[8rem] flex-1"
 			value={typeof filter.value === "string" ? filter.value : ""}
 			placeholder={kind === "person-ref" ? "Person name, e.g. Zheng Li" : undefined}
 			onChange={(e) => onChange(e.target.value)}

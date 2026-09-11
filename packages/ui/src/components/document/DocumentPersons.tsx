@@ -1,4 +1,5 @@
 import type { DocumentPerson, Person } from "@bogo/shared";
+import { Button } from "@nocoo/basalt";
 import { Loader2, Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { PersonChip } from "../../components/person/PersonChip.js";
@@ -46,30 +47,32 @@ export function DocumentPersons({
 	if (isLoading) {
 		return (
 			<div className="flex items-center gap-2 py-2" role="status" aria-label="Loading persons">
-				<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-				<span className="text-xs text-muted-foreground">Loading associations…</span>
+				<Loader2 className="h-4 w-4 animate-spin text-basalt-muted-foreground" />
+				<span className="text-xs text-basalt-muted-foreground">Loading associations…</span>
 			</div>
 		);
 	}
 
 	return (
 		<div className="space-y-2">
-			{!compact && <h3 className="text-sm font-semibold text-foreground">Associated People</h3>}
+			{!compact && (
+				<h3 className="text-sm font-semibold text-basalt-foreground">Associated People</h3>
+			)}
 
 			{personsError && (
-				<div className="rounded-md bg-destructive/10 p-2 text-xs text-destructive">
+				<div className="rounded-md bg-basalt-destructive/10 p-2 text-xs text-basalt-danger">
 					Failed to load associations: {personsError.message}
 				</div>
 			)}
 
 			{allPersonsError && (
-				<div className="rounded-md bg-destructive/10 p-2 text-xs text-destructive">
+				<div className="rounded-md bg-basalt-destructive/10 p-2 text-xs text-basalt-danger">
 					Failed to load people: {allPersonsError.message}
 				</div>
 			)}
 
 			{!personsError && persons.length === 0 && (
-				<p className="text-xs text-muted-foreground">No people associated yet.</p>
+				<p className="text-xs text-basalt-muted-foreground">No people associated yet.</p>
 			)}
 
 			<div className="flex flex-col gap-1.5">
@@ -92,8 +95,8 @@ export function DocumentPersons({
 			{!personsError &&
 				(allPersonsLoading ? (
 					<div className="flex items-center gap-2 py-1" role="status" aria-label="Loading people">
-						<Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-						<span className="text-xs text-muted-foreground">Loading people…</span>
+						<Loader2 className="h-3.5 w-3.5 animate-spin text-basalt-muted-foreground" />
+						<span className="text-xs text-basalt-muted-foreground">Loading people…</span>
 					</div>
 				) : (
 					available.length > 0 && (
@@ -101,7 +104,7 @@ export function DocumentPersons({
 							<select
 								value={selectedPersonId}
 								onChange={(e) => setSelectedPersonId(e.target.value)}
-								className="flex-1 rounded-md border border-border bg-secondary pl-3 pr-8 py-2 text-xs text-foreground outline-none focus:border-primary transition-colors"
+								className="field-select min-w-0 flex-1"
 								aria-label="Select person to add"
 							>
 								<option value="">Select person…</option>
@@ -111,11 +114,11 @@ export function DocumentPersons({
 									</option>
 								))}
 							</select>
-							<button
+							<Button
 								type="button"
 								onClick={handleAdd}
 								disabled={!selectedPersonId || isAdding}
-								className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+								size="sm"
 								aria-label="Add person"
 							>
 								{isAdding ? (
@@ -124,7 +127,7 @@ export function DocumentPersons({
 									<Plus className="h-3.5 w-3.5" />
 								)}
 								Add
-							</button>
+							</Button>
 						</div>
 					)
 				))}

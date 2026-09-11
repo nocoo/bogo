@@ -11,11 +11,15 @@ import {
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
 	Input,
 	LayerCard,
 } from "@nocoo/basalt";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
-import { Columns3, Plus, Trash2 } from "lucide-react";
+import { Columns3, Ellipsis, Filter, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -205,7 +209,7 @@ export function TablePage() {
 
 	if (!workspaceId) {
 		return (
-			<div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
+			<div className="flex items-center justify-center py-12 text-sm text-basalt-muted-foreground">
 				Select a workspace to open the people table.
 			</div>
 		);
@@ -214,11 +218,10 @@ export function TablePage() {
 	if (viewsError || gridError) {
 		return (
 			<div
-				className="rounded-lg border border-destructive/25 bg-destructive/5 p-4 text-sm text-destructive"
+				className="rounded-lg border border-basalt-destructive/25 bg-basalt-destructive/5 p-4 text-sm text-basalt-danger"
 				role="alert"
 			>
-				Failed to load the people table. Check that the API is reachable and D1 migrations are
-				applied.
+				Failed to load the people table. Please try again.
 			</div>
 		);
 	}
@@ -231,131 +234,105 @@ export function TablePage() {
 	};
 
 	return (
-		<div className="flex h-full min-h-0 flex-col gap-3 space-y-2">
+		<div className="flex min-h-full min-w-0 flex-col gap-4">
 			<PageHeader
 				title="People Table"
-				description="Customizable spreadsheet view of organization personnel, fields, and reporting structure."
-			/>
-			{/* L1 toolbar — view switcher + tools */}
-			<header className="shrink-0 space-y-2.5 border-b border-basalt-border/60 pb-3">
-				{/* View strip: segmented tabs + create */}
-				<div className="flex min-w-0 items-center gap-2">
-					<nav className="view-switcher min-w-0 flex-1" aria-label="Table views">
-						{views.map((v) => {
-							const active = activeView?.id === v.id;
-							return (
-								<button
-									key={v.id}
-									type="button"
-									className={cn("view-tab", active && "view-tab-active")}
-									onClick={() => setSearchParams({ view: v.id })}
-									aria-current={active ? "page" : undefined}
-								>
-									<span className="max-w-[9rem] truncate">{v.name}</span>
-									{v.isDefault ? (
-										<span className={cn(active ? "badge-soft" : "badge-soft-muted")}>Default</span>
-									) : null}
-								</button>
-							);
-						})}
-					</nav>
-
-					<Button
-						variant="ghost"
-						size="icon"
-						className="h-7 w-7 shrink-0"
-						onClick={openCreateDialog}
-						disabled={isSaving}
-						title="New view"
-						aria-label="New view"
-					>
-						<Plus className="h-3.5 w-3.5" strokeWidth={2} />
-					</Button>
-				</div>
-
-				{/* Active-view tools */}
-				<div className="page-toolbar">
-					<Button
-						variant="outline"
-						size="sm"
-						className={cn(configOpen && "bg-basalt-accent text-basalt-accent-foreground")}
-						onClick={() => {
-							if (!configOpen && activeView) {
-								setDraftColumns(activeView.columns as ColumnKey[]);
+				description="Explore people, reporting lines, and custom fields in saved views."
+				actions={
+					<>
+						<Button
+							variant="outline"
+							aria-expanded={configOpen}
+							aria-controls="table-columns-panel"
+							onClick={() => {
+								if (!configOpen && activeView) setDraftColumns(activeView.columns as ColumnKey[]);
 								setFiltersOpen(false);
-							}
-							setConfigOpen((o) => !o);
-						}}
-						aria-pressed={configOpen}
-					>
-						<Columns3 className="h-3.5 w-3.5" strokeWidth={1.75} />
-						Columns
-					</Button>
-
-					<Button
-						variant="outline"
-						size="sm"
-						className={cn(filtersOpen && "bg-basalt-accent text-basalt-accent-foreground")}
-						onClick={() => {
-							if (!filtersOpen && activeView) {
-								setFilterDraft(activeView.filters);
+								setConfigOpen((open) => !open);
+							}}
+						>
+							<Columns3 className="h-4 w-4" strokeWidth={1.5} />
+							Columns
+						</Button>
+						<Button
+							variant="outline"
+							aria-expanded={filtersOpen}
+							aria-controls="table-filters-panel"
+							onClick={() => {
+								if (!filtersOpen && activeView) setFilterDraft(activeView.filters);
 								setFilterError(null);
 								setConfigOpen(false);
-							}
-							setFiltersOpen((o) => !o);
-						}}
-						aria-pressed={filtersOpen}
-					>
-						Filters
-						{activeFilterCount > 0 && (
-							<span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-basalt-primary/15 px-1.5 text-[11px] font-semibold text-basalt-primary">
-								{activeFilterCount}
-							</span>
-						)}
-					</Button>
-
-					<div className="mx-1 hidden h-4 w-px bg-basalt-border sm:block" aria-hidden />
-
-					{activeView?.isDefault ? (
-						<span
-							className="inline-flex h-8 items-center gap-1.5 px-1 text-xs text-basalt-muted-foreground"
-							title="This view opens when you visit Table"
+								setFiltersOpen((open) => !open);
+							}}
 						>
-							<Badge variant="outline">Default</Badge>
-							<span className="hidden sm:inline">Opens first</span>
-						</span>
-					) : (
+							<Filter className="h-4 w-4" strokeWidth={1.5} />
+							Filters
+							{activeFilterCount > 0 && <Badge variant="outline">{activeFilterCount}</Badge>}
+						</Button>
+						<Button onClick={openCreateDialog} disabled={isSaving} aria-label="New view">
+							<Plus className="h-4 w-4" strokeWidth={1.5} />
+							New view
+						</Button>
+					</>
+				}
+			/>
+			<div className="flex min-w-0 items-center gap-2">
+				<nav
+					className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
+					aria-label="Table views"
+				>
+					{views.map((view) => (
 						<Button
+							key={view.id}
+							asChild
 							variant="ghost"
 							size="sm"
-							onClick={handlePromoteDefault}
-							disabled={!activeView || isSaving}
-							title="Open this view first when visiting Table"
+							className={cn(
+								"shrink-0",
+								activeView?.id === view.id && "bg-basalt-secondary text-basalt-foreground",
+							)}
+						>
+							<Link
+								to={`/table?view=${view.id}`}
+								aria-current={activeView?.id === view.id ? "page" : undefined}
+							>
+								<span className="max-w-36 truncate">{view.name}</span>
+								{view.isDefault && (
+									<Badge variant="outline" className="text-[10px]">
+										Default
+									</Badge>
+								)}
+							</Link>
+						</Button>
+					))}
+				</nav>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="ghost" size="icon" aria-label="View options">
+							<Ellipsis className="h-4 w-4" strokeWidth={1.5} />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						<DropdownMenuItem
+							onSelect={handlePromoteDefault}
+							disabled={!activeView || activeView.isDefault || isSaving}
 						>
 							Make default
-						</Button>
-					)}
-
-					<Button
-						variant="destructive"
-						size="sm"
-						onClick={handleDeleteView}
-						disabled={!activeView || activeView.isDefault || isSaving}
-						title={
-							activeView?.isDefault
-								? "The default view cannot be deleted — promote another first"
-								: "Delete this view"
-						}
-					>
-						<Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
-						Delete
-					</Button>
-				</div>
-			</header>
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onSelect={handleDeleteView}
+							disabled={!activeView || activeView.isDefault || isSaving}
+							className="text-basalt-danger"
+						>
+							<Trash2 className="mr-2 h-4 w-4" strokeWidth={1.5} />
+							Delete view
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</div>
 
 			{/* L2 — Columns config panel (selected top / available bottom, drag reorder) */}
 			{configOpen && (
-				<LayerCard className="shrink-0 p-4">
+				<LayerCard id="table-columns-panel" className="shrink-0 p-4">
 					<div className="mb-3 flex items-center justify-between gap-2">
 						<h2 className="text-sm font-semibold text-basalt-foreground">Columns</h2>
 						<p className="text-xs text-basalt-muted-foreground">Name is always required</p>
@@ -386,7 +363,7 @@ export function TablePage() {
 
 			{/* L2 — Filters panel */}
 			{filtersOpen && (
-				<LayerCard className="shrink-0 p-4">
+				<LayerCard id="table-filters-panel" className="shrink-0 p-4">
 					<div className="mb-3 flex flex-wrap items-center gap-2">
 						<h2 className="text-sm font-semibold text-basalt-foreground">Filters</h2>
 						<span className="text-xs text-basalt-muted-foreground">AND across all rules</span>
@@ -407,7 +384,7 @@ export function TablePage() {
 					</div>
 
 					{filterDraft.length === 0 ? (
-						<p className="py-4 text-center text-sm text-muted-foreground">
+						<p className="py-4 text-center text-sm text-basalt-muted-foreground">
 							No filters yet. Add one to narrow the grid.
 						</p>
 					) : (
@@ -419,7 +396,8 @@ export function TablePage() {
 								>
 									<LayerCard.Well className="flex flex-wrap items-center gap-2 p-2 rounded-lg">
 										<select
-											className="field-select field-sm"
+											className="field-select h-8 min-w-32 flex-1 text-xs"
+											aria-label="Filter column"
 											value={f.key}
 											onChange={(e) => {
 												const key = e.target.value;
@@ -453,7 +431,8 @@ export function TablePage() {
 												))}
 										</select>
 										<select
-											className="field-select field-sm min-w-[7rem]"
+											className="field-select h-8 min-w-32 flex-1 text-xs"
+											aria-label="Filter operator"
 											value={
 												opsForColumn(f.key).includes(f.op) ? f.op : (opsForColumn(f.key)[0] ?? "eq")
 											}
@@ -497,20 +476,20 @@ export function TablePage() {
 												setFilterDraft((d) => d.map((x, j) => (j === i ? { ...x, value } : x)));
 											}}
 										/>
-										<button
-											type="button"
-											className="btn-ghost btn-sm"
+										<Button
+											variant="ghost"
+											size="sm"
 											onClick={() => setFilterDraft((d) => d.filter((_, j) => j !== i))}
 										>
 											Remove
-										</button>
+										</Button>
 									</LayerCard.Well>
 								</li>
 							))}
 						</ul>
 					)}
 					{filterError ? (
-						<p className="mt-2 text-xs text-destructive" role="alert">
+						<p className="mt-2 text-xs text-basalt-danger" role="alert">
 							{filterError}
 						</p>
 					) : null}
@@ -518,14 +497,14 @@ export function TablePage() {
 			)}
 
 			{/* L2 table shell */}
-			<div className="data-table-shell">
-				{loading && <p className="p-6 text-sm text-muted-foreground">Loading table…</p>}
+			<LayerCard padding="none" className="min-h-64 min-w-0 flex-1 overflow-auto">
+				{loading && <p className="p-6 text-sm text-basalt-muted-foreground">Loading table…</p>}
 				{!loading && grid && grid.total === 0 && (
-					<div className="flex flex-col items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+					<div className="flex flex-col items-center justify-center gap-2 py-16 text-sm text-basalt-muted-foreground">
 						<p>No people yet.</p>
-						<Link to="/people" className="btn-primary btn-sm">
-							Go to People
-						</Link>
+						<Button asChild size="sm">
+							<Link to="/people">Go to People</Link>
+						</Button>
 					</div>
 				)}
 				{!loading && grid && grid.total > 0 && (
@@ -545,7 +524,7 @@ export function TablePage() {
 											{col.sortable ? (
 												<button
 													type="button"
-													className="inline-flex items-center gap-1 text-xs font-semibold tracking-wide text-muted-foreground hover:text-foreground"
+													className="inline-flex items-center gap-1 text-xs font-semibold tracking-wide text-basalt-muted-foreground hover:text-basalt-foreground"
 													onClick={() => handleSortClick(col.key, true)}
 												>
 													{col.label}
@@ -569,13 +548,13 @@ export function TablePage() {
 										return (
 											<td
 												key={col.key}
-												className={cn(cell?.isDefault && "italic text-muted-foreground")}
+												className={cn(cell?.isDefault && "italic text-basalt-muted-foreground")}
 											>
 												{isName ? (
 													<PersonHover personId={row.person.id}>
 														<Link
 															to={`/people/${row.person.id}?from=${encodeURIComponent(tableReturnPath)}`}
-															className="inline-flex max-w-full items-center gap-2 font-medium text-foreground"
+															className="inline-flex max-w-full items-center gap-2 font-medium text-basalt-foreground"
 														>
 															<PersonAvatar
 																name={row.person.name}
@@ -589,7 +568,7 @@ export function TablePage() {
 													<PersonHover personId={cell.refId}>
 														<Link
 															to={`/people/${cell.refId}?from=${encodeURIComponent(tableReturnPath)}`}
-															className="inline-flex max-w-full items-center gap-2 text-foreground"
+															className="inline-flex max-w-full items-center gap-2 text-basalt-foreground"
 														>
 															<PersonAvatar
 																name={cell.display}
@@ -617,9 +596,9 @@ export function TablePage() {
 						</tbody>
 					</table>
 				)}
-			</div>
+			</LayerCard>
 
-			<footer className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+			<footer className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-basalt-muted-foreground">
 				<span>{grid ? `${grid.filteredCount} of ${grid.total} people` : null}</span>
 				{grid?.skippedSort ? <span>· sort column unavailable</span> : null}
 				{grid && grid.skippedFilters > 0 ? (
@@ -628,7 +607,7 @@ export function TablePage() {
 				{activeView ? (
 					<span className="inline-flex items-center gap-1.5">
 						· {activeView.name || DEFAULT_TABLE_VIEW_NAME}
-						{activeView.isDefault ? <span className="badge-soft-muted">Default</span> : null}
+						{activeView.isDefault ? <Badge variant="outline">Default</Badge> : null}
 					</span>
 				) : null}
 			</footer>

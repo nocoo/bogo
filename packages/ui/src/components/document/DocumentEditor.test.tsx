@@ -196,7 +196,7 @@ describe("DocumentEditor", () => {
 			],
 		});
 		const { container } = render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
-		const highlighted = container.querySelector(".bg-primary\\/10");
+		const highlighted = container.querySelector('[aria-current="true"]');
 		expect(highlighted).not.toBeNull();
 		expect(highlighted?.textContent).toContain("v1");
 	});

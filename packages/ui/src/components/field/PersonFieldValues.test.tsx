@@ -94,10 +94,10 @@ describe("PersonFieldValues", () => {
 		expect(container.innerHTML).toBe("");
 	});
 
-	it("renders heading and field labels", () => {
+	it("renders labelled controls", () => {
 		const vm = createVM();
 		render(<PersonFieldValues defs={[DEF_TEXT, DEF_NUMBER]} vm={vm} />);
-		expect(screen.getByText("Custom Fields")).toBeTruthy();
+		expect(screen.getByLabelText("Department")).toBeTruthy();
 		expect(screen.getByText("Department")).toBeTruthy();
 		expect(screen.getByText("Salary")).toBeTruthy();
 	});

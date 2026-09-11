@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@nocoo/basalt";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -12,6 +13,7 @@ vi.mock("@pierre/diffs/react", () => ({
 			<span data-testid="diff-style">{options?.diffStyle}</span>
 			<span data-testid="theme-dark">{options?.theme?.dark}</span>
 			<span data-testid="theme-light">{options?.theme?.light}</span>
+			<span data-testid="theme-type">{options?.themeType}</span>
 		</div>
 	)),
 }));
@@ -55,7 +57,9 @@ function renderDiff(props: {
 	const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 	return render(
 		<QueryClientProvider client={qc}>
-			<VersionDiff {...props} />
+			<ThemeProvider defaultTheme="dark" persist={false}>
+				<VersionDiff {...props} />
+			</ThemeProvider>
 		</QueryClientProvider>,
 	);
 }
@@ -102,5 +106,6 @@ describe("VersionDiff", () => {
 		expect(screen.getByTestId("diff-style").textContent).toBe("unified");
 		expect(screen.getByTestId("theme-dark").textContent).toBe("github-dark");
 		expect(screen.getByTestId("theme-light").textContent).toBe("github-light");
+		expect(screen.getByTestId("theme-type").textContent).toBe("dark");
 	});
 });

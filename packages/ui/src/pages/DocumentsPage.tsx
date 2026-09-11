@@ -52,20 +52,19 @@ export function DocumentsPage() {
 
 	if (vm.error) {
 		return (
-			<div className="rounded-lg bg-basalt-destructive/10 p-4 text-sm text-basalt-destructive">
+			<div className="rounded-lg bg-basalt-destructive/10 p-4 text-sm text-basalt-danger">
 				Failed to load documents: {vm.error.message}
 			</div>
 		);
 	}
 
-	const hasActiveFilters =
-		filters !== EMPTY_FILTERS && JSON.stringify(filters) !== JSON.stringify(EMPTY_FILTERS);
+	const hasActiveFilters = activeFilterCount > 0;
 
 	return (
 		<div className="space-y-4">
 			<PageHeader
 				title="Documents"
-				description="Manage notes, 1:1 records, architecture proposals, and promotion cases."
+				description="Notes, conversations, proposals, and the decisions worth keeping."
 				actions={
 					<>
 						<Button
@@ -283,15 +282,15 @@ function DocumentRow({
 	isRemoving: boolean;
 }) {
 	return (
-		<LayerCard className="group transition-colors hover:bg-basalt-secondary/80">
-			<div className="flex items-center gap-3">
+		<LayerCard className="group transition-shadow hover:ring-1 hover:ring-basalt-border">
+			<div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 sm:flex">
 				<Link
 					to={`/documents/${doc.id}`}
 					className="flex flex-1 items-center gap-3 min-w-0"
 					aria-label={`Open ${doc.title}`}
 				>
 					<div
-						className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-basalt-muted/60 text-basalt-muted-foreground"
+						className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-basalt-primary/10 text-basalt-primary"
 						aria-hidden="true"
 					>
 						<FileText className="h-4 w-4" strokeWidth={1.6} />
@@ -326,7 +325,7 @@ function DocumentRow({
 					</div>
 				</Link>
 				{people.length > 0 && (
-					<span className="shrink-0">
+					<span className="col-start-1 row-start-2 shrink-0 pl-12 sm:pl-0">
 						<span className="sr-only">People on {doc.title}</span>
 						<PersonAvatarCluster people={people} max={4} size="sm" />
 					</span>
@@ -336,7 +335,7 @@ function DocumentRow({
 					size="icon"
 					onClick={() => onRemove(doc.id)}
 					disabled={isRemoving}
-					className="h-7 w-7 text-basalt-muted-foreground opacity-0 group-hover:opacity-100 hover:text-basalt-destructive disabled:opacity-50 transition-all"
+					className="col-start-2 row-start-1 h-8 w-8 shrink-0 text-basalt-muted-foreground hover:text-basalt-danger sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
 					aria-label={`Delete ${doc.title}`}
 				>
 					{isRemoving ? (

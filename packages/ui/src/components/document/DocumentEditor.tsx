@@ -4,6 +4,9 @@ import type {
 	Person,
 	UpdateDocumentInput,
 } from "@bogo/shared";
+import { Button, Input, LayerCard } from "@nocoo/basalt";
+import { InputArea } from "@nocoo/basalt/components/input-area";
+import { PageHeader } from "@nocoo/basalt/components/page-header";
 import { GitCompareArrows, Loader2, Pencil, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { renderMarkdown } from "../../lib/markdown.js";
@@ -86,14 +89,14 @@ export function DocumentEditor({
 	if (vm.isLoading) {
 		return (
 			<div className="flex items-center justify-center py-12">
-				<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+				<Loader2 className="h-6 w-6 animate-spin text-basalt-muted-foreground" />
 			</div>
 		);
 	}
 
 	if (vm.error) {
 		return (
-			<div className="rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
+			<div className="rounded-lg bg-basalt-destructive/10 p-4 text-sm text-basalt-danger">
 				Failed to load document: {vm.error.message}
 			</div>
 		);
@@ -101,118 +104,114 @@ export function DocumentEditor({
 
 	if (!vm.document) {
 		return (
-			<div className="flex items-center justify-center py-12 text-muted-foreground">
+			<div className="flex items-center justify-center py-12 text-basalt-muted-foreground">
 				Document not found
 			</div>
 		);
 	}
 
 	return (
-		<div className="flex h-full overflow-hidden">
-			{/* Main column — header strip + editor/preview */}
-			<div className="flex-1 min-w-0 flex flex-col overflow-hidden gap-2">
-				{/* Title row: standard back (left) + title + save */}
-				<div className="shrink-0 flex items-center gap-2">
-					<PageBackLink onClick={onBack} ariaLabel="Back to documents" />
-					<div className="min-w-0 flex-1">
-						<TitleField title={title} onChange={handleTitleChange} />
-					</div>
-					<button
-						type="button"
-						onClick={handleSave}
-						disabled={!dirty || vm.isUpdating}
-						className="btn-primary shrink-0"
-						aria-label="Save document"
-					>
-						{vm.isUpdating ? (
-							<Loader2 className="h-4 w-4 animate-spin" />
-						) : (
-							<Save className="h-4 w-4" strokeWidth={2} />
-						)}
-						Save
-					</button>
-				</div>
-
-				{/* Status row: dirty indicator + version + updated time */}
-				<div className="shrink-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-					<DirtyChip dirty={dirty} />
-					<span>v{vm.document.version}</span>
-					<span aria-hidden="true">·</span>
-					<span>updated {formatRelative(vm.document.updatedAt)}</span>
-				</div>
-
-				{/* Editor + Preview */}
-				<div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
-					<div className="flex flex-col min-h-0">
-						<span className="shrink-0 mb-1 text-xs font-medium text-muted-foreground">Edit</span>
-						<textarea
+		<div className="space-y-5">
+			<PageHeader
+				title={<TitleField title={title} onChange={handleTitleChange} />}
+				description={
+					<span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+						<DirtyChip dirty={dirty} />
+						<span>v{vm.document.version}</span>
+						<span>Updated {formatRelative(vm.document.updatedAt)}</span>
+					</span>
+				}
+				actions={
+					<>
+						<PageBackLink onClick={onBack} ariaLabel="Back to documents">
+							Documents
+						</PageBackLink>
+						<Button
+							onClick={handleSave}
+							disabled={!dirty || !title.trim() || vm.isUpdating}
+							loading={vm.isUpdating}
+							aria-label="Save document"
+						>
+							<Save className="h-4 w-4" strokeWidth={1.5} />
+							Save
+						</Button>
+					</>
+				}
+			/>
+			<div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
+				<div className="grid min-w-0 gap-4 lg:grid-cols-2">
+					<LayerCard padding="none" className="min-w-0 overflow-hidden">
+						<div className="border-b border-basalt-border/60 px-4 py-3 text-xs font-medium text-basalt-muted-foreground">
+							Markdown
+						</div>
+						<InputArea
 							value={content}
 							onChange={(e) => handleContentChange(e.target.value)}
-							className="flex-1 min-h-0 w-full rounded-lg border border-border bg-secondary p-4 text-sm text-foreground font-mono outline-none focus:border-primary resize-none transition-colors"
+							className="block h-[60vh] min-h-72 w-full resize-y rounded-none border-0 p-4 font-mono text-sm leading-relaxed shadow-none"
 							placeholder="Write document content..."
 							aria-label="Document content"
 						/>
-					</div>
-					<div className="flex flex-col min-h-0">
-						<span className="shrink-0 mb-1 text-xs font-medium text-muted-foreground">Preview</span>
+					</LayerCard>
+					<LayerCard padding="none" className="min-w-0 overflow-hidden">
+						<div className="border-b border-basalt-border/60 px-4 py-3 text-xs font-medium text-basalt-muted-foreground">
+							Preview
+						</div>
 						<MarkdownPreview content={content} />
-					</div>
+					</LayerCard>
 				</div>
-			</div>
-
-			{/* Right sidebar — metadata + history (always shown on xl+) */}
-			<aside className="hidden xl:flex w-80 shrink-0 flex-col gap-5 border-l border-border pl-5 ml-5 overflow-y-auto">
-				<SidebarSection label="Type">
-					<DocTypePicker
-						types={docTypes}
-						value={vm.document.typeId}
-						onChange={handleTypeChange}
-						disabled={vm.isUpdating}
-					/>
-				</SidebarSection>
-
-				<SidebarSection label="Tags">
-					<TagPicker scope="document" entityId={vm.document.id} assignedTags={vm.document.tags} />
-				</SidebarSection>
-
-				<SidebarSection label="People">
-					<DocumentPersons
-						persons={vm.persons}
-						allPersons={allPersons}
-						isLoading={vm.isLoadingPersons}
-						personsError={vm.personsError}
-						allPersonsLoading={allPersonsLoading ?? false}
-						allPersonsError={allPersonsError ?? null}
-						onAdd={vm.addPerson}
-						isAdding={vm.isAddingPerson}
-						onRemove={vm.removePerson}
-						isRemoving={vm.isRemovingPerson}
-						compact={true}
-					/>
-				</SidebarSection>
-
-				<SidebarSection label="Event date">
-					<input
-						id="event-date"
-						type="date"
-						value={eventDate}
-						onChange={(e) => handleEventDateChange(e.target.value)}
-						className="h-8 w-full rounded-md border border-border bg-secondary px-2.5 text-sm text-foreground focus:border-primary outline-none transition-colors"
-						aria-label="Event date"
-					/>
-				</SidebarSection>
-
-				{vm.versions.length > 0 && (
-					<SidebarSection label="History">
-						<VersionList
-							wid={vm.document.workspaceId}
-							documentId={vm.document.id}
-							versions={vm.versions}
-							currentVersion={vm.document.version}
+				<LayerCard className="min-w-0 space-y-5" role="complementary" aria-label="Document details">
+					<SidebarSection label="Type">
+						<DocTypePicker
+							types={docTypes}
+							value={vm.document.typeId}
+							onChange={handleTypeChange}
+							disabled={vm.isUpdating}
 						/>
 					</SidebarSection>
-				)}
-			</aside>
+
+					<SidebarSection label="Tags">
+						<TagPicker scope="document" entityId={vm.document.id} assignedTags={vm.document.tags} />
+					</SidebarSection>
+
+					<SidebarSection label="People">
+						<DocumentPersons
+							persons={vm.persons}
+							allPersons={allPersons}
+							isLoading={vm.isLoadingPersons}
+							personsError={vm.personsError}
+							allPersonsLoading={allPersonsLoading ?? false}
+							allPersonsError={allPersonsError ?? null}
+							onAdd={vm.addPerson}
+							isAdding={vm.isAddingPerson}
+							onRemove={vm.removePerson}
+							isRemoving={vm.isRemovingPerson}
+							compact={true}
+						/>
+					</SidebarSection>
+
+					<SidebarSection label="Event date">
+						<Input
+							id="event-date"
+							type="date"
+							value={eventDate}
+							onChange={(e) => handleEventDateChange(e.target.value)}
+							className="w-full"
+							aria-label="Event date"
+						/>
+					</SidebarSection>
+
+					{vm.versions.length > 0 && (
+						<SidebarSection label="History">
+							<VersionList
+								wid={vm.document.workspaceId}
+								documentId={vm.document.id}
+								versions={vm.versions}
+								currentVersion={vm.document.version}
+							/>
+						</SidebarSection>
+					)}
+				</LayerCard>
+			</div>
 		</div>
 	);
 }
@@ -220,7 +219,7 @@ export function DocumentEditor({
 function SidebarSection({ label, children }: { label: string; children: React.ReactNode }) {
 	return (
 		<section className="flex flex-col gap-2">
-			<h3 className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+			<h3 className="text-[11px] font-medium uppercase tracking-wider text-basalt-muted-foreground">
 				{label}
 			</h3>
 			{children}
@@ -231,15 +230,18 @@ function SidebarSection({ label, children }: { label: string; children: React.Re
 function DirtyChip({ dirty }: { dirty: boolean }) {
 	if (!dirty) {
 		return (
-			<span className="inline-flex items-center gap-1.5 text-muted-foreground">
-				<span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
+			<span className="inline-flex items-center gap-1.5 text-basalt-muted-foreground">
+				<span
+					className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400"
+					aria-hidden="true"
+				/>
 				All changes saved
 			</span>
 		);
 	}
 	return (
-		<span className="inline-flex items-center gap-1.5 text-warning font-medium">
-			<span className="h-1.5 w-1.5 rounded-full bg-warning" aria-hidden="true" />
+		<span className="inline-flex items-center gap-1.5 text-basalt-warning font-medium">
+			<span className="h-1.5 w-1.5 rounded-full bg-basalt-warning" aria-hidden="true" />
 			Unsaved changes
 		</span>
 	);
@@ -247,21 +249,21 @@ function DirtyChip({ dirty }: { dirty: boolean }) {
 
 function TitleField({ title, onChange }: { title: string; onChange: (value: string) => void }) {
 	return (
-		<div className="group relative flex-1 min-w-0 flex items-center gap-2">
-			<input
+		<span className="group flex min-w-0 items-center gap-2">
+			<Input
 				type="text"
 				value={title}
 				onChange={(e) => onChange(e.target.value)}
-				className="flex-1 min-w-0 bg-transparent text-2xl font-semibold tracking-tight text-foreground outline-none rounded-md px-1.5 -ml-1.5 hover:bg-accent/60 focus:bg-accent/60 transition-colors"
+				className="h-auto min-w-0 flex-1 rounded-md border-transparent bg-transparent p-0 text-xl font-semibold tracking-tight shadow-none hover:bg-basalt-accent/50 focus:bg-basalt-control md:text-2xl"
 				aria-label="Document title"
 				placeholder="Untitled document"
 			/>
 			<Pencil
-				className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-60 transition-opacity shrink-0"
+				className="h-3.5 w-3.5 text-basalt-muted-foreground opacity-0 group-hover:opacity-60 transition-opacity shrink-0"
 				strokeWidth={1.6}
 				aria-hidden="true"
 			/>
-		</div>
+		</span>
 	);
 }
 
@@ -270,7 +272,7 @@ function MarkdownPreview({ content }: { content: string }) {
 
 	return (
 		<article
-			className="markdown-surface flex-1 min-h-0 w-full"
+			className="markdown-surface h-[60vh] min-h-72 w-full"
 			aria-label="Markdown preview"
 			// biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown from user input only
 			dangerouslySetInnerHTML={{ __html: html }}
@@ -322,8 +324,11 @@ function VersionList({
 				{sorted.map((v, i) => (
 					<div
 						key={v.id}
+						aria-current={v.version === currentVersion ? "true" : undefined}
 						className={`grid grid-cols-[28px_1fr_auto_auto] items-center gap-2 rounded-md px-2 py-1.5 text-xs ${
-							v.version === currentVersion ? "bg-primary/10 text-primary" : "text-muted-foreground"
+							v.version === currentVersion
+								? "bg-basalt-primary/10 text-basalt-primary"
+								: "text-basalt-muted-foreground"
 						}`}
 					>
 						<span className="font-semibold">v{v.version}</span>
@@ -334,7 +339,9 @@ function VersionList({
 								type="button"
 								onClick={() => setDiffIndex(diffIndex === i ? null : i)}
 								className={`shrink-0 transition-colors ${
-									diffIndex === i ? "text-primary" : "text-muted-foreground hover:text-foreground"
+									diffIndex === i
+										? "text-basalt-primary"
+										: "text-basalt-muted-foreground hover:text-basalt-foreground"
 								}`}
 								aria-label={`Compare v${sorted[i + 1].version} to v${v.version}`}
 							>

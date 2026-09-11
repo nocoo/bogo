@@ -1,431 +1,127 @@
-/* ============================================================================
- * Bogo design system — Deep Blue theme
- *
- * Order of sections matters; do not shuffle:
- *   1. Imports + plugins      — tailwind v4 engine, animations, typography
- *   2. Variants               — custom `dark` variant tied to .dark on <html>
- *   3. Theme tokens (@theme)  — maps semantic vars into Tailwind color/utility names
- *   4. Design tokens (:root)  — raw oklch values for light + dark mode
- *   5. @layer base            — element-level resets and global typography
- *   6. @layer components      — reusable component primitives and themed chrome
- *
- * Conventions: see docs/10-css-conventions.md.
- * ============================================================================ */
-
-/* ---------------------------------------------------------------------------
- * 1. Imports + plugins
- * --------------------------------------------------------------------------- */
 @source "../node_modules/@nocoo/basalt/dist/**/*.{js,jsx,ts,tsx}";
 @import "@nocoo/basalt/styles/tailwind";
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
-
-/* ---------------------------------------------------------------------------
- * 2. Variants
- * --------------------------------------------------------------------------- */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ---------------------------------------------------------------------------
- * 3. Theme tokens — expose semantic vars to Tailwind utilities
- *    (`bg-card`, `text-foreground`, `border-border`, …)
- * --------------------------------------------------------------------------- */
-@theme inline {
-	--color-background: var(--background);
-	--color-foreground: var(--foreground);
-	--color-card: var(--card);
-	--color-card-foreground: var(--card-foreground);
-	--color-popover: var(--popover);
-	--color-popover-foreground: var(--popover-foreground);
-	--color-primary: var(--primary);
-	--color-primary-foreground: var(--primary-foreground);
-	--color-secondary: var(--secondary);
-	--color-secondary-foreground: var(--secondary-foreground);
-	--color-muted: var(--muted);
-	--color-muted-foreground: var(--muted-foreground);
-	--color-accent: var(--accent);
-	--color-accent-foreground: var(--accent-foreground);
-	--color-destructive: var(--destructive);
-	--color-destructive-foreground: var(--destructive-foreground);
-	--color-border: var(--border);
-	--color-input: var(--input);
-	--color-ring: var(--ring);
-
-	/* Extended semantic status tokens */
-	--color-success: var(--success);
-	--color-success-foreground: var(--success-foreground);
-	--color-warning: var(--warning);
-	--color-warning-foreground: var(--warning-foreground);
-	--color-info: var(--info);
-	--color-info-foreground: var(--info-foreground);
-
-	/* Sidebar palette — kept separate from L0 in case we skin the rail
-	 * differently from the shell canvas (defaults track L0 today). */
-	--color-sidebar: var(--sidebar-background);
-	--color-sidebar-foreground: var(--sidebar-foreground);
-	--color-sidebar-primary: var(--sidebar-primary);
-	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-	--color-sidebar-accent: var(--sidebar-accent);
-	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-	--color-sidebar-border: var(--sidebar-border);
-	--color-sidebar-ring: var(--sidebar-ring);
-
-	/* Sequential chart palette (deep-navy → cyan sweep). Utility charts
-	 * pick from --chart-1..8 and axis/muted for grid + labels. */
-	--color-chart-1: var(--chart-1);
-	--color-chart-2: var(--chart-2);
-	--color-chart-3: var(--chart-3);
-	--color-chart-4: var(--chart-4);
-	--color-chart-5: var(--chart-5);
-	--color-chart-6: var(--chart-6);
-	--color-chart-7: var(--chart-7);
-	--color-chart-8: var(--chart-8);
-	--color-chart-axis: var(--chart-axis);
-	--color-chart-muted: var(--chart-muted);
-
-	--radius-sm: calc(var(--radius) - 4px);
-	--radius-md: calc(var(--radius) - 2px);
-	--radius-lg: var(--radius);
-	--radius-xl: calc(var(--radius) + 4px);
-
-	/* Basalt widget radii — aligned with pew. Use `rounded-card` for L2
-	 * tiled cards (bg-secondary) and `rounded-widget` for inner chart / pill
-	 * widgets. */
-	--radius-card: 14px;
-	--radius-widget: 10px;
-
-	--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-	--font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-}
-
-/* ---------------------------------------------------------------------------
- * 4. Design tokens — raw oklch values
- *    Basalt 3-Tier Luminance:
- *      L0 background (sidebar + shell)
- *      L1 card       (floating island)
- *      L2 secondary  (inner panels)
- *    Primary accent: deep navy blue (hue 250).
- * --------------------------------------------------------------------------- */
-:root {
-	--radius: 0.75rem;
-
-	/* Light mode */
-	--background: oklch(0.94 0.012 230);
-	--foreground: oklch(0.15 0.02 230);
-	--card: oklch(0.97 0.005 230);
-	--card-foreground: oklch(0.15 0.02 230);
-	--popover: oklch(0.995 0.002 230);
-	--popover-foreground: oklch(0.15 0.02 230);
-	--primary: oklch(0.45 0.2 250);
-	--primary-foreground: oklch(0.98 0.005 230);
-	--secondary: oklch(0.995 0.002 230);
-	--secondary-foreground: oklch(0.15 0.02 230);
-	--muted: oklch(0.92 0.01 230);
-	--muted-foreground: oklch(0.5 0.02 230);
-	--accent: oklch(0.92 0.015 230);
-	--accent-foreground: oklch(0.2 0.02 230);
-	--destructive: oklch(0.55 0.2 25);
-	--destructive-foreground: oklch(0.98 0.005 230);
-	--border: oklch(0.88 0.015 230);
-	--input: oklch(0.88 0.015 230);
-	--ring: oklch(0.45 0.2 250);
-
-	/* Status */
-	--success: oklch(0.55 0.15 145);
-	--success-foreground: oklch(0.98 0.005 145);
-	/* Warning must clear 4.5:1 as text on light card/secondary — 0.72 was
-	 * only ~2.4:1. Darken to 0.5 (≈5.5:1 on bg-background / 6.3:1 on
-	 * bg-card). Dot / chip usage still visible; solid button pairs with
-	 * --warning-foreground below. */
-	--warning: oklch(0.5 0.15 75);
-	--warning-foreground: oklch(0.98 0.005 75);
-	--info: oklch(0.6 0.15 240);
-	--info-foreground: oklch(0.98 0.005 230);
-
-	/* Sidebar — track shell canvas by default */
-	--sidebar-background: oklch(0.94 0.012 230);
-	--sidebar-foreground: oklch(0.15 0.02 230);
-	--sidebar-primary: oklch(0.45 0.2 250);
-	--sidebar-primary-foreground: oklch(0.98 0.005 230);
-	--sidebar-accent: oklch(0.92 0.015 230);
-	--sidebar-accent-foreground: oklch(0.2 0.02 230);
-	--sidebar-border: oklch(0.88 0.015 230);
-	--sidebar-ring: oklch(0.45 0.2 250);
-
-	/* Sequential chart palette — hue 250 anchor, warm-to-cool sweep */
-	--chart-1: oklch(0.55 0.2 250);
-	--chart-2: oklch(0.6 0.16 220);
-	--chart-3: oklch(0.62 0.14 190);
-	--chart-4: oklch(0.65 0.14 160);
-	--chart-5: oklch(0.7 0.14 130);
-	--chart-6: oklch(0.72 0.15 90);
-	--chart-7: oklch(0.68 0.16 60);
-	--chart-8: oklch(0.6 0.18 30);
-	--chart-axis: oklch(0.5 0.02 230);
-	--chart-muted: oklch(0.7 0.02 230);
-}
-
-.dark {
-	/* Dark mode — L layered to match pew basalt (perceptual OKLCH ≈ HSL
-	 * L=7/10/13/10/15/16/18/20 with a slight blue tint at hue 250). */
-	--background: oklch(0.135 0.02 250);
-	--foreground: oklch(0.9 0.01 230);
-	--card: oklch(0.175 0.02 250);
-	--card-foreground: oklch(0.9 0.01 230);
-	--popover: oklch(0.175 0.02 250);
-	--popover-foreground: oklch(0.9 0.01 230);
-	--primary: oklch(0.55 0.2 250);
-	--primary-foreground: oklch(0.98 0.005 230);
-	--secondary: oklch(0.21 0.02 250);
-	--secondary-foreground: oklch(0.9 0.01 230);
-	--muted: oklch(0.235 0.02 250);
-	--muted-foreground: oklch(0.6 0.02 230);
-	--accent: oklch(0.245 0.02 250);
-	--accent-foreground: oklch(0.9 0.01 230);
-	/* Destructive brightened for dark bg. Body error text sits on
-	 * bg-destructive/10 (a 10% mix onto card/secondary); L=0.55 only
-	 * reached ~3.1-3.5:1 and failed AA. L=0.7 clears 5.2-6.1:1. */
-	--destructive: oklch(0.7 0.2 25);
-	/* Label on solid bg-destructive must clear AA. A near-white foreground
-	 * pairs with the brightened dark --destructive at only 2.82:1 — flip
-	 * to a deep foreground for 6.6:1. Light mode still uses near-white
-	 * because its --destructive stays at L=0.55. */
-	--destructive-foreground: oklch(0.15 0.005 25);
-	--border: oklch(0.265 0.02 250);
-	--input: oklch(0.29 0.02 250);
-	--ring: oklch(0.55 0.2 250);
-
-	/* Status — boosted for dark bg */
-	--success: oklch(0.65 0.15 145);
-	--success-foreground: oklch(0.15 0.02 145);
-	--warning: oklch(0.78 0.16 75);
-	--warning-foreground: oklch(0.18 0.02 75);
-	--info: oklch(0.7 0.15 240);
-	--info-foreground: oklch(0.15 0.02 240);
-
-	/* Sidebar — track shell canvas */
-	--sidebar-background: oklch(0.135 0.02 250);
-	--sidebar-foreground: oklch(0.9 0.01 230);
-	--sidebar-primary: oklch(0.55 0.2 250);
-	--sidebar-primary-foreground: oklch(0.98 0.005 230);
-	--sidebar-accent: oklch(0.245 0.02 250);
-	--sidebar-accent-foreground: oklch(0.9 0.01 230);
-	--sidebar-border: oklch(0.265 0.02 250);
-	--sidebar-ring: oklch(0.55 0.2 250);
-
-	/* Sequential chart palette — brightened for dark bg */
-	--chart-1: oklch(0.65 0.2 250);
-	--chart-2: oklch(0.68 0.17 220);
-	--chart-3: oklch(0.72 0.15 190);
-	--chart-4: oklch(0.75 0.15 160);
-	--chart-5: oklch(0.78 0.15 130);
-	--chart-6: oklch(0.8 0.16 90);
-	--chart-7: oklch(0.75 0.17 60);
-	--chart-8: oklch(0.68 0.19 30);
-	--chart-axis: oklch(0.55 0.02 230);
-	--chart-muted: oklch(0.4 0.02 230);
-}
-
-/* ---------------------------------------------------------------------------
- * 5. @layer base — element-level resets and global typography
- *    Anything that targets a bare HTML element AND is essentially a reset
- *    belongs here. Themed component chrome lives in @layer components.
- * --------------------------------------------------------------------------- */
 @layer base {
+	html,
+	body,
+	#root {
+		height: 100%;
+	}
 	* {
-		@apply border-border;
+		@apply border-basalt-border;
+	}
+	:root {
+		color-scheme: light;
+	}
+	.dark {
+		color-scheme: dark;
 	}
 	body {
-		@apply bg-background text-foreground antialiased;
-		font-family: var(--font-sans);
+		@apply bg-basalt-background text-basalt-foreground antialiased;
+		font-family: var(--basalt-font-sans);
 		font-size: 14px;
+	}
+	:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+		outline: 2px solid hsl(var(--basalt-ring));
+		outline-offset: 2px;
+	}
+	input[type="checkbox"] {
+		accent-color: hsl(var(--basalt-primary));
 	}
 }
 
-/* ---------------------------------------------------------------------------
- * 6. @layer components — reusable primitives and themed element chrome
- *    Component classes live here so utilities (mt-4, p-6, …) can still
- *    override them at call sites.
- *
- *    Surface stack (aligned with pew Basalt tiers):
- *      L0  bg-background   — app shell / sidebar canvas
- *      L1  bg-card         — page island (DashboardLayout outlet)
- *      L2  bg-secondary    — section panels nested in L1 (filters, config)
- *      L3  bg-muted / popover — deepest nests (table chrome, sticky headers)
- * --------------------------------------------------------------------------- */
 @layer components {
-	/* Themed <select> chrome — bare <select> elements adopt this automatically. */
-	select {
+	/* Native selects share the current Basalt surface with Input and Button. */
+	.field-select {
+		@apply h-9 min-w-0 rounded-basalt-md border border-basalt-border bg-basalt-control pl-3 pr-8 text-sm text-basalt-foreground shadow-xs transition-colors;
+		@apply focus-visible:outline-none focus-visible:border-basalt-ring disabled:cursor-not-allowed disabled:opacity-50;
 		appearance: none;
-		padding-right: 2rem;
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 		background-repeat: no-repeat;
-		background-position: right 0.5rem center;
-		background-size: 1rem;
-	}
-	.dark select {
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+		background-position: right 0.625rem center;
 	}
 
-	/* ----- Surfaces ----- */
-	.panel-l2 {
-		@apply rounded-card bg-basalt-secondary text-basalt-foreground;
-	}
-	.panel-l3 {
-		@apply rounded-lg bg-basalt-bright text-basalt-foreground border border-basalt-border;
-	}
-
-	/* ----- Controls (h-8 scale, shared radius) -----
-	 * Shared layout is duplicated on each variant so we never @apply a
-	 * custom class from another custom class (Tailwind forbids that). */
-	.btn-primary,
-	.btn-secondary,
-	.btn-ghost,
-	.btn-destructive {
-		@apply inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md px-3 text-sm font-medium whitespace-nowrap transition-colors;
-		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50;
-		@apply disabled:pointer-events-none disabled:opacity-50;
-	}
-	.btn-primary {
-		@apply bg-basalt-primary text-basalt-primary-foreground hover:bg-basalt-primary/90;
-	}
-	.btn-secondary {
-		@apply border border-basalt-border bg-basalt-control text-basalt-foreground hover:bg-basalt-accent hover:text-basalt-foreground;
-	}
-	.btn-ghost {
-		@apply text-basalt-muted-foreground hover:bg-basalt-accent hover:text-basalt-foreground;
-	}
-	.btn-destructive {
-		@apply border border-basalt-destructive/25 bg-basalt-destructive/5 text-basalt-destructive hover:bg-basalt-destructive/10;
-	}
-	.btn-sm {
-		@apply h-7 gap-1 px-2.5 text-xs;
-	}
-	.btn-icon {
-		@apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-basalt-muted-foreground transition-colors;
-		@apply hover:bg-basalt-accent hover:text-basalt-foreground;
-		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50;
-		@apply disabled:pointer-events-none disabled:opacity-50;
-	}
-
-	.field,
-	.field-select {
-		@apply h-8 rounded-md border border-basalt-border bg-basalt-control px-2.5 text-sm text-basalt-foreground;
-		@apply placeholder:text-basalt-muted-foreground;
-		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40;
-		@apply disabled:cursor-not-allowed disabled:opacity-50;
-	}
-	.field-select {
-		@apply min-w-[8rem] pr-8;
-	}
-	.field-sm {
-		@apply h-7 px-2 text-xs;
-	}
-
-	/* Toolbar row inside L1 card */
-	.page-toolbar {
-		@apply flex flex-wrap items-center gap-2;
-	}
-	.page-toolbar-label {
-		@apply text-xs font-medium text-basalt-muted-foreground;
-	}
-
-	/* Detail-page back control (← Label). Icon-only uses .btn-icon instead. */
-	.page-back {
-		@apply inline-flex h-7 shrink-0 items-center gap-1.5 self-start rounded-md px-1;
-		@apply text-xs font-medium text-basalt-muted-foreground transition-colors;
-		@apply hover:text-basalt-foreground;
-		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50;
-	}
-
-	/* Horizontal view switcher (table multi-view, etc.) */
-	.view-switcher {
-		@apply flex min-w-0 items-center gap-0.5 overflow-x-auto rounded-lg bg-basalt-muted/70 p-1;
-	}
-	.view-tab {
-		@apply inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium;
-		@apply text-basalt-muted-foreground transition-colors;
-		@apply hover:bg-basalt-card/60 hover:text-basalt-foreground;
-		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50;
-	}
-	.view-tab-active {
-		@apply bg-basalt-card text-basalt-foreground shadow-sm ring-1 ring-basalt-border/70;
-		@apply hover:bg-basalt-card hover:text-basalt-foreground;
-	}
-	/* Soft status chip — e.g. "Default" on a view tab */
-	.badge-soft {
-		@apply inline-flex items-center rounded px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide;
-		@apply bg-basalt-primary/10 text-basalt-primary;
-	}
-	.badge-soft-muted {
-		@apply inline-flex items-center rounded px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide;
-		@apply bg-basalt-muted text-basalt-muted-foreground;
-	}
-
-	/* Data table on L2 surface */
-	.data-table-shell {
-		@apply min-h-0 flex-1 overflow-auto rounded-card bg-basalt-secondary border border-basalt-border;
-	}
 	.data-table {
 		@apply w-full min-w-max border-collapse text-sm;
 	}
 	.data-table thead {
-		@apply sticky top-0 z-10 bg-muted/90 backdrop-blur-sm;
+		@apply sticky top-0 z-10 bg-basalt-control;
 	}
 	.data-table th {
-		@apply border-b border-border px-3 py-2.5 text-left text-xs font-semibold tracking-wide text-muted-foreground;
+		@apply border-b border-basalt-border px-4 py-3 text-left text-xs font-medium text-basalt-muted-foreground;
 	}
 	.data-table td {
-		@apply border-b border-border/70 px-3 py-2 align-middle text-foreground;
+		@apply border-b border-basalt-border/60 px-4 py-3 align-middle text-basalt-foreground;
 	}
 	.data-table tbody tr {
-		@apply transition-colors hover:bg-accent/50;
+		@apply transition-colors hover:bg-basalt-accent/50;
 	}
 	.data-table tbody tr:last-child td {
 		@apply border-b-0;
 	}
 
-	/* Rendered markdown surface — used by document preview and any other
-	 * markdown-rendered content. Pairs `@tailwindcss/typography` prose styles
-	 * with theme tokens for the card-like background and heading rhythm. */
-	.markdown-surface {
-		@apply prose prose-sm max-w-none overflow-y-auto rounded-lg border border-border bg-secondary p-6 text-sm text-foreground;
-		@apply prose-headings:font-semibold prose-headings:text-foreground;
-		@apply prose-h1:text-xl prose-h1:border-b prose-h1:border-border prose-h1:pb-2;
-		@apply prose-h2:text-lg prose-h3:text-base;
-		@apply prose-p:leading-relaxed;
+	.person-tree {
+		--xy-background-color: transparent;
+		--xy-background-pattern-dots-color: hsl(var(--basalt-border));
+		--xy-edge-stroke: hsl(var(--basalt-muted-foreground));
+		--xy-edge-stroke-width: 1.5;
+		--xy-controls-button-background-color: hsl(var(--basalt-bright));
+		--xy-controls-button-background-color-hover: hsl(var(--basalt-accent));
+		--xy-controls-button-color: hsl(var(--basalt-foreground));
+		--xy-controls-button-color-hover: hsl(var(--basalt-foreground));
+		--xy-controls-button-border-color: hsl(var(--basalt-border));
 	}
-	.dark .markdown-surface {
-		@apply prose-invert;
+	.person-tree .react-flow__controls {
+		@apply overflow-hidden rounded-basalt-widget border border-basalt-border shadow-none;
 	}
 
-	/* YAML frontmatter rendered as a compact property table at the top of a
-	 * markdown surface. Visually distinct from prose-styled GFM tables so it
-	 * reads as document metadata rather than content. */
+	.markdown-surface {
+		@apply prose prose-sm max-w-none overflow-auto p-5 text-sm text-basalt-foreground;
+		@apply prose-headings:font-semibold prose-headings:text-basalt-foreground prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-p:leading-relaxed;
+		--tw-prose-body: hsl(var(--basalt-foreground));
+		--tw-prose-headings: hsl(var(--basalt-foreground));
+		--tw-prose-links: hsl(var(--basalt-primary));
+		--tw-prose-bold: hsl(var(--basalt-foreground));
+		--tw-prose-code: hsl(var(--basalt-foreground));
+		--tw-prose-pre-code: hsl(var(--basalt-foreground));
+		--tw-prose-pre-bg: hsl(var(--basalt-bright));
+		--tw-prose-counters: hsl(var(--basalt-muted-foreground));
+		--tw-prose-bullets: hsl(var(--basalt-muted-foreground));
+		--tw-prose-quotes: hsl(var(--basalt-muted-foreground));
+		--tw-prose-quote-borders: hsl(var(--basalt-border));
+		--tw-prose-hr: hsl(var(--basalt-border));
+		--tw-prose-th-borders: hsl(var(--basalt-border));
+		--tw-prose-td-borders: hsl(var(--basalt-border));
+		overflow-wrap: anywhere;
+	}
 	.markdown-frontmatter {
-		@apply mb-6 w-full border-separate border-spacing-0 overflow-hidden rounded-md border border-border bg-muted/40 text-xs;
+		@apply mb-6 w-full border-separate border-spacing-0 overflow-hidden rounded-md border border-basalt-border bg-basalt-control text-xs;
 	}
 	.markdown-frontmatter th,
 	.markdown-frontmatter td {
-		@apply border-b border-border px-3 py-1.5 align-top;
+		@apply border-b border-basalt-border px-3 py-1.5 align-top;
 	}
 	.markdown-frontmatter tr:last-child th,
 	.markdown-frontmatter tr:last-child td {
 		@apply border-b-0;
 	}
 	.markdown-frontmatter th {
-		@apply w-40 font-medium text-muted-foreground text-left;
+		@apply w-32 text-left font-medium text-basalt-muted-foreground;
 	}
 	.markdown-frontmatter td {
-		@apply text-foreground break-words;
+		@apply break-words text-basalt-foreground;
 	}
 	.markdown-frontmatter-chip {
-		@apply inline-block rounded bg-accent px-1.5 py-0.5 text-[0.7rem] font-medium text-accent-foreground mr-1;
+		@apply mr-1 inline-block rounded bg-basalt-accent px-1.5 py-0.5 text-[0.7rem] font-medium text-basalt-accent-foreground;
 	}
 	.markdown-frontmatter-empty {
-		@apply text-muted-foreground;
+		@apply text-basalt-muted-foreground;
 	}
 	.markdown-frontmatter code {
-		@apply rounded bg-background/60 px-1 py-0.5 font-mono text-[0.7rem];
+		@apply rounded bg-basalt-bright px-1 py-0.5 font-mono text-[0.7rem];
 	}
 }

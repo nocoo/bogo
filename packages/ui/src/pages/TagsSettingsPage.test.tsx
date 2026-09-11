@@ -103,7 +103,10 @@ describe("TagsSettingsPage", () => {
 		await waitFor(() => expect(screen.getByText("Engineering")).toBeTruthy());
 
 		mockFetch.mockResolvedValue(ok([]));
-		fireEvent.click(screen.getByRole("tab", { name: "Person Tags" }));
+		fireEvent.mouseDown(screen.getByRole("tab", { name: "Person Tags" }), {
+			button: 0,
+			ctrlKey: false,
+		});
 
 		await waitFor(() => expect(screen.queryByText("Engineering")).toBeNull());
 	});

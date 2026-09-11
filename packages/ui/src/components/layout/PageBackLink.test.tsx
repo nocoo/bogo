@@ -24,7 +24,9 @@ describe("PageBackLink", () => {
 			</MemoryRouter>,
 		);
 		expect(screen.getByText("Documents")).toBeTruthy();
-		expect(screen.getByLabelText("Back to documents").className).toContain("page-back");
+		expect(screen.getByRole("link", { name: "Back to documents" }).getAttribute("href")).toBe(
+			"/documents",
+		);
 	});
 
 	it("invokes onClick when used as a button", () => {

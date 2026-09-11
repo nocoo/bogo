@@ -26,7 +26,7 @@ export function PageBackLink({
 	className?: string;
 }) {
 	const withLabel = children != null && children !== false;
-	const classes = cn(withLabel ? "page-back" : "btn-icon h-8 w-8 shrink-0", className);
+	const classes = cn("shrink-0 text-basalt-muted-foreground", !withLabel && "h-8 w-8", className);
 	const content = (
 		<>
 			<ArrowLeft className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
@@ -36,15 +36,25 @@ export function PageBackLink({
 
 	if (to) {
 		return (
-			<Link to={to} aria-label={ariaLabel} className={classes}>
-				{content}
-			</Link>
+			<Button asChild variant="ghost" size={withLabel ? "sm" : "icon"} className={classes}>
+				<Link to={to} aria-label={ariaLabel}>
+					{content}
+				</Link>
+			</Button>
 		);
 	}
 
 	return (
-		<button type="button" onClick={onClick} aria-label={ariaLabel} className={classes}>
+		<Button
+			variant="ghost"
+			size={withLabel ? "sm" : "icon"}
+			onClick={onClick}
+			aria-label={ariaLabel}
+			className={classes}
+		>
 			{content}
-		</button>
+		</Button>
 	);
 }
+
+import { Button } from "@nocoo/basalt";

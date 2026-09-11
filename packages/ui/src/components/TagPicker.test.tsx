@@ -89,7 +89,7 @@ describe("TagPicker", () => {
 		mockFetch.mockResolvedValue(ok(ALL_TAGS));
 		render(<SetupAndRender />, { wrapper: Wrapper });
 
-		fireEvent.click(screen.getByLabelText("Manage tags"));
+		fireEvent.keyDown(screen.getByLabelText("Manage tags"), { key: "ArrowDown" });
 
 		await waitFor(() => expect(screen.getByText("Urgent")).toBeTruthy());
 	});
@@ -98,27 +98,23 @@ describe("TagPicker", () => {
 		mockFetch.mockResolvedValue(ok(ALL_TAGS));
 		render(<SetupAndRender />, { wrapper: Wrapper });
 
-		fireEvent.click(screen.getByLabelText("Manage tags"));
+		fireEvent.keyDown(screen.getByLabelText("Manage tags"), { key: "ArrowDown" });
 
 		await waitFor(() => expect(screen.getByText("Urgent")).toBeTruthy());
-		const buttons = screen.getAllByRole("button");
-		const engButton = buttons.find((b) => b.textContent?.includes("Engineering"));
-		expect(engButton?.querySelector("svg")).toBeTruthy();
+		expect(
+			screen.getByRole("menuitemcheckbox", { name: "Engineering" }).getAttribute("aria-checked"),
+		).toBe("true");
 	});
 
 	it("calls assign when clicking unassigned tag", async () => {
 		mockFetch.mockResolvedValue(ok(ALL_TAGS));
 		render(<SetupAndRender />, { wrapper: Wrapper });
 
-		fireEvent.click(screen.getByLabelText("Manage tags"));
+		fireEvent.keyDown(screen.getByLabelText("Manage tags"), { key: "ArrowDown" });
 		await waitFor(() => expect(screen.getByText("Urgent")).toBeTruthy());
 
 		mockFetch.mockResolvedValue(ok({ assigned: true }));
-		const buttons = screen.getAllByRole("button");
-		const urgentButton = buttons.find((b) => b.textContent?.includes("Urgent"));
-		if (urgentButton) {
-			fireEvent.click(urgentButton);
-		}
+		fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "Urgent" }));
 
 		await waitFor(() => {
 			const assignCall = mockFetch.mock.calls.find(
@@ -135,16 +131,11 @@ describe("TagPicker", () => {
 		mockFetch.mockResolvedValue(ok(ALL_TAGS));
 		render(<SetupAndRender />, { wrapper: Wrapper });
 
-		fireEvent.click(screen.getByLabelText("Manage tags"));
+		fireEvent.keyDown(screen.getByLabelText("Manage tags"), { key: "ArrowDown" });
 		await waitFor(() => expect(screen.getByText("Urgent")).toBeTruthy());
 
 		mockFetch.mockResolvedValue(ok({ removed: true }));
-		const engTexts = screen.getAllByText("Engineering");
-		const dropdownEng = engTexts[engTexts.length - 1];
-		const btn = dropdownEng.closest("button");
-		if (btn) {
-			fireEvent.click(btn);
-		}
+		fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "Engineering" }));
 
 		await waitFor(() => {
 			const unassignCall = mockFetch.mock.calls.find(
@@ -161,7 +152,7 @@ describe("TagPicker", () => {
 		mockFetch.mockResolvedValue(ok([]));
 		render(<SetupAndRender assignedTags={[]} />, { wrapper: Wrapper });
 
-		fireEvent.click(screen.getByLabelText("Manage tags"));
+		fireEvent.keyDown(screen.getByLabelText("Manage tags"), { key: "ArrowDown" });
 
 		await waitFor(() => expect(screen.getByText("No tags available")).toBeTruthy());
 	});
