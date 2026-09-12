@@ -1,4 +1,3 @@
-# Bogo CI — L1 + G1 + G2 via base-ci, L2 Worker E2E, L3 Playwright
 name: CI
 
 on:
@@ -9,123 +8,78 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ─────────────────────────────────────────────────────
-  # L1 (Unit tests) + G1 (Typecheck + Lint) + G2 (Gitleaks + OSV)
-  # ─────────────────────────────────────────────────────
   quality:
-    uses: nocoo/base-ci/.github/workflows/bun-quality.yml@aec4adc1a817c56790d1698329ef9398a15a754a  # v2026.5
+    uses: nocoo/base-ci/.github/workflows/quality.yml@3d2e9e55fdd60aa756df454ded53ef6d06d6653f
     with:
-      bun-version: "1.3.11"
+      runtime-version: "1.3.11"
+      install-policy: "trusted"
+      test-command: "bun run test:unit:coverage"
       osv-config: "osv-scanner.toml"
-      enable-l2: "false"
-      upload-coverage: "false"
     secrets: inherit
 
-  # ─────────────────────────────────────────────────────
-  # Coverage gates: structural route + page coverage + clip.yaml schema
-  # ─────────────────────────────────────────────────────
   coverage-gates:
     name: "Coverage Gates"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Checkout bogo
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: bogo
-
+          persist-credentials: false
       - name: Checkout clip (sibling for clip.yaml validation)
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: nocoo/clip
           path: clip
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+          persist-credentials: false
+      - name: Setup bogo
+        uses: nocoo/base-ci/.github/actions/setup-js@081cdf665b9c67f233abfcc9242ce0be76ce2bb4
         with:
-          bun-version: "1.3.11"
-
-      - name: Install dependencies (bogo)
-        run: cd bogo && bun install --frozen-lockfile
-
-      - name: Install dependencies (clip)
-        run: cd clip && bun install --frozen-lockfile
-
+          package-manager: bun
+          runtime-version: "1.3.11"
+          working-directory: bogo
+          install-policy: "trusted"
+      - name: Setup clip
+        uses: nocoo/base-ci/.github/actions/setup-js@081cdf665b9c67f233abfcc9242ce0be76ce2bb4
+        with:
+          package-manager: bun
+          runtime-version: "1.3.11"
+          working-directory: clip
+          install-policy: "project"
       - name: "G: Route coverage (L2)"
         run: cd bogo && bun run gate:routes
-
       - name: "G: Page coverage (L3)"
         run: cd bogo && bun run gate:pages
-
       - name: "G: clip.yaml validates against generator"
         env:
           BOGO_REQUIRE_CLI_E2E: "1"
         run: cd bogo && bun run gate:clip-yaml
 
-  # ─────────────────────────────────────────────────────
-  # L2: Worker E2E — local wrangler miniflare
-  # ─────────────────────────────────────────────────────
   l2-e2e:
     name: "L2 Worker E2E"
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    uses: nocoo/base-ci/.github/workflows/test-job.yml@3d2e9e55fdd60aa756df454ded53ef6d06d6653f
+    with:
+      runtime-version: "1.3.11"
+      install-policy: "trusted"
+      timeout-minutes: 15
+      pre-command: "bun run build"
+      command: "bun turbo test:e2e --filter=@bogo/worker"
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: "1.3.11"
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build shared
-        run: bun run build
-
-      - name: "L2: Worker E2E tests"
-        run: bun turbo test:e2e --filter=@bogo/worker
-
-  # ─────────────────────────────────────────────────────
-  # L3: Playwright browser E2E
-  # ─────────────────────────────────────────────────────
   l3-playwright:
     name: "L3 Playwright E2E"
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    uses: nocoo/base-ci/.github/workflows/test-job.yml@3d2e9e55fdd60aa756df454ded53ef6d06d6653f
+    with:
+      runtime-version: "1.3.11"
+      install-policy: "trusted"
+      browser: "chromium"
+      browser-working-directory: "packages/ui"
+      timeout-minutes: 20
+      pre-command: "bun run build"
+      command: "bun run test:e2e:pw"
+      artifact-name: playwright-report
+      artifact-path: "packages/ui/playwright-report/"
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: "1.3.11"
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build shared + UI
-        run: bun run build
-
-      - name: Install Playwright browsers
-        run: cd packages/ui && bunx playwright install chromium --with-deps
-
-      - name: "L3: Playwright E2E tests"
-        run: cd packages/ui && bunx playwright test
-
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report
-          path: packages/ui/playwright-report/
-          retention-days: 7
-
-  # ─────────────────────────────────────────────────────
-  # CLI E2E: clip-generated bogo CLI end-to-end (login + CRUD + revoke)
-  # ─────────────────────────────────────────────────────
   cli-e2e:
     name: "CLI E2E (clip-generated bogo CLI)"
     runs-on: ubuntu-latest
@@ -134,29 +88,31 @@ jobs:
       BOGO_REQUIRE_CLI_E2E: "1"
     steps:
       - name: Checkout bogo
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: bogo
-
+          persist-credentials: false
       - name: Checkout clip (sibling, fallback runner)
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: nocoo/clip
           path: clip
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+          persist-credentials: false
+      - name: Setup bogo
+        uses: nocoo/base-ci/.github/actions/setup-js@081cdf665b9c67f233abfcc9242ce0be76ce2bb4
         with:
-          bun-version: "1.3.11"
-
-      - name: Install dependencies (bogo)
-        run: cd bogo && bun install --frozen-lockfile
-
-      - name: Install dependencies (clip)
-        run: cd clip && bun install --frozen-lockfile
-
+          package-manager: bun
+          runtime-version: "1.3.11"
+          working-directory: bogo
+          install-policy: "trusted"
+      - name: Setup clip
+        uses: nocoo/base-ci/.github/actions/setup-js@081cdf665b9c67f233abfcc9242ce0be76ce2bb4
+        with:
+          package-manager: bun
+          runtime-version: "1.3.11"
+          working-directory: clip
+          install-policy: "project"
       - name: Build static (wrangler needs packages/worker/static)
         run: cd bogo && bun run build
-
       - name: "CLI E2E: login + CRUD + revoke"
         run: cd bogo && bun run test:cli-e2e
