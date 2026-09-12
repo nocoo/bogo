@@ -15,7 +15,6 @@ jobs:
       install-policy: "trusted"
       test-command: "bun run test:unit:coverage"
       osv-config: "osv-scanner.toml"
-    secrets: inherit
 
   coverage-gates:
     name: "Coverage Gates"
