@@ -76,7 +76,9 @@ jobs:
       browser-working-directory: "packages/ui"
       timeout-minutes: 20
       pre-command: "bun run build"
-      command: "bun run test:e2e:pw"
+      command: "PLAYWRIGHT_HTML_OPEN=never bun run test:e2e:pw -- --reporter=line,html"
+      artifact-name: playwright-report
+      artifact-path: packages/ui/playwright-report/
 
   cli-e2e:
     name: "CLI E2E (clip-generated bogo CLI)"
