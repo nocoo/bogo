@@ -1,3 +1,4 @@
+import { HeaderTooltip, HexlyLink } from "./header-links";
 import { Button, ContentIsland, Sheet, SheetContent, SheetTitle } from "@nocoo/basalt";
 import { AppHeader } from "@nocoo/basalt/components/app-header";
 import { AppMain, AppShell, AppSkipLink } from "@nocoo/basalt/components/app-shell";
@@ -54,15 +55,17 @@ export function DashboardLayout() {
 				<AppHeader
 					leading={
 						isMobile ? (
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => setMobileOpen(true)}
-								aria-label="Open navigation"
-								className="h-8 w-8 shrink-0"
-							>
-								<Menu className="h-5 w-5" aria-hidden="true" strokeWidth={1.5} />
-							</Button>
+							<HeaderTooltip label="Open navigation">
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => setMobileOpen(true)}
+									aria-label="Open navigation"
+									className="h-8 w-8 shrink-0"
+								>
+									<Menu className="h-5 w-5" aria-hidden="true" strokeWidth={1.5} />
+								</Button>
+							</HeaderTooltip>
 						) : null
 					}
 					breadcrumbs={
@@ -73,15 +76,18 @@ export function DashboardLayout() {
 					actions={
 						<>
 							<WorkspaceSelector />
-							<a
-								href="https://github.com/nocoo/bogo"
-								target="_blank"
-								rel="noopener noreferrer"
-								aria-label="GitHub repository"
-								className="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg text-basalt-muted-foreground hover:text-basalt-foreground hover:bg-basalt-accent transition-colors"
-							>
-								<Github className="h-[18px] w-[18px]" aria-hidden="true" strokeWidth={1.5} />
-							</a>
+							<HeaderTooltip label="GitHub repository">
+								<a
+									href="https://github.com/nocoo/bogo"
+									target="_blank"
+									rel="noopener noreferrer"
+									aria-label="GitHub repository"
+									className="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg text-basalt-muted-foreground hover:text-basalt-foreground hover:bg-basalt-accent transition-colors"
+								>
+									<Github className="h-[18px] w-[18px]" aria-hidden="true" strokeWidth={1.5} />
+								</a>
+							</HeaderTooltip>
+							<HexlyLink />
 							<ThemeToggle />
 						</>
 					}
