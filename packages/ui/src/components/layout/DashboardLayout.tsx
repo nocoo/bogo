@@ -1,4 +1,3 @@
-import { HeaderTooltip, HexlyLink } from "./header-links";
 import { Button, ContentIsland, Sheet, SheetContent, SheetTitle } from "@nocoo/basalt";
 import { AppHeader } from "@nocoo/basalt/components/app-header";
 import { AppMain, AppShell, AppSkipLink } from "@nocoo/basalt/components/app-shell";
@@ -10,6 +9,7 @@ import { Github } from "@/components/icons/Github";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { WorkspaceSelector } from "@/components/workspace/WorkspaceSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { HeaderTooltip, HexlyLink } from "./header-links";
 
 function resolveAncestors(pathname: string) {
 	if (pathname === "/") return [];
