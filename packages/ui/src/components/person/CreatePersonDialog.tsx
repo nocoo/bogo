@@ -75,7 +75,7 @@ export function CreatePersonDialog({
 					<label htmlFor="person-manager" className="text-xs text-basalt-muted-foreground">
 						Reports to
 					</label>
-					<Select value={managerId || undefined} onValueChange={setManagerId}>
+					<Select value={managerId} onValueChange={setManagerId}>
 						<SelectTrigger id="person-manager" className="mt-1 w-full">
 							<SelectValue />
 						</SelectTrigger>

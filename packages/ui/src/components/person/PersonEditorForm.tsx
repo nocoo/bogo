@@ -179,7 +179,7 @@ export function PersonEditorForm({
 					>
 						Manager
 					</label>
-					<Select value={managerId || undefined} onValueChange={handleManagerChange}>
+					<Select value={managerId ?? ""} onValueChange={handleManagerChange}>
 						<SelectTrigger id="edit-manager" size={selectSize} className="mt-1 w-full">
 							<SelectValue />
 						</SelectTrigger>
