@@ -1,5 +1,12 @@
 import type { CustomFieldDefinition, ViewFilter } from "@bogo/shared";
 import { Button, Input } from "@nocoo/basalt";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@nocoo/basalt/components/select";
 import type { ColumnMeta } from "@/viewmodels/table/column-catalog";
 
 /**
@@ -29,19 +36,17 @@ export function FilterValueInput({
 
 	if (kind === "boolean") {
 		const v = typeof filter.value === "string" ? filter.value : "";
+		const selected = v === "true" || v === "false" ? v : "";
 		return (
-			<select
-				className="field-select h-8 text-xs min-w-[8rem] flex-1"
-				value={v === "true" || v === "false" ? v : ""}
-				onChange={(e) => onChange(e.target.value)}
-				aria-label="Filter value"
-			>
-				<option value="" disabled>
-					Select…
-				</option>
-				<option value="true">Yes</option>
-				<option value="false">No</option>
-			</select>
+			<Select value={selected} onValueChange={onChange}>
+				<SelectTrigger size="sm" className="min-w-[8rem] flex-1" aria-label="Filter value">
+					<SelectValue placeholder="Select…" />
+				</SelectTrigger>
+				<SelectContent>
+					<SelectItem value="true">Yes</SelectItem>
+					<SelectItem value="false">No</SelectItem>
+				</SelectContent>
+			</Select>
 		);
 	}
 
@@ -49,21 +54,18 @@ export function FilterValueInput({
 		const options = def?.options ?? [];
 		const v = typeof filter.value === "string" ? filter.value : "";
 		return (
-			<select
-				className="field-select h-8 text-xs min-w-[8rem] flex-1"
-				value={v}
-				onChange={(e) => onChange(e.target.value)}
-				aria-label="Filter value"
-			>
-				<option value="" disabled>
-					Select…
-				</option>
-				{options.map((opt) => (
-					<option key={opt} value={opt}>
-						{opt}
-					</option>
-				))}
-			</select>
+			<Select value={v} onValueChange={onChange}>
+				<SelectTrigger size="sm" className="min-w-[8rem] flex-1" aria-label="Filter value">
+					<SelectValue placeholder="Select…" />
+				</SelectTrigger>
+				<SelectContent>
+					{options.map((opt) => (
+						<SelectItem key={opt} value={opt}>
+							{opt}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
 		);
 	}
 

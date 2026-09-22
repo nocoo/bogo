@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { chooseSelect } from "../../test-select.js";
 import { CreatePersonDialog, EmptyPersonState } from "./CreatePersonDialog.js";
 
 const ROOT = {
@@ -42,8 +43,7 @@ describe("CreatePersonDialog", () => {
 				isCreating={false}
 			/>,
 		);
-		const select = screen.getByLabelText("Reports to") as HTMLSelectElement;
-		expect(select.value).toBe("p-root");
+		expect(screen.getByLabelText("Reports to").textContent).toContain("Org");
 	});
 
 	it("submits with name and selected manager", () => {
@@ -59,8 +59,7 @@ describe("CreatePersonDialog", () => {
 		const nameInput = screen.getByPlaceholderText("Person name");
 		fireEvent.change(nameInput, { target: { value: "Bob" } });
 
-		const select = screen.getByLabelText("Reports to") as HTMLSelectElement;
-		fireEvent.change(select, { target: { value: "p-alice" } });
+		chooseSelect("Reports to", "Alice");
 
 		fireEvent.click(screen.getByText("Create"));
 		expect(onSubmit).toHaveBeenCalledWith("Bob", "p-alice");

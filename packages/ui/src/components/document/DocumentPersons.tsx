@@ -1,5 +1,12 @@
 import type { DocumentPerson, Person } from "@bogo/shared";
 import { Button } from "@nocoo/basalt";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@nocoo/basalt/components/select";
 import { Loader2, Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { PersonChip } from "../../components/person/PersonChip.js";
@@ -101,19 +108,22 @@ export function DocumentPersons({
 				) : (
 					available.length > 0 && (
 						<div className="flex items-center gap-2">
-							<select
-								value={selectedPersonId}
-								onChange={(e) => setSelectedPersonId(e.target.value)}
-								className="field-select min-w-0 flex-1"
-								aria-label="Select person to add"
+							<Select
+								value={selectedPersonId === "" ? "\u0000" : selectedPersonId}
+								onValueChange={(value) => setSelectedPersonId(value === "\u0000" ? "" : value)}
 							>
-								<option value="">Select person…</option>
-								{available.map((p) => (
-									<option key={p.id} value={p.id}>
-										{p.name}
-									</option>
-								))}
-							</select>
+								<SelectTrigger className="min-w-0 flex-1" aria-label="Select person to add">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value={"\u0000"}>Select person…</SelectItem>
+									{available.map((p) => (
+										<SelectItem key={p.id} value={p.id}>
+											{p.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 							<Button
 								type="button"
 								onClick={handleAdd}

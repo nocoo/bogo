@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { chooseSelect, selectOptionTexts } from "../../test-select.js";
 import { EditPersonPanel } from "./EditPersonPanel.js";
 
 vi.mock("../TagPicker.js", () => ({
@@ -132,9 +133,7 @@ describe("EditPersonPanel", () => {
 				isRemoving={false}
 			/>,
 		);
-		fireEvent.change(screen.getByLabelText("Dotted-line manager"), {
-			target: { value: "p-bob" },
-		});
+		chooseSelect("Dotted-line manager", "Bob");
 		fireEvent.click(screen.getByText("Save"));
 		expect(onUpdate).toHaveBeenCalledWith("p-alice", { dottedManagerId: "p-bob" });
 	});
@@ -272,12 +271,11 @@ describe("EditPersonPanel", () => {
 				isRemoving={false}
 			/>,
 		);
-		const select = screen.getByLabelText("Dotted-line manager") as HTMLSelectElement;
-		const options = Array.from(select.options).map((o) => o.value);
-		expect(options).toContain("");
-		expect(options).toContain("p-bob");
-		expect(options).not.toContain("p-alice");
-		expect(options).not.toContain("p-root");
+		const options = selectOptionTexts("Dotted-line manager");
+		expect(options).toContain("None");
+		expect(options).toContain("Bob");
+		expect(options).not.toContain("Alice");
+		expect(options).not.toContain("Org");
 	});
 
 	it("disables delete button when isRemoving", () => {
@@ -310,9 +308,7 @@ describe("EditPersonPanel", () => {
 				isRemoving={false}
 			/>,
 		);
-		fireEvent.change(screen.getByLabelText("Dotted-line manager"), {
-			target: { value: "" },
-		});
+		chooseSelect("Dotted-line manager", "None");
 		fireEvent.click(screen.getByText("Save"));
 		expect(onUpdate).toHaveBeenCalledWith("p-alice", { dottedManagerId: null });
 	});
@@ -360,7 +356,7 @@ describe("EditPersonPanel", () => {
 				isRemoving={false}
 			/>,
 		);
-		fireEvent.change(screen.getByLabelText("Manager"), { target: { value: "p-bob" } });
+		chooseSelect("Manager", "Bob");
 		expect(onMove).toHaveBeenCalledWith("p-alice", "p-bob");
 	});
 
@@ -376,12 +372,11 @@ describe("EditPersonPanel", () => {
 				isRemoving={false}
 			/>,
 		);
-		const select = screen.getByLabelText("Manager") as HTMLSelectElement;
-		const options = Array.from(select.options).map((o) => o.value);
-		expect(options).toContain("p-root");
-		expect(options).toContain("p-bob");
-		expect(options).not.toContain("p-alice");
-		expect(options).not.toContain("p-charlie");
+		const options = selectOptionTexts("Manager");
+		expect(options).toContain("Org");
+		expect(options).toContain("Bob");
+		expect(options).not.toContain("Alice");
+		expect(options).not.toContain("Charlie");
 	});
 
 	it("does not call onMove when selecting current manager", () => {
@@ -397,7 +392,7 @@ describe("EditPersonPanel", () => {
 				isRemoving={false}
 			/>,
 		);
-		fireEvent.change(screen.getByLabelText("Manager"), { target: { value: "p-root" } });
+		chooseSelect("Manager", "Org");
 		expect(onMove).not.toHaveBeenCalled();
 	});
 });

@@ -19,6 +19,13 @@ import {
 	LayerCard,
 } from "@nocoo/basalt";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@nocoo/basalt/components/select";
 import { Columns3, Ellipsis, Filter, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
@@ -395,12 +402,9 @@ export function TablePage() {
 									key={`filter-row-${i}`}
 								>
 									<LayerCard.Well className="flex flex-wrap items-center gap-2 p-2 rounded-lg">
-										<select
-											className="field-select h-8 min-w-32 flex-1 text-xs"
-											aria-label="Filter column"
+										<Select
 											value={f.key}
-											onChange={(e) => {
-												const key = e.target.value;
+											onValueChange={(key) => {
 												const allowed = opsForColumn(key);
 												const op = (allowed.includes(f.op) ? f.op : allowed[0]) as ViewFilter["op"];
 												setFilterDraft((d) =>
@@ -422,22 +426,29 @@ export function TablePage() {
 												);
 											}}
 										>
-											{columnMetas
-												.filter((c) => c.filterable)
-												.map((c) => (
-													<option key={c.key} value={c.key}>
-														{c.label}
-													</option>
-												))}
-										</select>
-										<select
-											className="field-select h-8 min-w-32 flex-1 text-xs"
-											aria-label="Filter operator"
+											<SelectTrigger
+												size="sm"
+												className="min-w-32 flex-1"
+												aria-label="Filter column"
+											>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{columnMetas
+													.filter((c) => c.filterable)
+													.map((c) => (
+														<SelectItem key={c.key} value={c.key}>
+															{c.label}
+														</SelectItem>
+													))}
+											</SelectContent>
+										</Select>
+										<Select
 											value={
 												opsForColumn(f.key).includes(f.op) ? f.op : (opsForColumn(f.key)[0] ?? "eq")
 											}
-											onChange={(e) => {
-												const op = e.target.value as ViewFilter["op"];
+											onValueChange={(next) => {
+												const op = next as ViewFilter["op"];
 												setFilterDraft((d) =>
 													d.map((x, j) =>
 														j === i
@@ -458,12 +469,21 @@ export function TablePage() {
 												);
 											}}
 										>
-											{opsForColumn(f.key).map((op) => (
-												<option key={op} value={op}>
-													{op}
-												</option>
-											))}
-										</select>
+											<SelectTrigger
+												size="sm"
+												className="min-w-32 flex-1"
+												aria-label="Filter operator"
+											>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{opsForColumn(f.key).map((op) => (
+													<SelectItem key={op} value={op}>
+														{op}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
 										<FilterValueInput
 											filter={f}
 											meta={columnMetas.find((c) => c.key === f.key)}

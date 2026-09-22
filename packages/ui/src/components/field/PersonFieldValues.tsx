@@ -1,5 +1,12 @@
 import type { CustomFieldDefinition } from "@bogo/shared";
 import { Input } from "@nocoo/basalt";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@nocoo/basalt/components/select";
 import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
@@ -50,18 +57,27 @@ function FieldValueRow({ def, vm }: { def: CustomFieldDefinition; vm: FieldValue
 		setValidationError(null);
 	}, [currentValue]);
 
+	const commit = useCallback(
+		(next: string) => {
+			setLocalValue(next);
+			if (next === currentValue) {
+				setValidationError(null);
+				return;
+			}
+			const error = vm.validate(def, next);
+			if (error) {
+				setValidationError(error);
+				return;
+			}
+			setValidationError(null);
+			vm.setValue(def.id, next);
+		},
+		[currentValue, def, vm],
+	);
+
 	const handleBlur = useCallback(() => {
-		if (localValue === currentValue) {
-			return;
-		}
-		const error = vm.validate(def, localValue);
-		if (error) {
-			setValidationError(error);
-			return;
-		}
-		setValidationError(null);
-		vm.setValue(def.id, localValue);
-	}, [localValue, currentValue, def, vm]);
+		commit(localValue);
+	}, [commit, localValue]);
 
 	const handleChange = useCallback((value: string) => {
 		setLocalValue(value);
@@ -83,6 +99,7 @@ function FieldValueRow({ def, vm }: { def: CustomFieldDefinition; vm: FieldValue
 				def={def}
 				value={localValue}
 				onChange={handleChange}
+				onCommit={commit}
 				onBlur={handleBlur}
 			/>
 			{validationError && (
@@ -99,47 +116,51 @@ function FieldInput({
 	def,
 	value,
 	onChange,
+	onCommit,
 	onBlur,
 }: {
 	id: string;
 	def: CustomFieldDefinition;
 	value: string;
 	onChange: (value: string) => void;
+	onCommit: (value: string) => void;
 	onBlur: () => void;
 }) {
-	const selectClass = "field-select mt-1 w-full";
-
 	switch (def.fieldType) {
 		case "boolean":
 			return (
-				<select
-					id={id}
-					value={value}
-					onChange={(e) => onChange(e.target.value)}
-					onBlur={onBlur}
-					className={selectClass}
+				<Select
+					value={value === "" ? "\u0000" : value}
+					onValueChange={(next) => onCommit(next === "\u0000" ? "" : next)}
 				>
-					<option value="">—</option>
-					<option value="true">Yes</option>
-					<option value="false">No</option>
-				</select>
+					<SelectTrigger id={id} className="mt-1 w-full">
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value={"\u0000"}>—</SelectItem>
+						<SelectItem value="true">Yes</SelectItem>
+						<SelectItem value="false">No</SelectItem>
+					</SelectContent>
+				</Select>
 			);
 		case "select":
 			return (
-				<select
-					id={id}
-					value={value}
-					onChange={(e) => onChange(e.target.value)}
-					onBlur={onBlur}
-					className={selectClass}
+				<Select
+					value={value === "" ? "\u0000" : value}
+					onValueChange={(next) => onCommit(next === "\u0000" ? "" : next)}
 				>
-					<option value="">—</option>
-					{(def.options ?? []).map((opt) => (
-						<option key={opt} value={opt}>
-							{opt}
-						</option>
-					))}
-				</select>
+					<SelectTrigger id={id} className="mt-1 w-full">
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value={"\u0000"}>—</SelectItem>
+						{(def.options ?? []).map((opt) => (
+							<SelectItem key={opt} value={opt}>
+								{opt}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 			);
 		default:
 			return (

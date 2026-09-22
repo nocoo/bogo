@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { chooseSelect } from "../../test-select.js";
 import type { FieldDefsVM } from "../../viewmodels/field/use-field-defs.js";
 import { FieldDefsManager } from "./FieldDefsManager.js";
 
@@ -82,9 +83,9 @@ describe("FieldDefsManager", () => {
 		const vm = createVM({ defs: [DEF_TEXT, DEF_SELECT] });
 		render(<FieldDefsManager vm={vm} />);
 		expect(screen.getByText("Department")).toBeTruthy();
-		expect((screen.getByLabelText("Type for Department") as HTMLSelectElement).value).toBe("text");
+		expect(screen.getByLabelText("Type for Department").textContent).toContain("Text");
 		expect(screen.getByText("Level")).toBeTruthy();
-		expect((screen.getByLabelText("Type for Level") as HTMLSelectElement).value).toBe("select");
+		expect(screen.getByLabelText("Type for Level").textContent).toContain("Select");
 		expect((screen.getByLabelText("Required for Level") as HTMLInputElement).checked).toBe(true);
 		expect(screen.getByText("3 options")).toBeTruthy();
 	});
@@ -128,7 +129,7 @@ describe("FieldDefsManager", () => {
 		fireEvent.change(screen.getByPlaceholderText("Field name"), {
 			target: { value: "Status" },
 		});
-		fireEvent.change(screen.getByLabelText("Type"), { target: { value: "select" } });
+		chooseSelect("Type", "Select");
 		fireEvent.change(screen.getByPlaceholderText("Option 1, Option 2, ..."), {
 			target: { value: "Active, Inactive" },
 		});
@@ -297,7 +298,7 @@ describe("FieldDefsManager", () => {
 			fireEvent.change(screen.getByPlaceholderText("Field name"), {
 				target: { value: "Status" },
 			});
-			fireEvent.change(screen.getByLabelText("Type"), { target: { value: "select" } });
+			chooseSelect("Type", "Select");
 
 			const createBtn = screen.getByText("Create") as HTMLButtonElement;
 			expect(createBtn.disabled).toBe(true);
@@ -312,7 +313,7 @@ describe("FieldDefsManager", () => {
 			fireEvent.change(screen.getByPlaceholderText("Field name"), {
 				target: { value: "Status" },
 			});
-			fireEvent.change(screen.getByLabelText("Type"), { target: { value: "select" } });
+			chooseSelect("Type", "Select");
 			fireEvent.click(screen.getByText("Create"));
 
 			expect(create).not.toHaveBeenCalled();
@@ -326,7 +327,7 @@ describe("FieldDefsManager", () => {
 			fireEvent.change(screen.getByPlaceholderText("Field name"), {
 				target: { value: "Status" },
 			});
-			fireEvent.change(screen.getByLabelText("Type"), { target: { value: "select" } });
+			chooseSelect("Type", "Select");
 			fireEvent.change(screen.getByPlaceholderText("Option 1, Option 2, ..."), {
 				target: { value: "Active, Inactive" },
 			});

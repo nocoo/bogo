@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { chooseSelect } from "../../test-select.js";
 import { FilterValueInput } from "./FilterValueInput";
 
 describe("FilterValueInput", () => {
@@ -20,7 +21,7 @@ describe("FilterValueInput", () => {
 				onChange={onChange}
 			/>,
 		);
-		fireEvent.change(screen.getByLabelText("Filter value"), { target: { value: "false" } });
+		chooseSelect("Filter value", "No");
 		expect(onChange).toHaveBeenCalledWith("false");
 	});
 
@@ -248,7 +249,55 @@ describe("FilterValueInput", () => {
 				onChange={onChange}
 			/>,
 		);
-		fireEvent.change(screen.getByLabelText("Filter value"), { target: { value: "B" } });
+		chooseSelect("Filter value", "B");
+		expect(onChange).toHaveBeenCalledWith("B");
+	});
+
+	it("stays controlled when a prior choice is cleared", () => {
+		const onChange = vi.fn();
+		const meta = {
+			key: "field:s",
+			label: "S",
+			sortable: true,
+			filterable: true,
+			kind: "select" as const,
+		};
+		const def = {
+			id: "s",
+			workspaceId: "ws",
+			name: "S",
+			fieldType: "select" as const,
+			options: ["A", "B"],
+			sortOrder: 0,
+			required: false,
+			defaultValue: null,
+			showOnChart: false,
+			createdAt: "2026-01-01",
+		};
+		const { rerender } = render(
+			<FilterValueInput
+				filter={{ key: "field:s", op: "eq", value: "A" }}
+				meta={meta}
+				def={def}
+				personTags={[]}
+				onChange={onChange}
+			/>,
+		);
+		expect(screen.getByLabelText("Filter value").textContent).toContain("A");
+
+		rerender(
+			<FilterValueInput
+				filter={{ key: "field:s", op: "eq", value: "" }}
+				meta={meta}
+				def={def}
+				personTags={[]}
+				onChange={onChange}
+			/>,
+		);
+		expect(screen.getByLabelText("Filter value").textContent).toContain("Select…");
+		expect(screen.getByLabelText("Filter value").textContent).not.toContain("A");
+
+		chooseSelect("Filter value", "B");
 		expect(onChange).toHaveBeenCalledWith("B");
 	});
 });

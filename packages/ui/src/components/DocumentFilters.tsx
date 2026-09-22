@@ -1,5 +1,12 @@
 import type { DocumentType, Person, Tag } from "@bogo/shared";
 import { Button, Input } from "@nocoo/basalt";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@nocoo/basalt/components/select";
 import { X } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { PersonAvatar } from "./person/PersonAvatar.js";
@@ -102,20 +109,20 @@ export function DocumentFilters({
 				{/* Type */}
 				<div className="space-y-1.5">
 					<FieldLabel htmlFor="filter-type" label="Type" />
-					<select
-						id="filter-type"
-						value={value.typeId}
-						onChange={(e) => patch({ typeId: e.target.value })}
-						className="field-select h-9 w-full"
-					>
-						<option value="all">All types</option>
-						<option value="none">No type</option>
-						{docTypes.map((dt) => (
-							<option key={dt.id} value={dt.id}>
-								{dt.name}
-							</option>
-						))}
-					</select>
+					<Select value={value.typeId} onValueChange={(typeId) => patch({ typeId })}>
+						<SelectTrigger id="filter-type" className="w-full">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">All types</SelectItem>
+							<SelectItem value="none">No type</SelectItem>
+							{docTypes.map((dt) => (
+								<SelectItem key={dt.id} value={dt.id}>
+									{dt.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
 
 				{/* Date range */}

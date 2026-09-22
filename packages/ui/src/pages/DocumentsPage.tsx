@@ -1,6 +1,13 @@
 import type { DocumentSummary, Tag } from "@bogo/shared";
 import { Badge, Button, Input, LayerCard } from "@nocoo/basalt";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@nocoo/basalt/components/select";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Filter, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -233,19 +240,22 @@ function CreateDocumentForm({
 					<label htmlFor="doc-type-select" className="text-xs text-basalt-muted-foreground">
 						Type
 					</label>
-					<select
-						id="doc-type-select"
-						value={typeId}
-						onChange={(e) => setTypeId(e.target.value)}
-						className="field-select mt-1 w-full"
+					<Select
+						value={typeId === "" ? "\u0000" : typeId}
+						onValueChange={(value) => setTypeId(value === "\u0000" ? "" : value)}
 					>
-						<option value="">None</option>
-						{docTypes.map((dt) => (
-							<option key={dt.id} value={dt.id}>
-								{dt.name}
-							</option>
-						))}
-					</select>
+						<SelectTrigger id="doc-type-select" className="mt-1 w-full">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value={"\u0000"}>None</SelectItem>
+							{docTypes.map((dt) => (
+								<SelectItem key={dt.id} value={dt.id}>
+									{dt.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
 			)}
 			<div className="flex items-center gap-2">

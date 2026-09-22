@@ -1,6 +1,7 @@
 import type { DocumentPerson, Person } from "@bogo/shared";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { chooseSelect, selectOptionTexts } from "../../test-select.js";
 import { DocumentPersons } from "./DocumentPersons.js";
 
 const PERSONS: Person[] = [
@@ -94,8 +95,7 @@ describe("DocumentPersons", () => {
 
 	it("only shows unlinked persons in the dropdown", () => {
 		renderComponent();
-		const select = screen.getByLabelText("Select person to add") as HTMLSelectElement;
-		const options = Array.from(select.options).map((o) => o.text);
+		const options = selectOptionTexts("Select person to add");
 		expect(options).toContain("Bob");
 		expect(options).toContain("Carol");
 		expect(options).not.toContain("Alice");
@@ -104,8 +104,7 @@ describe("DocumentPersons", () => {
 	it("calls onAdd with selected personId on add button click", () => {
 		const onAdd = vi.fn();
 		renderComponent({ onAdd });
-		const select = screen.getByLabelText("Select person to add");
-		fireEvent.change(select, { target: { value: "p-2" } });
+		chooseSelect("Select person to add", "Bob");
 		fireEvent.click(screen.getByLabelText("Add person"));
 		expect(onAdd).toHaveBeenCalledWith({ personId: "p-2" }, expect.any(Object));
 	});
@@ -118,8 +117,7 @@ describe("DocumentPersons", () => {
 
 	it("disables add button while isAdding", () => {
 		renderComponent({ isAdding: true });
-		const select = screen.getByLabelText("Select person to add");
-		fireEvent.change(select, { target: { value: "p-2" } });
+		chooseSelect("Select person to add", "Bob");
 		const btn = screen.getByLabelText("Add person") as HTMLButtonElement;
 		expect(btn.disabled).toBe(true);
 	});
@@ -153,10 +151,9 @@ describe("DocumentPersons", () => {
 			opts?.onSuccess?.();
 		});
 		renderComponent({ onAdd });
-		const select = screen.getByLabelText("Select person to add") as HTMLSelectElement;
-		fireEvent.change(select, { target: { value: "p-2" } });
+		chooseSelect("Select person to add", "Bob");
 		fireEvent.click(screen.getByLabelText("Add person"));
-		expect(select.value).toBe("");
+		expect(screen.getByLabelText("Select person to add").textContent).toContain("Select person…");
 	});
 
 	it("shows loading indicator and hides add selector when allPersonsLoading", () => {

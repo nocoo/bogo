@@ -1,6 +1,13 @@
 import type { CustomFieldDefinition, FieldType, UpdateFieldDefInput } from "@bogo/shared";
 import { Button, Input, LayerCard } from "@nocoo/basalt";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@nocoo/basalt/components/select";
 import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { FieldDefsVM } from "../../viewmodels/field/use-field-defs.js";
@@ -182,18 +189,18 @@ function CreateFieldForm({
 					<label htmlFor="field-type" className="text-xs text-basalt-muted-foreground">
 						Type
 					</label>
-					<select
-						id="field-type"
-						value={fieldType}
-						onChange={(e) => setFieldType(e.target.value as FieldType)}
-						className="field-select mt-1 w-full"
-					>
-						{Object.entries(FIELD_TYPE_LABELS).map(([k, v]) => (
-							<option key={k} value={k}>
-								{v}
-							</option>
-						))}
-					</select>
+					<Select value={fieldType} onValueChange={(value) => setFieldType(value as FieldType)}>
+						<SelectTrigger id="field-type" className="mt-1 w-full">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{Object.entries(FIELD_TYPE_LABELS).map(([k, v]) => (
+								<SelectItem key={k} value={k}>
+									{v}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
 			</div>
 			{fieldType === "select" && (
@@ -390,18 +397,21 @@ function FieldDefRow({
 				</button>
 			</div>
 			<div className="flex flex-wrap items-center gap-x-4 gap-y-2 pl-6">
-				<select
+				<Select
 					value={def.fieldType}
-					onChange={(e) => handleTypeChange(e.target.value as FieldType)}
-					className="field-select h-8 text-xs"
-					aria-label={`Type for ${def.name}`}
+					onValueChange={(value) => handleTypeChange(value as FieldType)}
 				>
-					{Object.entries(FIELD_TYPE_LABELS).map(([k, v]) => (
-						<option key={k} value={k}>
-							{v}
-						</option>
-					))}
-				</select>
+					<SelectTrigger size="sm" aria-label={`Type for ${def.name}`}>
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						{Object.entries(FIELD_TYPE_LABELS).map(([k, v]) => (
+							<SelectItem key={k} value={k}>
+								{v}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 				<label className="flex items-center gap-1.5 text-xs text-basalt-muted-foreground">
 					<input
 						type="checkbox"

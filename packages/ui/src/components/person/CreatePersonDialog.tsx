@@ -1,5 +1,12 @@
 import type { Person } from "@bogo/shared";
 import { Button, Input, LayerCard } from "@nocoo/basalt";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@nocoo/basalt/components/select";
 import { Plus, UserX, X } from "lucide-react";
 import { useCallback, useState } from "react";
 
@@ -68,18 +75,18 @@ export function CreatePersonDialog({
 					<label htmlFor="person-manager" className="text-xs text-basalt-muted-foreground">
 						Reports to
 					</label>
-					<select
-						id="person-manager"
-						value={managerId}
-						onChange={(e) => setManagerId(e.target.value)}
-						className="field-select mt-1 w-full"
-					>
-						{persons.map((p) => (
-							<option key={p.id} value={p.id}>
-								{p.name}
-							</option>
-						))}
-					</select>
+					<Select value={managerId || undefined} onValueChange={setManagerId}>
+						<SelectTrigger id="person-manager" className="mt-1 w-full">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{persons.map((p) => (
+								<SelectItem key={p.id} value={p.id}>
+									{p.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
 
 				<div className="flex items-center gap-2 pt-1">

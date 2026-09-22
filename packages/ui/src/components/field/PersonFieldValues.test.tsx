@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { chooseSelect, openSelect } from "../../test-select.js";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
 import { PersonFieldValues } from "./PersonFieldValues.js";
 
@@ -135,19 +136,18 @@ describe("PersonFieldValues", () => {
 	it("renders select for select field with options", () => {
 		const vm = createVM({ getValueFor: vi.fn().mockReturnValue("Senior") });
 		render(<PersonFieldValues defs={[DEF_SELECT]} vm={vm} />);
-		const select = screen.getByLabelText("Level") as HTMLSelectElement;
-		expect(select.value).toBe("Senior");
-		expect(screen.getByText("Junior")).toBeTruthy();
-		expect(screen.getByText("Staff")).toBeTruthy();
+		expect(screen.getByLabelText("Level").textContent).toContain("Senior");
+		openSelect("Level");
+		expect(screen.getByRole("option", { name: "Junior" })).toBeTruthy();
+		expect(screen.getByRole("option", { name: "Staff" })).toBeTruthy();
 	});
 
 	it("renders select for boolean field with Yes/No", () => {
 		const vm = createVM({ getValueFor: vi.fn().mockReturnValue("true") });
 		render(<PersonFieldValues defs={[DEF_BOOLEAN]} vm={vm} />);
-		const select = screen.getByLabelText("Active") as HTMLSelectElement;
-		expect(select.value).toBe("true");
-		expect(screen.getByText("Yes")).toBeTruthy();
-		expect(screen.getByText("No")).toBeTruthy();
+		expect(screen.getByLabelText("Active").textContent).toContain("Yes");
+		openSelect("Active");
+		expect(screen.getByRole("option", { name: "No" })).toBeTruthy();
 	});
 
 	it("calls setValue on blur when validation passes", () => {
@@ -205,17 +205,27 @@ describe("PersonFieldValues", () => {
 		expect(setValue).not.toHaveBeenCalled();
 	});
 
-	it("saves select field value on change and blur", () => {
+	it("saves select field value when the choice changes", () => {
 		const setValue = vi.fn();
 		const validate = vi.fn().mockReturnValue(null);
 		const vm = createVM({ setValue, validate });
 		render(<PersonFieldValues defs={[DEF_SELECT]} vm={vm} />);
 
-		const select = screen.getByLabelText("Level") as HTMLSelectElement;
-		fireEvent.change(select, { target: { value: "Senior" } });
-		fireEvent.blur(select);
+		openSelect("Level");
+		expect(setValue).not.toHaveBeenCalled();
 
+		chooseSelect("Level", "Senior");
 		expect(setValue).toHaveBeenCalledWith("fd-4", "Senior");
+	});
+
+	it("saves an empty select choice", () => {
+		const setValue = vi.fn();
+		const validate = vi.fn().mockReturnValue(null);
+		const vm = createVM({ setValue, validate, getValueFor: vi.fn().mockReturnValue("Senior") });
+		render(<PersonFieldValues defs={[DEF_SELECT]} vm={vm} />);
+
+		chooseSelect("Level", "—");
+		expect(setValue).toHaveBeenCalledWith("fd-4", "");
 	});
 
 	it("saves boolean field value on change and blur", () => {
@@ -224,9 +234,7 @@ describe("PersonFieldValues", () => {
 		const vm = createVM({ setValue, validate });
 		render(<PersonFieldValues defs={[DEF_BOOLEAN]} vm={vm} />);
 
-		const select = screen.getByLabelText("Active") as HTMLSelectElement;
-		fireEvent.change(select, { target: { value: "true" } });
-		fireEvent.blur(select);
+		chooseSelect("Active", "Yes");
 
 		expect(setValue).toHaveBeenCalledWith("fd-5", "true");
 	});

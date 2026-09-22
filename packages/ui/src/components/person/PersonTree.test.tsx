@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
+import { chooseSelect } from "../../test-select.js";
 import { getNodeCenter, PersonTree } from "./PersonTree.js";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
@@ -284,8 +285,7 @@ describe("PersonTree", () => {
 
 		fireEvent.click(screen.getByLabelText("Add person"));
 		expect(screen.getByText("Add Person")).toBeTruthy();
-		const select = screen.getByLabelText("Reports to") as HTMLSelectElement;
-		expect(select.value).toBe("p-root");
+		expect(screen.getByLabelText("Reports to").textContent).toContain("Org");
 		expect(screen.queryByText("None (root)")).toBeNull();
 	});
 
@@ -394,8 +394,7 @@ describe("PersonTree", () => {
 			fireEvent.click(screen.getByTestId("node-p-alice"));
 			await waitFor(() => expect(screen.getByText("Edit Person")).toBeTruthy());
 
-			const dottedSelect = screen.getByLabelText("Dotted-line manager") as HTMLSelectElement;
-			fireEvent.change(dottedSelect, { target: { value: "p-bob" } });
+			chooseSelect("Dotted-line manager", "Bob");
 
 			mockFetch
 				.mockResolvedValueOnce(ok({ ...ALICE, dottedManagerId: "p-bob" }))

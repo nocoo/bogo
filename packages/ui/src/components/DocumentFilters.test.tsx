@@ -1,6 +1,7 @@
 import type { DocumentType, Person, Tag } from "@bogo/shared";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { chooseSelect } from "../test-select.js";
 import { DocumentFilters, EMPTY_FILTERS } from "./DocumentFilters.js";
 
 const TYPES: DocumentType[] = [
@@ -102,7 +103,7 @@ describe("DocumentFilters", () => {
 				allPersons={PEOPLE}
 			/>,
 		);
-		fireEvent.change(screen.getByLabelText("Type"), { target: { value: "dt-1" } });
+		chooseSelect("Type", "Connect");
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ typeId: "dt-1" }));
 	});
 

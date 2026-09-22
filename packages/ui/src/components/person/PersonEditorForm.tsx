@@ -1,5 +1,12 @@
 import type { CustomFieldDefinition, Person, UpdatePersonInput } from "@bogo/shared";
 import { Button, Input, LayerCard } from "@nocoo/basalt";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@nocoo/basalt/components/select";
 import { Loader2, Save, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
@@ -105,7 +112,7 @@ export function PersonEditorForm({
 	const eligibleDottedManagers = persons.filter((p) => p.id !== person.id && p.id !== managerId);
 	const isPage = variant === "page";
 	const fieldClass = "mt-1 w-full";
-	const selectClass = isPage ? "field-select mt-1 w-full" : "field-select h-8 text-xs mt-1 w-full";
+	const selectSize = isPage ? "default" : "sm";
 
 	const hasCustomFields = Boolean(fieldDefs && fieldValuesVm && fieldDefs.length > 0);
 
@@ -172,37 +179,40 @@ export function PersonEditorForm({
 					>
 						Manager
 					</label>
-					<select
-						id="edit-manager"
-						value={managerId ?? ""}
-						onChange={(e) => handleManagerChange(e.target.value)}
-						className={selectClass}
-					>
-						{eligibleManagers.map((p) => (
-							<option key={p.id} value={p.id}>
-								{p.name}
-							</option>
-						))}
-					</select>
+					<Select value={managerId || undefined} onValueChange={handleManagerChange}>
+						<SelectTrigger id="edit-manager" size={selectSize} className="mt-1 w-full">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{eligibleManagers.map((p) => (
+								<SelectItem key={p.id} value={p.id}>
+									{p.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
 			)}
 			<div>
 				<label htmlFor="edit-dotted" className="text-xs font-medium text-basalt-muted-foreground">
 					Dotted-line manager
 				</label>
-				<select
-					id="edit-dotted"
-					value={dottedManagerId ?? ""}
-					onChange={(e) => setDottedManagerId(e.target.value || null)}
-					className={selectClass}
+				<Select
+					value={dottedManagerId ? dottedManagerId : "\u0000"}
+					onValueChange={(value) => setDottedManagerId(value === "\u0000" ? null : value)}
 				>
-					<option value="">None</option>
-					{eligibleDottedManagers.map((p) => (
-						<option key={p.id} value={p.id}>
-							{p.name}
-						</option>
-					))}
-				</select>
+					<SelectTrigger id="edit-dotted" size={selectSize} className="mt-1 w-full">
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value={"\u0000"}>None</SelectItem>
+						{eligibleDottedManagers.map((p) => (
+							<SelectItem key={p.id} value={p.id}>
+								{p.name}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 			</div>
 		</div>
 	);

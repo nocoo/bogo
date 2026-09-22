@@ -35,16 +35,6 @@
 }
 
 @layer components {
-	/* Native selects share the current Basalt surface with Input and Button. */
-	.field-select {
-		@apply h-9 min-w-0 rounded-basalt-md border border-basalt-border bg-basalt-control pl-3 pr-8 text-sm text-basalt-foreground shadow-xs transition-colors;
-		@apply focus-visible:outline-none focus-visible:border-basalt-ring disabled:cursor-not-allowed disabled:opacity-50;
-		appearance: none;
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-		background-repeat: no-repeat;
-		background-position: right 0.625rem center;
-	}
-
 	.data-table {
 		@apply w-full min-w-max border-collapse text-sm;
 	}

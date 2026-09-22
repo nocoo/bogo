@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { chooseSelect } from "../test-select.js";
 import { DocumentsPage } from "./DocumentsPage.js";
 
 vi.mock("../viewmodels/document/use-doc-types.js", () => ({
@@ -354,7 +355,7 @@ describe("DocumentsPage", () => {
 		);
 		fireEvent.click(screen.getByLabelText("Create document"));
 		fireEvent.change(screen.getByLabelText("Title"), { target: { value: "Typed" } });
-		fireEvent.change(screen.getByLabelText("Type"), { target: { value: "dt-1" } });
+		chooseSelect("Type", "Report");
 		fireEvent.click(screen.getByText("Create"));
 
 		expect(create).toHaveBeenCalledWith({
