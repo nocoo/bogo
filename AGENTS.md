@@ -2,7 +2,7 @@
 
 Personal knowledge base for people, documents and workspaces, with a web dashboard and generated CLI.
 Profile: ts-worker-web.
-Direction: [architecture](docs/architecture/03-system-architecture.md) and [CLI design](docs/features/02-cli.md). Frameworks must not rewrite this file.
+Human overview: [README.md](README.md). Direction: [architecture](docs/architecture/03-system-architecture.md) and [CLI design](docs/features/02-cli.md). Frameworks must not rewrite this file. Maintain this root `AGENTS.md` as the only project handbook; do not create a `CLAUDE.md` alias, copy or import.
 
 ## Sources of Truth
 
@@ -57,14 +57,13 @@ Daily local development uses `bun run seed:local`, then `bun run dev`. Do not re
 
 ## Verification
 
-6DQ = L1/L2/L3 + G1/G2 + D1. Status: `enforced`, `planned`, `manual`, `N/A`.
+6DQ = L1/L2/L3 + G2 + D1; the former G1 dimension was merged into L1 on 2026-09-21. Status: `enforced`, `planned`, `manual`, `N/A`.
 
 | Dimension | Required proof | Status | Current enforcement / gap |
 |---|---|---|---|
-| L1 logic | Statements, branches, functions and lines each ≥95%; no `.skip` / `.only` | planned | Shared is four-metric 95%; Worker/UI branches remain 90%. Coverage script arguments only print values, while Vitest configs enforce them; no complete skip/focus gate |
+| L1 logic (incl. former G1 static) | Statements, branches, functions and lines each ≥95%; no `.skip` / `.only`; strict types and check-only lint with zero errors/warnings | planned | Static lane is enforced (commit full lint/typecheck plus CI). Coverage remains partial: shared is four-metric 95%, Worker/UI branches remain 90%; coverage script arguments only print values while Vitest configs enforce them; no complete skip/focus gate and no index-snapshot/timing/rejection proof |
 | L2 API | Real local HTTP over 100% of endpoint/method combinations | planned | Commit route gate and push/CI real HTTP suite exist; structural method/path hits do not prove assertion completeness |
 | L3 workflows | Critical dashboard and generated CLI login/CRUD/revoke | enforced | CI Playwright and CLI jobs; pre-push CLI checks have a local skip hatch, which must not be used to bypass verification |
-| G1 static | Strict types and check-only lint, zero errors/warnings | enforced | Commit full lint/typecheck plus CI |
 | G2 security | Dependency and secret scans; missing tools fail | enforced | Commit staged secrets, push security runner, CI shared scanners; local push range still relies on upstream/fallback |
 | D1 isolation | Local per-run state, guarded fixture writes/cleanup and marker | planned | L2 rejects remote credentials but uses fixed `.wrangler/e2e`; L3 shares `.wrangler/e2e-pw`, reuses servers and lacks complete per-run/marker guards |
 | Build | Real UI bundle before local/production serving | enforced | CI prepares assets for L2/L3/CLI E2E and release |
@@ -72,7 +71,7 @@ Daily local development uses `bun run seed:local`, then `bun run dev`. Do not re
 
 | Hook | Current behavior | Required follow-up |
 |---|---|---|
-| pre-commit | Working-tree coverage/types/full lint/staged secrets/routes/pages | G1+L1 on index snapshot, <30s |
+| pre-commit | Working-tree coverage/types/full lint/staged secrets/routes/pages | Unified L1 (types, check-only lint, coverage) on index snapshot, <30s |
 | pre-push | Worker L2, G2, clip YAML in parallel, then CLI E2E | Verify stdin push refs, <3min |
 
 CI sets `BOGO_REQUIRE_CLI_E2E=1`; local `BOGO_SKIP_CLI_E2E` exists but must not bypass verification. Install restores Husky. Hooks are check-only; never use `--no-verify` on commits or branch pushes. Shared workflows are pinned at `ad43150de3a2be2fa464b5cd2f921dc4fa9f8f0f`.

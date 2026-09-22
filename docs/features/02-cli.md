@@ -749,7 +749,7 @@ custom_domain = true
 - **DDoS**:CF free tier L7 rate-limit 默认开;可加 WAF custom rule(如 `cf.ip.country eq "XX"` 拦低质量国家或 `http.request.uri.path matches "/api/.*" and rate(1m) > 60` 等)
 - **bearer 自助换新 token**:`/api/auth/cli` 由 `authMethod === "cf-access-jwt" | "localhost"` 守护(§5.4),且这个端点只在 `bogo.hexly.ai` 域上有意义(`api.*` 也接,但 caller 没 CF Access JWT → 403)。
 
-## 8. 用户上手流程(README/CLAUDE.md 中要写)
+## 8. 用户上手流程(README/AGENTS.md 中要写)
 
 > **状态**:仓库根 `clip.yaml` 已与本 spec 同步(browser-login + kebab endpoint + query CSV + headerName/Prefix)。**但 `clip generate` 之后 `bogo login` 真正能跑通,仍依赖 Commit 1–5 把 worker 端的 `api_tokens` 表、`/api/auth/cli` 端点、中间件 Bearer 分支落地**。在 Commit 5 之前,下方命令到 `bogo login` 这一步会因后端缺端点而 404。
 
