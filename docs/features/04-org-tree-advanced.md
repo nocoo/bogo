@@ -28,10 +28,10 @@
 
 ## Feature Set (哥 2026-07-09 拍板)
 
-| # | 能力 | 说明 |
-|---|------|------|
-| 1 | **折叠 / 展开子树** | 每个有下属的节点右下角一个 chevron chip；点击折叠该人整条下属子树；chip 上叠加隐藏子孙的 `Nₕ` 计数。基础项。 |
-| 2 | **Minimap 与画布快捷键** | 右下角新增 `<MiniMap />`；`f` = fitView、`+` / `-` = zoom in/out、`0` = reset zoom 1.0。 |
+| #   | 能力                     | 说明                                                                                                         |
+| --- | ------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| 1   | **折叠 / 展开子树**      | 每个有下属的节点右下角一个 chevron chip；点击折叠该人整条下属子树；chip 上叠加隐藏子孙的 `Nₕ` 计数。基础项。 |
+| 2   | **Minimap 与画布快捷键** | 右下角新增 `<MiniMap />`；`f` = fitView、`+` / `-` = zoom in/out、`0` = reset zoom 1.0。                     |
 
 优先级：**折叠 > Minimap/快捷键**（后者可独立 PR，不阻塞前者 ship）。
 
@@ -111,20 +111,20 @@
 
 ```ts
 interface CollapseState {
-  collapsedIds: ReadonlySet<string>;  // person ids that are collapsed; readonly view (see §Code Style)
-  toggleCollapse: (id: string) => void;
-  collapseAll: () => void;            // adds every hasReports pid
-  expandAll: () => void;              // clears the set
+	collapsedIds: ReadonlySet<string>; // person ids that are collapsed; readonly view (see §Code Style)
+	toggleCollapse: (id: string) => void;
+	collapseAll: () => void; // adds every hasReports pid
+	expandAll: () => void; // clears the set
 }
 ```
 
 派生量（`useMemo`）：
 
 ```ts
-descendantsMap: Map<string, Set<string>>    // 一次 DFS 构好
-visibleSet: Set<string>                     // 剪掉所有『祖先在 collapsedIds』的人
-hiddenCountOf: (id) => number               // O(1)，来自 descendantsMap
-hasReports:   (id) => boolean               // O(1)
+descendantsMap: Map<string, Set<string>>; // 一次 DFS 构好
+visibleSet: Set<string>; // 剪掉所有『祖先在 collapsedIds』的人
+hiddenCountOf: (id) => number; // O(1)，来自 descendantsMap
+hasReports: (id) => boolean; // O(1)
 ```
 
 **Layout 契约**：`computeTreeLayout` 签名扩展为：
@@ -143,7 +143,6 @@ computeTreeLayout(
 ## Persistence
 
 **Key 格式**：`bogo:orgTree:collapsed:${userEmail}:${workspaceId}` — JSON `string[]`。
-
 - `userEmail` 来自 `useUserInfo()`，未登录时不持久化（用内存 Set）。
 - `workspaceId` 来自 `useWorkspaceContext()`；切换 workspace 时读取对应 key。
 - 写入时机：`toggleCollapse` / `collapseAll` / `expandAll` 后 debounced 300ms。
@@ -248,7 +247,6 @@ packages/ui/src/components/person/PersonTree.tsx
 ### L3 Playwright（新增）
 
 `packages/ui/tests-e2e/people-tree-advanced.spec.ts`：
-
 1. 页面加载 → 点击某个经理的 chevron chip → 期望其子孙 DOM 节点不再出现，chip 显示 `▶ N`。
 2. Collapse all → Expand all round-trip → 节点数恢复。
 3. 折叠状态刷新页面后保留（走 localStorage）。
@@ -298,29 +296,29 @@ packages/ui/src/components/person/PersonTree.tsx
 
 每个 commit 都要能通过 pre-commit hook（L1 + G1），先清旧路径、再上折叠、最后打磨画布导航。
 
-| # | Commit (`fix/feat/refactor: ...`) | 内容 |
-|---|-----------------------------------|------|
-| 1 | `refactor(ui): remove drag-to-move-manager wiring from person tree` | 删掉 `handleDrop` / `dropError` / `getNodeCenter` / `findDropTarget` / `wouldCreateCycle`；`onNodeDragStop` 不再 wire；同步删掉 PersonTree.tsx 里的 dropError UI 与相关测试。 |
-| 2 | `refactor(ui): extract descendants map from person list` | 新增 `descendants-map.ts` + 单测。老代码路径不变。 |
-| 3 | `feat(ui): computeTreeLayout supports visibleSet + hiddenCount` | 扩签名向后兼容 + 补测。老单测不动。 |
-| 4 | `feat(ui): collapse state hook with localStorage persistence` | `use-collapse-state.ts` + 单测（含 mock localStorage、无 email 内存回退）。 |
-| 5 | `feat(ui): person node shows collapse chevron chip` | 修 `PersonNode` + 单测；`PersonTree` 尚未接线，仅 props 层准备好；顺手移除 GripVertical。 |
-| 6 | `feat(ui): person tree wires collapse toggle` | `usePersonTree` 组合 collapse state；点击 chip 生效；selected person 被隐藏后自动清 selection。 |
-| 7 | `feat(ui): tree toolbar with collapse all / expand all / fit` | 新增 `PersonTreeToolbar` 替换现在的 Add 按钮。 |
-| 8 | `feat(ui): person tree minimap + canvas shortcuts` | `<MiniMap />` + `use-canvas-shortcuts`。 |
-| 9 | `test(ui): playwright e2e for collapse (persistence + roundtrip)` | 新增 `people-tree-advanced.spec.ts` L3 用例。 |
-| 10 | `docs(features): mark 04-org-tree-advanced.md complete` | 更新本 spec 状态、README 索引状态列。 |
+| #   | Commit (`fix/feat/refactor: ...`)                                   | 内容                                                                                                                                                                          |
+| --- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `refactor(ui): remove drag-to-move-manager wiring from person tree` | 删掉 `handleDrop` / `dropError` / `getNodeCenter` / `findDropTarget` / `wouldCreateCycle`；`onNodeDragStop` 不再 wire；同步删掉 PersonTree.tsx 里的 dropError UI 与相关测试。 |
+| 2   | `refactor(ui): extract descendants map from person list`            | 新增 `descendants-map.ts` + 单测。老代码路径不变。                                                                                                                            |
+| 3   | `feat(ui): computeTreeLayout supports visibleSet + hiddenCount`     | 扩签名向后兼容 + 补测。老单测不动。                                                                                                                                           |
+| 4   | `feat(ui): collapse state hook with localStorage persistence`       | `use-collapse-state.ts` + 单测（含 mock localStorage、无 email 内存回退）。                                                                                                   |
+| 5   | `feat(ui): person node shows collapse chevron chip`                 | 修 `PersonNode` + 单测；`PersonTree` 尚未接线，仅 props 层准备好；顺手移除 GripVertical。                                                                                     |
+| 6   | `feat(ui): person tree wires collapse toggle`                       | `usePersonTree` 组合 collapse state；点击 chip 生效；selected person 被隐藏后自动清 selection。                                                                               |
+| 7   | `feat(ui): tree toolbar with collapse all / expand all / fit`       | 新增 `PersonTreeToolbar` 替换现在的 Add 按钮。                                                                                                                                |
+| 8   | `feat(ui): person tree minimap + canvas shortcuts`                  | `<MiniMap />` + `use-canvas-shortcuts`。                                                                                                                                      |
+| 9   | `test(ui): playwright e2e for collapse (persistence + roundtrip)`   | 新增 `people-tree-advanced.spec.ts` L3 用例。                                                                                                                                 |
+| 10  | `docs(features): mark 04-org-tree-advanced.md complete`             | 更新本 spec 状态、README 索引状态列。                                                                                                                                         |
 
 ## 6DQ Quality Plan
 
-| 维度 | 是否达标 | 备注 |
-|------|---------|------|
-| Functional | ✅ | 折叠 / 快捷键 L1 + L3 覆盖 |
-| Reliability | ✅ | localStorage 读失败降级到内存；collapsedIds 引用不存在 pid 时自动跳过 |
-| Performance | ✅ | descendants DFS 一次；Layout 只对 visibleSet 跑；chip 均 memoized |
-| Security | ✅ | 无新数据面变化；localStorage key 命名带 `userEmail`，避免多用户串数据 |
-| Maintainability | ✅ | vm/组件分层清晰；layout 老签名兼容；新增文件均带单测；旧的 drag-to-move 死路径彻底清除 |
-| Accessibility | ⚠️ 部分 | chevron chip 加 `aria-expanded`、`aria-label="Collapse subtree of {name}"`。整棵树的键盘遍历（Tab/Arrow）**未做**，显式记为 v2 欠账。 |
+| 维度            | 是否达标 | 备注                                                                                                                                  |
+| --------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Functional      | ✅       | 折叠 / 快捷键 L1 + L3 覆盖                                                                                                            |
+| Reliability     | ✅       | localStorage 读失败降级到内存；collapsedIds 引用不存在 pid 时自动跳过                                                                 |
+| Performance     | ✅       | descendants DFS 一次；Layout 只对 visibleSet 跑；chip 均 memoized                                                                     |
+| Security        | ✅       | 无新数据面变化；localStorage key 命名带 `userEmail`，避免多用户串数据                                                                 |
+| Maintainability | ✅       | vm/组件分层清晰；layout 老签名兼容；新增文件均带单测；旧的 drag-to-move 死路径彻底清除                                                |
+| Accessibility   | ⚠️ 部分  | chevron chip 加 `aria-expanded`、`aria-label="Collapse subtree of {name}"`。整棵树的键盘遍历（Tab/Arrow）**未做**，显式记为 v2 欠账。 |
 
 ## Out of Scope (v2 候选)
 
@@ -343,16 +341,17 @@ packages/ui/src/components/person/PersonTree.tsx
 
 **2026-07-09（本次修订）**
 5. **移除"拖拽改经理"目标**。`PersonTree` 的 drag 只保留视觉位置调整，不触发 mutation；
-   改经理的唯一 UI = EditPanel 的 Manager 下拉框（已存在）。理由：拖拽改经理误触率高、
-   与 Dagre 自动布局语义冲突、且 EditPanel 路径已经能覆盖所有 move 场景。
+改经理的唯一 UI = EditPanel 的 Manager 下拉框（已存在）。理由：拖拽改经理误触率高、
+与 Dagre 自动布局语义冲突、且 EditPanel 路径已经能覆盖所有 move 场景。
 6. 相应删除 `findDropTarget` / `wouldCreateCycle` / `handleDrop` 等一整套代码路径与测试
-   （不做 deprecate 保留，一次删干净）。
+（不做 deprecate 保留，一次删干净）。
 7. 高级功能范围收窄为 **折叠 + Minimap/快捷键**（二选二），本 spec 只交付这两块。
 
 **2026-07-09（review 修订）** — 内部一致性与技术正确性修正：
 8. **快捷键作用域收紧（v1）**：初次意图是用 `useKeyPress` 传入 `target: ref.current`
-   + `document.activeElement` containment 守卫。**在 v2 修订中被推翻**（见第 13 条）。
-   Testing Strategy 保留"焦点在画布之外不触发"的回归测试。
+- `document.activeElement` containment 守卫。**在 v2 修订中被推翻**（见第 13 条）。
+  Testing Strategy 保留"焦点在画布之外不触发"的回归测试。
+
 9. **Reset zoom 快捷键改为 `zoomTo(1, ...)`**：原写法 `setViewport({ x, y, zoom: 1 })`
    里的 `x/y` 无出处，照抄编译不过；`zoomTo(1, ...)` 语义明确（只改 zoom、保留当前 pan）。
 10. **Dotted-line 描述修正**：原写"保持当前实线渲染"与代码不符（`strokeDasharray: "5 5"`
@@ -365,16 +364,19 @@ packages/ui/src/components/person/PersonTree.tsx
 
 **2026-07-09（review 修订 v2 — 快捷键实现策略）** — 推翻第 8 条：
 13. `@xyflow/react` v12 的 `useKeyPress` 不能承担"仅在画布 focused 时生效"的合同。
-    读源码（`index.mjs:376–473`）确认：
-    - effect 依赖是 `[keyCode, setKeyPressed]`，`options.target` 不在依赖里；首次
-      render 时 `ref.current === null` → `target` 回退到 `document` 并直接绑定；ref
-      后来变成 DOM 也不会重新绑，全站监听已经生效。
-    - `preventDefault()` 在 handler 顶部（match 判定后立即调用），在 handler 内做
-      containment guard 已经太晚，按键会被静默吞掉。
+读源码（`index.mjs:376–473`）确认：
+- effect 依赖是 `[keyCode, setKeyPressed]`，`options.target` 不在依赖里；首次
+  render 时 `ref.current === null` → `target` 回退到 `document` 并直接绑定；ref
+  后来变成 DOM 也不会重新绑，全站监听已经生效。
+- `preventDefault()` 在 handler 顶部（match 判定后立即调用），在 handler 内做
+  containment guard 已经太晚，按键会被静默吞掉。
+
 14. **禁用 `useKeyPress` 挂本 spec 的快捷键**（写入 Never Do）。改用两种硬约束之一：
-    - A（推荐）：`use-canvas-shortcuts.ts` 在 `useEffect` 里直接对 wrapper element
-      绑原生 `keydown`，wrapper `tabIndex={0}`；wrapperEl 为 null 时不绑、不回退 document。
-    - B：把快捷键逻辑放在只有 wrapper 存在时才 mount 的子组件里，传入稳定 `HTMLElement`。
+
+- A（推荐）：`use-canvas-shortcuts.ts` 在 `useEffect` 里直接对 wrapper element
+  绑原生 `keydown`，wrapper `tabIndex={0}`；wrapperEl 为 null 时不绑、不回退 document。
+- B：把快捷键逻辑放在只有 wrapper 存在时才 mount 的子组件里，传入稳定 `HTMLElement`。
+
 15. Testing Strategy 新增硬性回归："首次 render wrapper ref 为 null 时，不得对 `document`
     绑 keydown 监听"（`document.addEventListener` spy 断言）。
 

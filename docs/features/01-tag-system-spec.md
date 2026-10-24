@@ -70,21 +70,20 @@ Scope uses singular entity names: `document` | `person`. This matches the existi
 
 12 preset colors with pre-defined display tokens for accessibility:
 
-| Name    | Hex       | Background   | Text         | Border       |
-|---------|-----------|--------------|--------------|--------------|
-| red     | `#ef4444` | `#fef2f2`    | `#991b1b`    | `#fecaca`    |
-| orange  | `#f97316` | `#fff7ed`    | `#9a3412`    | `#fed7aa`    |
-| amber   | `#f59e0b` | `#fffbeb`    | `#92400e`    | `#fde68a`    |
-| yellow  | `#eab308` | `#fefce8`    | `#854d0e`    | `#fef08a`    |
-| lime    | `#84cc16` | `#f7fee7`    | `#3f6212`    | `#d9f99d`    |
-| green   | `#22c55e` | `#f0fdf4`    | `#166534`    | `#bbf7d0`    |
-| emerald | `#10b981` | `#ecfdf5`    | `#065f46`    | `#a7f3d0`    |
-| cyan    | `#06b6d4` | `#ecfeff`    | `#155e75`    | `#a5f3fc`    |
-| blue    | `#3b82f6` | `#eff6ff`    | `#1e40af`    | `#bfdbfe`    |
-| violet  | `#8b5cf6` | `#f5f3ff`    | `#5b21b6`    | `#ddd6fe`    |
-| purple  | `#a855f7` | `#faf5ff`    | `#6b21a8`    | `#e9d5ff`    |
-| pink    | `#ec4899` | `#fdf2f8`    | `#9d174d`    | `#fbcfe8`    |
-
+| Name    | Hex       | Background | Text      | Border    |
+| ------- | --------- | ---------- | --------- | --------- |
+| red     | `#ef4444` | `#fef2f2`  | `#991b1b` | `#fecaca` |
+| orange  | `#f97316` | `#fff7ed`  | `#9a3412` | `#fed7aa` |
+| amber   | `#f59e0b` | `#fffbeb`  | `#92400e` | `#fde68a` |
+| yellow  | `#eab308` | `#fefce8`  | `#854d0e` | `#fef08a` |
+| lime    | `#84cc16` | `#f7fee7`  | `#3f6212` | `#d9f99d` |
+| green   | `#22c55e` | `#f0fdf4`  | `#166534` | `#bbf7d0` |
+| emerald | `#10b981` | `#ecfdf5`  | `#065f46` | `#a7f3d0` |
+| cyan    | `#06b6d4` | `#ecfeff`  | `#155e75` | `#a5f3fc` |
+| blue    | `#3b82f6` | `#eff6ff`  | `#1e40af` | `#bfdbfe` |
+| violet  | `#8b5cf6` | `#f5f3ff`  | `#5b21b6` | `#ddd6fe` |
+| purple  | `#a855f7` | `#faf5ff`  | `#6b21a8` | `#e9d5ff` |
+| pink    | `#ec4899` | `#fdf2f8`  | `#9d174d` | `#fbcfe8` |
 - Custom hex input supported (validated `#RRGGBB`)
 - For custom colors, derive display tokens algorithmically: background = color at 8% opacity on white, text = color darkened to meet WCAG AA (4.5:1 contrast ratio against background), border = color at 30% opacity on white
 - `NULL` color → neutral gray badge (`bg-gray-100 text-gray-700 border-gray-200`)
@@ -97,28 +96,28 @@ SQLite does not auto-update timestamps. The Worker must explicitly set `updated_
 
 Hono sub-app mounted at `/api/w/:wid/tags`. Paths below are relative to the mount point (i.e., `/` means `/api/w/:wid/tags`).
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | List tags. Query: `scope=document\|person`, `includeCounts=true` |
-| POST | `/` | Create tag |
-| PUT | `/:id` | Update tag name/color/sortOrder |
-| DELETE | `/:id` | Delete tag (cascades assignments) |
-| PUT | `/:id/documents/:docId` | Assign tag to document |
-| DELETE | `/:id/documents/:docId` | Remove tag from document |
-| PUT | `/:id/persons/:personId` | Assign tag to person |
-| DELETE | `/:id/persons/:personId` | Remove tag from person |
-| GET | `/stats` | Tag distribution counts. Query: `scope=document\|person` |
+| Method | Path                     | Description                                                      |
+| ------ | ------------------------ | ---------------------------------------------------------------- |
+| GET    | `/`                      | List tags. Query: `scope=document\|person`, `includeCounts=true` |
+| POST   | `/`                      | Create tag                                                       |
+| PUT    | `/:id`                   | Update tag name/color/sortOrder                                  |
+| DELETE | `/:id`                   | Delete tag (cascades assignments)                                |
+| PUT    | `/:id/documents/:docId`  | Assign tag to document                                           |
+| DELETE | `/:id/documents/:docId`  | Remove tag from document                                         |
+| PUT    | `/:id/persons/:personId` | Assign tag to person                                             |
+| DELETE | `/:id/persons/:personId` | Remove tag from person                                           |
+| GET    | `/stats`                 | Tag distribution counts. Query: `scope=document\|person`         |
 
 **Method choice**: PUT for update and assignment (consistent with existing doc-types/documents/persons routes). Assignment uses PUT because it's idempotent by nature (see below).
 
 ### Assignment Semantics
 
-| Action | Already exists / Not found | Response |
-|--------|---------------------------|----------|
-| PUT assign (already assigned) | Idempotent, no-op | `200` with current state |
-| DELETE unassign (not assigned) | Idempotent, no-op | `200` |
-| Assign with scope mismatch (e.g., person-tag → document) | Rejected | `400 { error: { code: "SCOPE_MISMATCH", message: "Tag scope does not match target entity" } }` |
-| Assign to entity in different workspace | Blocked by composite FK | `400 { error: { code: "INVALID_REFERENCE", message: "Entity not found in workspace" } }` |
+| Action                                                   | Already exists / Not found | Response                                                                                       |
+| -------------------------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------- |
+| PUT assign (already assigned)                            | Idempotent, no-op          | `200` with current state                                                                       |
+| DELETE unassign (not assigned)                           | Idempotent, no-op          | `200`                                                                                          |
+| Assign with scope mismatch (e.g., person-tag → document) | Rejected                   | `400 { error: { code: "SCOPE_MISMATCH", message: "Tag scope does not match target entity" } }` |
+| Assign to entity in different workspace                  | Blocked by composite FK    | `400 { error: { code: "INVALID_REFERENCE", message: "Entity not found in workspace" } }`       |
 
 Optimistic updates on the client rely on idempotent 200 responses — no 409 or 404 for these operations.
 
@@ -126,10 +125,10 @@ Optimistic updates on the client rely on idempotent 200 responses — no 409 or 
 
 Tag filtering is handled at the API level to support future pagination:
 
-| Route | New Query Params | Behavior |
-|-------|-----------------|----------|
+| Route                       | New Query Params             | Behavior                                        |
+| --------------------------- | ---------------------------- | ----------------------------------------------- |
 | `GET /api/w/:wid/documents` | `tagIds=id1,id2&tagMode=any` | Return documents matching ANY of the given tags |
-| `GET /api/w/:wid/persons` | `tagIds=id1,id2&tagMode=any` | Return persons matching ANY of the given tags |
+| `GET /api/w/:wid/persons`   | `tagIds=id1,id2&tagMode=any` | Return persons matching ANY of the given tags   |
 
 Response bodies include an embedded `tags: Tag[]` array on each entity when tags exist (empty array when none). This avoids N+1 queries on the client.
 
@@ -139,15 +138,15 @@ Response bodies include an embedded `tags: Tag[]` array on each entity when tags
 
 ```json
 {
-  "data": [
-    {
-      "id": "tag-uuid",
-      "name": "Engineering",
-      "color": "#3b82f6",
-      "sortOrder": 0,
-      "count": 12
-    }
-  ]
+	"data": [
+		{
+			"id": "tag-uuid",
+			"name": "Engineering",
+			"color": "#3b82f6",
+			"sortOrder": 0,
+			"count": 12
+		}
+	]
 }
 ```
 
@@ -167,45 +166,45 @@ All schemas use camelCase field names. DB row → camelCase mapping happens in t
 
 ```typescript
 // packages/shared/src/schemas/tag.ts
-import { z } from 'zod/v4';
+import { z } from "zod/v4";
 
-const TAG_SCOPES = ['document', 'person'] as const;
+const TAG_SCOPES = ["document", "person"] as const;
 const HEX_COLOR = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
 export const tagSchema = z.object({
-  id: z.string(),
-  workspaceId: z.string(),
-  name: z.string().min(1).max(50),
-  scope: z.enum(TAG_SCOPES),
-  color: HEX_COLOR.nullable(),
-  sortOrder: z.number().int(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+	id: z.string(),
+	workspaceId: z.string(),
+	name: z.string().min(1).max(50),
+	scope: z.enum(TAG_SCOPES),
+	color: HEX_COLOR.nullable(),
+	sortOrder: z.number().int(),
+	createdAt: z.string(),
+	updatedAt: z.string(),
 });
 
 export const createTagSchema = z.object({
-  name: z.string().min(1).max(50),
-  scope: z.enum(TAG_SCOPES),
-  color: HEX_COLOR.nullable().optional(),
-  sortOrder: z.number().int().optional(),
+	name: z.string().min(1).max(50),
+	scope: z.enum(TAG_SCOPES),
+	color: HEX_COLOR.nullable().optional(),
+	sortOrder: z.number().int().optional(),
 });
 
 export const updateTagSchema = z.object({
-  name: z.string().min(1).max(50).optional(),
-  color: HEX_COLOR.nullable().optional(),
-  sortOrder: z.number().int().optional(),
+	name: z.string().min(1).max(50).optional(),
+	color: HEX_COLOR.nullable().optional(),
+	sortOrder: z.number().int().optional(),
 });
 
 export const tagWithCountSchema = tagSchema.extend({
-  assignedCount: z.number().int(),
+	assignedCount: z.number().int(),
 });
 
 export const tagStatsSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  color: HEX_COLOR.nullable(),
-  sortOrder: z.number().int(),
-  count: z.number().int(),
+	id: z.string(),
+	name: z.string(),
+	color: HEX_COLOR.nullable(),
+	sortOrder: z.number().int(),
+	count: z.number().int(),
 });
 
 export type Tag = z.infer<typeof tagSchema>;
@@ -303,15 +302,16 @@ packages/
 
 ## Testing Strategy
 
-| Layer | What to test |
-|-------|-------------|
-| L1 | Tag schema validation (shared), color token derivation, tag route handlers (worker) |
-| L2 | E2E API: CRUD tags, assign/unassign idempotency, scope mismatch rejection, stats with zero-count, workspace isolation (cross-workspace FK blocked), tagIds filter on documents/persons |
-| G1 | TypeScript strict, Biome lint pass |
+| Layer | What to test                                                                                                                                                                           |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L1    | Tag schema validation (shared), color token derivation, tag route handlers (worker)                                                                                                    |
+| L2    | E2E API: CRUD tags, assign/unassign idempotency, scope mismatch rejection, stats with zero-count, workspace isolation (cross-workspace FK blocked), tagIds filter on documents/persons |
+| G1    | TypeScript strict, Biome lint pass                                                                                                                                                     |
 
 ## Boundaries
 
 ### Always Do
+
 - Workspace isolation: join tables include workspace_id with composite FKs
 - Cascade delete: removing a tag removes all assignments
 - Validate scope match: cannot assign a document-tag to a person (400)
@@ -320,10 +320,12 @@ packages/
 - Return idempotent 200 for assign/unassign regardless of prior state
 
 ### Ask First
+
 - Drag-to-reorder complexity — can simplify to manual sort order input if too complex
 - Whether to add tag count badges in sidebar navigation
 
 ### Never Do
+
 - Allow cross-workspace tag sharing
 - Allow changing a tag's scope after creation
 - Add tag hierarchy/nesting (keep flat)

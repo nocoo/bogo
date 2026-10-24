@@ -1,4 +1,4 @@
-// happy-dom@20 + Node 26 + vitest@4 do not auto-inject the Web Storage API
+// happy-dom + vitest do not always expose the Web Storage API on globalThis
 // onto globalThis (only `window`), and `globals: true` does not bridge them.
 // This shim provides an in-memory localStorage / sessionStorage so existing
 // tests that call `localStorage.clear()` / `setItem()` work in both shells.

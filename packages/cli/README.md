@@ -61,10 +61,10 @@ and walkthroughs are in
 
 ## Configuration
 
-| Env var          | Default                              | Purpose                                          |
-| ---------------- | ------------------------------------ | ------------------------------------------------ |
-| `CLIP_HOME`      | `~/.clip`                            | Root of the credentials directory                |
-| `CLIP_BASE_URL`  | `https://api.bogo.hexly.ai` (from yaml `baseUrl`) | API base URL for **business** requests. Does **not** override `loginUrl`. |
+| Env var         | Default                                           | Purpose                                                                    |
+| --------------- | ------------------------------------------------- | -------------------------------------------------------------------------- |
+| `CLIP_HOME`     | `~/.clip`                                         | Root of the credentials directory                                          |
+| `CLIP_BASE_URL` | `https://api.bogo.hexly.ai` (from yaml `baseUrl`) | API base URL for **business** requests. Does **not** override `loginUrl`.  |
 
 `CLIP_BASE_URL` does not change `bogo login` — `loginUrl` is baked at
 `clip generate` (`https://bogo.hexly.ai/api/auth/cli`). Split-hostname

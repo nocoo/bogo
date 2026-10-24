@@ -79,38 +79,38 @@ node packages/cli/dist/index.js --help
 
 Main directories:
 
-| Directory | Contents |
-| --- | --- |
+| Directory         | Contents                                         |
+| ----------------- | ------------------------------------------------ |
 | `packages/shared` | Shared types, validation rules, and ID utilities |
-| `packages/worker` | Hono API, D1 migrations, and local sample data |
-| `packages/ui` | React pages, components, and viewmodels |
-| `packages/cli` | CLI generation and bundling from clip.yaml |
+| `packages/worker` | Hono API, D1 migrations, and local sample data   |
+| `packages/ui`     | React pages, components, and viewmodels          |
+| `packages/cli`    | CLI generation and bundling from clip.yaml       |
 
 ## Tests
 
 Install dependencies and run `bun run build` first. From the repository root:
 
-| Layer | Command |
-| --- | --- |
-| Shared code, Worker, and UI unit tests | `bun run test` |
-| Local Worker API integration tests | `bun turbo test:e2e --filter=@bogo/worker` |
-| Chromium browser tests | `bunx playwright install chromium`, then `bun run test:e2e:pw` |
-| Generated CLI login, CRUD, and revocation flow | `bun run test:cli-e2e`; requires `clip` |
+| Layer                                          | Command                                                        |
+| ---------------------------------------------- | -------------------------------------------------------------- |
+| Shared code, Worker, and UI unit tests         | `bun run test`                                                 |
+| Local Worker API integration tests             | `bun turbo test:e2e --filter=@bogo/worker`                     |
+| Chromium browser tests                         | `bunx playwright install chromium`, then `bun run test:e2e:pw` |
+| Generated CLI login, CRUD, and revocation flow | `bun run test:cli-e2e`; requires `clip`                        |
 
 API tests use local Wrangler and a separate D1 directory on port `17036`, and refuse an environment containing Cloudflare deployment credentials. Browser and CLI tests both use `27036`; run them separately and ensure that no other service owns the port. CLI tests use temporary credentials and a local consent flow.
 
 ## Stack
 
-| Part | Technologies and role |
-| --- | --- |
-| Workspaces | TypeScript, Bun, Turborepo |
-| API | Cloudflare Workers and Hono; Access JWT and CLI bearer authentication |
-| Data | Cloudflare D1 for people, documents, revisions, fields, and views |
-| Web app | React, Vite, Tailwind CSS |
-| Data and navigation | React Query, React Router |
-| Org chart | React Flow, Dagre |
-| Document display | marked, js-yaml, @pierre/diffs |
-| CLI and tests | clip code generation; Vitest, Playwright |
+| Part                | Technologies and role                                                 |
+| ------------------- | --------------------------------------------------------------------- |
+| Workspaces          | TypeScript, Bun, Turborepo                                            |
+| API                 | Cloudflare Workers and Hono; Access JWT and CLI bearer authentication |
+| Data                | Cloudflare D1 for people, documents, revisions, fields, and views     |
+| Web app             | React, Vite, Tailwind CSS                                             |
+| Data and navigation | React Query, React Router                                             |
+| Org chart           | React Flow, Dagre                                                     |
+| Document display    | marked, js-yaml, @pierre/diffs                                        |
+| CLI and tests       | clip code generation; Vitest, Playwright                              |
 
 ## Documentation
 

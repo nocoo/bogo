@@ -79,38 +79,38 @@ node packages/cli/dist/index.js --help
 
 主要目录：
 
-| 目录 | 内容 |
-| --- | --- |
-| `packages/shared` | 共享类型、校验规则与 ID 工具 |
+| 目录              | 内容                                  |
+| ----------------- | ------------------------------------- |
+| `packages/shared` | 共享类型、校验规则与 ID 工具          |
 | `packages/worker` | Hono API、D1 migrations、本地示例数据 |
-| `packages/ui` | React 页面、组件与 viewmodels |
-| `packages/cli` | 根据 clip.yaml 生成并打包 CLI |
+| `packages/ui`     | React 页面、组件与 viewmodels         |
+| `packages/cli`    | 根据 clip.yaml 生成并打包 CLI         |
 
 ## 测试
 
 先完成依赖安装和 `bun run build`。在仓库根目录运行：
 
-| 层次 | 命令 |
-| --- | --- |
-| 共享代码、Worker 和 UI 单元测试 | `bun run test` |
-| 本地 Worker API 集成测试 | `bun turbo test:e2e --filter=@bogo/worker` |
-| Chromium 浏览器测试 | `bunx playwright install chromium`，然后 `bun run test:e2e:pw` |
-| 生成 CLI 的登录、CRUD 与撤销流程 | `bun run test:cli-e2e`，需要 `clip` |
+| 层次                             | 命令                                                           |
+| -------------------------------- | -------------------------------------------------------------- |
+| 共享代码、Worker 和 UI 单元测试  | `bun run test`                                                 |
+| 本地 Worker API 集成测试         | `bun turbo test:e2e --filter=@bogo/worker`                     |
+| Chromium 浏览器测试              | `bunx playwright install chromium`，然后 `bun run test:e2e:pw` |
+| 生成 CLI 的登录、CRUD 与撤销流程 | `bun run test:cli-e2e`，需要 `clip`                            |
 
 API 测试使用本地 Wrangler 与独立 D1 目录，端口为 `17036`，并拒绝携带 Cloudflare 部署凭据的环境。浏览器与 CLI 测试共用 `27036`，应逐项运行，确保该端口没有其他服务；CLI 测试使用临时凭据和本地授权流程。
 
 ## 技术栈
 
-| 部分 | 技术与用途 |
-| --- | --- |
-| 工作区 | TypeScript、Bun、Turborepo |
-| API | Cloudflare Workers、Hono；Access JWT 与 CLI bearer 认证 |
-| 数据 | Cloudflare D1，保存人物、文档、版本、字段与视图 |
-| 网页 | React、Vite、Tailwind CSS |
-| 数据与导航 | React Query、React Router |
-| 组织图 | React Flow、Dagre |
-| 文档展示 | marked、js-yaml、@pierre/diffs |
-| CLI 与测试 | clip 代码生成；Vitest、Playwright |
+| 部分       | 技术与用途                                              |
+| ---------- | ------------------------------------------------------- |
+| 工作区     | TypeScript、Bun、Turborepo                              |
+| API        | Cloudflare Workers、Hono；Access JWT 与 CLI bearer 认证 |
+| 数据       | Cloudflare D1，保存人物、文档、版本、字段与视图         |
+| 网页       | React、Vite、Tailwind CSS                               |
+| 数据与导航 | React Query、React Router                               |
+| 组织图     | React Flow、Dagre                                       |
+| 文档展示   | marked、js-yaml、@pierre/diffs                          |
+| CLI 与测试 | clip 代码生成；Vitest、Playwright                       |
 
 ## 文档
 

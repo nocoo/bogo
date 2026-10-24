@@ -1,7 +1,6 @@
 # Bogo identity
 
 The selected Bogo 05 portrait keeps natural buffalo anatomy, a wink, and one rainbow flower sprig. Connected walnut and gold facets sit on a warm mineral field with shallow angular arches. The animal enters through the bottom and lower-right edges; the face, horns, ears, and complete sprig stay at least 128 pixels inside the 2048-pixel rounded tile.
-
 - `logo.png` is the transparent 2048 × 2048 master.
 - `assets/brand/icon.png` is the square tile for platform-managed masking.
 - `assets/brand/icon-rounded.png` supplies the large README presentation.

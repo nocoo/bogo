@@ -1,6 +1,6 @@
 name: "Bogo API"
 alias: bogo
-version: "0.9.3"
+version: "0.9.4"
 baseUrl: "https://api.bogo.hexly.ai"
 auth:
   type: browser-login
@@ -16,7 +16,12 @@ auth:
 
 endpoints:
   # -------------------- Live + Me --------------------
-  - { name: live, method: GET, path: /api/live, description: "Liveness check (route is public; CLI still injects Authorization)" }
+  - {
+      name: live,
+      method: GET,
+      path: /api/live,
+      description: "Liveness check (route is public; CLI still injects Authorization)",
+    }
 
   - name: me
     method: GET
@@ -24,7 +29,12 @@ endpoints:
     description: "Current user info (email)"
 
   # -------------------- Workspaces --------------------
-  - { name: workspaces-list, method: GET, path: /api/workspaces, description: "List own workspaces" }
+  - {
+      name: workspaces-list,
+      method: GET,
+      path: /api/workspaces,
+      description: "List own workspaces",
+    }
 
   - name: workspaces-create
     method: POST
@@ -82,11 +92,11 @@ endpoints:
     params:
       path: { wid: { type: string, required: true } }
       body:
-        name:            { type: string, required: true }
-        managerId:       { type: string, required: true, description: "UUID of parent manager" }
-        title:           { type: string }
+        name: { type: string, required: true }
+        managerId: { type: string, required: true, description: "UUID of parent manager" }
+        title: { type: string }
         dottedManagerId: { type: string }
-        avatarUrl:       { type: string }
+        avatarUrl: { type: string }
 
   - name: persons-update
     method: PUT
@@ -95,12 +105,12 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
       body:
-        name:            { type: string }
-        title:           { type: string }
+        name: { type: string }
+        title: { type: string }
         dottedManagerId: { type: string }
-        avatarUrl:       { type: string }
+        avatarUrl: { type: string }
 
   - name: persons-move
     method: PUT
@@ -109,7 +119,7 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
       body:
         managerId: { type: string, required: true }
 
@@ -120,7 +130,7 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
 
   - name: persons-documents
     method: GET
@@ -129,7 +139,7 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
 
   # -------------------- Fields --------------------
   - name: fields-list
@@ -148,9 +158,9 @@ endpoints:
       query:
         options: { type: string, description: "Comma-separated select options" }
       body:
-        name:         { type: string, required: true }
-        fieldType:    { type: string, required: true, description: "text|number|date|select|boolean" }
-        required:     { type: boolean, description: "Pass --required true / --required false" }
+        name: { type: string, required: true }
+        fieldType: { type: string, required: true, description: "text|number|date|select|boolean" }
+        required: { type: boolean, description: "Pass --required true / --required false" }
         defaultValue: { type: string }
 
   - name: fields-update
@@ -160,15 +170,15 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
       query:
         options: { type: string, description: "Comma-separated select options" }
       body:
-        name:         { type: string }
-        fieldType:    { type: string }
-        required:     { type: boolean }
+        name: { type: string }
+        fieldType: { type: string }
+        required: { type: boolean }
         defaultValue: { type: string }
-        sortOrder:    { type: number }
+        sortOrder: { type: number }
 
   - name: fields-delete
     method: DELETE
@@ -177,7 +187,7 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
 
   - name: fields-values-get
     method: GET
@@ -185,7 +195,7 @@ endpoints:
     description: "Get all field values for a person"
     params:
       path:
-        wid:      { type: string, required: true }
+        wid: { type: string, required: true }
         personId: { type: string, required: true }
 
   - name: fields-values-set
@@ -194,8 +204,8 @@ endpoints:
     description: "Set a single field value for a person"
     params:
       path:
-        wid:        { type: string, required: true }
-        personId:   { type: string, required: true }
+        wid: { type: string, required: true }
+        personId: { type: string, required: true }
         fieldDefId: { type: string, required: true }
       body:
         value: { type: string, required: true }
@@ -215,7 +225,7 @@ endpoints:
     params:
       path: { wid: { type: string, required: true } }
       body:
-        name:  { type: string, required: true }
+        name: { type: string, required: true }
         color: { type: string }
 
   - name: doc-types-update
@@ -225,10 +235,10 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
       body:
-        name:      { type: string }
-        color:     { type: string }
+        name: { type: string }
+        color: { type: string }
         sortOrder: { type: number }
 
   - name: doc-types-delete
@@ -238,7 +248,7 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
 
   # -------------------- Documents --------------------
   - name: documents-list
@@ -257,7 +267,7 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
 
   - name: documents-create
     method: POST
@@ -268,9 +278,9 @@ endpoints:
       query:
         personIds: { type: string, description: "Comma-separated person UUIDs" }
       body:
-        title:     { type: string, required: true }
-        content:   { type: string }
-        typeId:    { type: string }
+        title: { type: string, required: true }
+        content: { type: string }
+        typeId: { type: string }
         eventDate: { type: string, description: "ISO date YYYY-MM-DD" }
 
   - name: documents-update
@@ -280,11 +290,11 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
       body:
-        title:     { type: string }
-        content:   { type: string }
-        typeId:    { type: string }
+        title: { type: string }
+        content: { type: string }
+        typeId: { type: string }
         eventDate: { type: string }
 
   - name: documents-delete
@@ -294,7 +304,7 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
 
   - name: documents-versions
     method: GET
@@ -303,7 +313,7 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
 
   - name: documents-version
     method: GET
@@ -311,9 +321,14 @@ endpoints:
     description: "Get a single version with full content (for diff or raw read)"
     params:
       path:
-        wid:     { type: string, required: true }
-        id:      { type: string, required: true }
-        version: { type: string, required: true, description: "Positive integer; clip CLI passes as string" }
+        wid: { type: string, required: true }
+        id: { type: string, required: true }
+        version:
+          {
+            type: string,
+            required: true,
+            description: "Positive integer; clip CLI passes as string",
+          }
 
   - name: documents-persons-list
     method: GET
@@ -322,7 +337,7 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
 
   - name: documents-persons-add
     method: POST
@@ -331,10 +346,10 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
       body:
         personId: { type: string, required: true }
-        role:     { type: string }
+        role: { type: string }
 
   - name: documents-persons-remove
     method: DELETE
@@ -342,8 +357,8 @@ endpoints:
     description: "Detach a person from a document"
     params:
       path:
-        wid:      { type: string, required: true }
-        id:       { type: string, required: true }
+        wid: { type: string, required: true }
+        id: { type: string, required: true }
         personId: { type: string, required: true }
 
   # -------------------- Tags --------------------
@@ -354,7 +369,7 @@ endpoints:
     params:
       path: { wid: { type: string, required: true } }
       query:
-        scope:         { type: string, description: "document|person" }
+        scope: { type: string, description: "document|person" }
         includeCounts: { type: boolean, description: "Pass --includeCounts true to include counts" }
 
   - name: tags-stats
@@ -373,9 +388,9 @@ endpoints:
     params:
       path: { wid: { type: string, required: true } }
       body:
-        name:      { type: string, required: true }
-        scope:     { type: string, required: true, description: "document|person" }
-        color:     { type: string, description: "Hex #RRGGBB" }
+        name: { type: string, required: true }
+        scope: { type: string, required: true, description: "document|person" }
+        color: { type: string, description: "Hex #RRGGBB" }
         sortOrder: { type: number }
 
   - name: tags-update
@@ -385,10 +400,10 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
       body:
-        name:      { type: string }
-        color:     { type: string }
+        name: { type: string }
+        color: { type: string }
         sortOrder: { type: number }
 
   - name: tags-delete
@@ -398,7 +413,7 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
 
   - name: tags-documents-add
     method: PUT
@@ -406,8 +421,8 @@ endpoints:
     description: "Assign tag to a document"
     params:
       path:
-        wid:   { type: string, required: true }
-        id:    { type: string, required: true }
+        wid: { type: string, required: true }
+        id: { type: string, required: true }
         docId: { type: string, required: true }
 
   - name: tags-documents-remove
@@ -416,8 +431,8 @@ endpoints:
     description: "Remove tag from a document"
     params:
       path:
-        wid:   { type: string, required: true }
-        id:    { type: string, required: true }
+        wid: { type: string, required: true }
+        id: { type: string, required: true }
         docId: { type: string, required: true }
 
   - name: tags-persons-add
@@ -426,8 +441,8 @@ endpoints:
     description: "Assign tag to a person"
     params:
       path:
-        wid:      { type: string, required: true }
-        id:       { type: string, required: true }
+        wid: { type: string, required: true }
+        id: { type: string, required: true }
         personId: { type: string, required: true }
 
   - name: tags-persons-remove
@@ -436,8 +451,8 @@ endpoints:
     description: "Remove tag from a person"
     params:
       path:
-        wid:      { type: string, required: true }
-        id:       { type: string, required: true }
+        wid: { type: string, required: true }
+        id: { type: string, required: true }
         personId: { type: string, required: true }
 
   # -------------------- Table views (People grid) --------------------
@@ -457,7 +472,7 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
 
   - name: table-views-create
     method: POST
@@ -467,10 +482,10 @@ endpoints:
       path: { wid: { type: string, required: true } }
       query:
         columns: { type: string, description: "CSV of column keys e.g. builtin:name,builtin:title" }
-        sort:    { type: string, description: "JSON sort object or null" }
+        sort: { type: string, description: "JSON sort object or null" }
         filters: { type: string, description: "JSON array of filters" }
       body:
-        name:      { type: string, required: true }
+        name: { type: string, required: true }
         isDefault: { type: boolean }
 
   - name: table-views-update
@@ -480,13 +495,13 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }
       query:
         columns: { type: string, description: "CSV of column keys" }
-        sort:    { type: string, description: "JSON sort object or null" }
+        sort: { type: string, description: "JSON sort object or null" }
         filters: { type: string, description: "JSON array of filters" }
       body:
-        name:      { type: string }
+        name: { type: string }
         isDefault: { type: boolean }
         sortOrder: { type: number }
 
@@ -497,4 +512,4 @@ endpoints:
     params:
       path:
         wid: { type: string, required: true }
-        id:  { type: string, required: true }
+        id: { type: string, required: true }

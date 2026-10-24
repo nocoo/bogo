@@ -6,12 +6,12 @@ The frontend uses `@nocoo/basalt`. Its installed `ai/INTEGRATION.md` is the comp
 
 Use `basalt-` prefixed tokens. Do not maintain a second application palette or copy Basalt component styles into CSS classes.
 
-| Level | Component | Purpose |
-|---|---|---|
-| L0 | `AppShell`, `Sidebar`, `AppHeader` | Application chrome |
-| L1 | `ContentIsland` | The page content area |
-| L2 | First `LayerCard` inside the island | Lists, editor panes, settings sections, chart canvas |
-| L3 | Nested `LayerCard` or `LayerCard.Well` | Rows and controls within a card |
+| Level | Component                              | Purpose                                              |
+| ----- | -------------------------------------- | ---------------------------------------------------- |
+| L0    | `AppShell`, `Sidebar`, `AppHeader`     | Application chrome                                   |
+| L1    | `ContentIsland`                        | The page content area                                |
+| L2    | First `LayerCard` inside the island    | Lists, editor panes, settings sections, chart canvas |
+| L3    | Nested `LayerCard` or `LayerCard.Well` | Rows and controls within a card                      |
 
 The components establish both the surface markers and the inherited control fill. A background utility alone does not establish a level. Use `bg-basalt-control` for native controls so they follow their containing surface. Do not force `bg-basalt-background` onto fields inside a card.
 

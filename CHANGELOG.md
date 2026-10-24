@@ -33,18 +33,21 @@
 ## [0.8.1] - 2026-08-21
 
 ### Added
+
 - **Sidebar author avatar** — `/api/me` hashes the signed-in email
   (SHA-256 of trimmed lowercase UTF-8) and looks up the public author
   profile; the sidebar renders the returned photo via `PersonAvatar`
   and falls back to the letter avatar on a miss.
 
 ### Fixed
+
 - **Deduplicate bun.lock package paths** so frozen installs resolve
   a single copy of each workspace package.
 
 ## [0.8.0] - 2026-08-20
 
 ### Added
+
 - **People refs and hover cards** — person names across chips, org tree,
   avatar clusters, documents, people, person editor, and table wrap in a
   preview card (avatar, title, manager, chart fields, tags, Open profile).
@@ -53,11 +56,13 @@
   tags, table views). Local-only; refuses `--remote`.
 
 ### Changed
+
 - **Vite 8** — `vite` 6.3 → 8.2, `@vitejs/plugin-react` 4 → 6, Tailwind
   4.1 → 4.3, vitest 4.1.8 → 4.1.10. Config uses `import.meta.dirname`.
 - **Table person links** use foreground color instead of primary underline.
 
 ### Fixed
+
 - **Person hover keyboard path** — non-interactive triggers are tabbable;
   Tab enters the profile link and continues to the next page control;
   Shift-Tab returns to the trigger's last control; closing the card
@@ -67,6 +72,7 @@
 - **Reseed wipes `document_types`** so Northwind Labs reloads cleanly.
 
 ### Security
+
 - **`hono` bumped to `^4.12.34`**, **`js-yaml` to `^4.3.1`**, **`react-router`
   to `^7.18.2`**. Override miniflare-pinned **`sharp` 0.35.2** and
   **`undici` 7.29.0**.
@@ -74,6 +80,7 @@
 ## [0.7.0] - 2026-07-21
 
 ### Added
+
 - **Extended design tokens** — `--success` / `--warning` / `--info` (with
   matching foregrounds), full `--sidebar-*` palette (8), `--chart-1..8`
   plus `--chart-axis` / `--chart-muted`. Prepares the ground for future
@@ -82,6 +89,7 @@
   basalt's card radii.
 
 ### Changed
+
 - **Dark-mode luminance ladder aligned with pew basalt**: bg 0.135,
   card 0.175, secondary 0.21; popover collapses onto the card tier.
   Deep-navy hue 250 preserved.
@@ -99,6 +107,7 @@
   `hover:bg-secondary/80`, selected state uses `ring-2 ring-primary`.
 
 ### Fixed
+
 - **`@custom-variant dark`** now matches `.dark` root itself (was
   descendants-only), so `dark:` utilities on `<html>` no longer no-op.
 - **Light-mode `--warning` contrast** raised from ~2.4:1 to 5.1–6.0:1
@@ -117,11 +126,13 @@
   button as well as the full-width version.
 
 ### Security
+
 - **`js-yaml` bumped to `^4.3.0`** (fixes GHSA-52cp-r559-cp3m, CVSS 7.5).
 
 ## [0.6.0] - 2026-07-17
 
 ### Added
+
 - **People Table** — full page for browsing people as a configurable grid
   (views, columns, sort, filters). Spec: `docs/features/05-people-table-views.md`.
 - **Table Views API** — CRUD for workspace-scoped named views on
@@ -137,6 +148,7 @@
 - **Avatars** in Name and Manager table columns.
 
 ### Changed
+
 - Default view label **Default → All People** (UI + seed + migration rename).
 - Table surface polish (L0–L3 control system); default view no longer
   uses a star affordance — view tabs + badge instead.
@@ -144,6 +156,7 @@
 - CLI base package: `@nocoo/cli-base` → `@nocoo/base-cli` `^0.3.0`.
 
 ### Fixed
+
 - Filter/sort edge cases from review: trim on text/select/boolean/sort
   compare; default Name ASC (`sort: null`) reuses `compareRaw` trim;
   skip illegal filter values; skip `is_empty`/`is_not_empty` when a value
@@ -151,6 +164,7 @@
   filter ops restricted by column kind.
 
 ### Migrations
+
 - `0008_person_table_views.sql` — create `person_table_views`, unique
   default per workspace, backfill **All People** for existing workspaces.
 - `0009_rename_default_view.sql` — rename workspace default view named
@@ -159,6 +173,7 @@
 ## [0.5.3] - 2026-07-15
 
 ### Changed
+
 - **TypeScript upgraded to `^7.0.2`** across all workspaces (root + shared + ui + worker).
 - **Biome upgraded to `^2.5.3`** with `linter.rules.preset: "recommended"` enabled,
   matching the sibling `bat` project's baseline. Also enables
@@ -169,6 +184,7 @@
   scripts.
 
 ### Chore / gates
+
 - **`.husky/pre-commit`** now includes a `biome_full` stage that runs
   `bun run lint` across the whole repo (not just staged files), so
   unstaged bit-rot in the tree can no longer slip past a commit that
@@ -182,6 +198,7 @@
   the coverage of the new `biome_full` stage above.
 
 ### Fixes (surfaced by Biome 2.5.3 recommended)
+
 - Two `useExhaustiveDependencies` sites now carry `biome-ignore`
   comments explaining the intent: `DashboardLayout.tsx` (pathname is a
   change-trigger for closing the mobile drawer) and `DocTypeManager.tsx`
@@ -192,6 +209,7 @@
 ## [0.5.2] - 2026-07-14
 
 ### Added
+
 - **Custom field values can now surface directly on the org chart.** Each
   custom field definition gains a new `showOnChart` flag (default off).
   When enabled, the field's value appears under every person's node in
@@ -203,6 +221,7 @@
   the org-chart renderer without fanning out one GET per person.
 
 ### Changed
+
 - **Documents list now sorts by `updated_at DESC` with a stable
   `id DESC` tie-break.** The just-created / just-edited doc lands at
   the top instead of buried by `event_date` order. Applies to both the
@@ -212,6 +231,7 @@
   server ordering above.
 
 ### Fixed
+
 - Concurrent field-value writes now invalidate the workspace-wide bulk
   cache alongside the single-person cache, so chart labels reflect
   edits from any surface (edit panel, CLI, other tab).
@@ -220,6 +240,7 @@
   fresh def and break the row order.
 
 ### Migrations
+
 - `0005_documents_updated_at_index.sql` — covering index
   `(workspace_id, updated_at DESC, id DESC)` for the list query.
 - `0006_custom_field_show_on_chart.sql` — adds the `show_on_chart`
@@ -229,12 +250,14 @@
   fell back to a full-table SCAN.
 
 ### Docs / chore
+
 - `biome.json` now excludes the entire `.claude/` directory (the local
   `settings.local.json` is machine-managed and doesn't need lint).
 
 ## [0.5.1] - 2026-07-09
 
 ### Added
+
 - **Save-feedback toasts across every write mutation.** Editing a
   person, tag, doc-type, custom field definition, custom field value,
   or document now surfaces a "…saved" toast on success in addition to
@@ -246,6 +269,7 @@
   not the underlying mutation name.
 
 ### Design decisions
+
 - **Reorder swaps stay silent.** DocType and FieldDef reorder issues
   two `update` calls to swap `sortOrder`; the shared `updateMutation`
   now attaches the toast via a per-call `mutate(vars, { onSuccess })`
@@ -256,6 +280,7 @@
   noise. `use-tag-assignment` remains success-silent by design.
 
 ### Docs
+
 - New spec `docs/features/04-org-tree-advanced.md` — advanced
   interactions for the People org tree (collapse/expand, drag via
   ReactFlow handle-connect, minimap + canvas shortcuts). Design only;
@@ -264,6 +289,7 @@
 ## [0.5.0] - 2026-06-23
 
 ### Changed (breaking on responses)
+
 - **List endpoints no longer return `content`.** Three endpoints
   previously inlined the full Markdown body of every document
   they listed, defeating the point of a list view; payloads got
@@ -271,18 +297,20 @@
   - `GET /api/w/:wid/documents`
   - `GET /api/w/:wid/persons/:id/documents`
   - `GET /api/w/:wid/documents/:id/versions`
-  Fetch the body via the single-resource endpoints instead
-  (`GET /:id` for a document, see next bullet for versions).
+    Fetch the body via the single-resource endpoints instead
+    (`GET /:id` for a document, see next bullet for versions).
 - New type `DocumentSummary` / `DocumentVersionSummary` published
   from `@bogo/shared` so clients can type-check the shrunk shape.
 
 ### Added
+
 - **`GET /api/w/:wid/documents/:id/versions/:version`** — fetch a
   single version with full content. The UI's VersionDiff component
   now uses this on demand instead of receiving every body up front;
   CLI users can call `bogo documents-version <wid> <id> <version>`.
 
 ### Internal
+
 - Worker: split `mapDocRow` / `mapDocSummaryRow` so "list omits
   content" is enforced by types, not convention. Added/updated
   worker unit cases pinning `not.toHaveProperty("content")` on
@@ -295,6 +323,7 @@
 ## [0.4.3] - 2026-06-23
 
 ### Changed (production wiring)
+
 - **Split-hostname production deployment.** Cloudflare removed
   Request Header selectors from Zero Trust Access policies in 2026,
   so the previous CLI bearer Bypass policy is no longer available.
@@ -308,6 +337,7 @@
   install hits both hosts correctly.
 
 ### Docs
+
 - `docs/features/02-cli.md` §7 rewritten around split-hostname; CF
   Access Bypass section deleted with a historical note.
 - `docs/features/03-self-hosting.md` updated: §3 walks the operator
@@ -321,6 +351,7 @@
 ## [0.4.2] - 2026-06-23
 
 ### Fixed
+
 - Consent page CSP `form-action 'self'` blocked the legitimate
   Authorize submit on production. The CF Access 302 chain trips
   strict form-action validation in some browsers, so the
@@ -332,6 +363,7 @@
 ## [0.4.1] - 2026-06-23
 
 ### Fixed
+
 - `@nocoo/bogo` published with a missing `bin` entry — npm silently
   rejected `"./dist/index.js"` (the leading `./` is invalid) so 0.4.0
   installs cleanly but exposes no `bogo` command. Drop the `./`
@@ -339,6 +371,7 @@
   silence the related publish warning.
 
 ### Added
+
 - `CLIP_BASE_URL` now overrides `bogo login` too (clip v1.1.0
   upstream). Self-hosted deployments can redirect every CLI call —
   login included — with one env var. Docs: `docs/features/03-self-hosting.md`.
@@ -346,6 +379,7 @@
 ## [0.4.0] - 2026-06-22
 
 ### Added
+
 - **`bogo` CLI** — generated from the repo-root `clip.yaml` by
   [clip](https://github.com/nocoo/clip), covering the full `/api/*` surface
   (workspaces / persons / fields / doc-types / documents / tags / me).
@@ -397,6 +431,7 @@
   `BOGO_REQUIRE_CLI_E2E=1`.
 
 ### Changed
+
 - **Worker access-auth middleware** now resolves identity through three
   ordered branches (bearer → localhost → CF Access JWT). Order is
   load-bearing: any other order lets revoked CLI tokens fall through to a
@@ -420,6 +455,7 @@
   description updated.
 
 ### Security
+
 - CLI plaintext tokens cross the wire exactly once (in the `api_key`
   query parameter on the loopback redirect) and are never persisted in
   D1. The `prefix` column stores the first 12 chars for display in logs
@@ -430,6 +466,7 @@
   Variables accessors are no longer mis-parsed as `GET /api/...` routes.
 
 ### Notes
+
 - v1 revocation is **manual** — `UPDATE api_tokens SET revoked_at=…`
   against the live D1. The token-management UI and `/api/auth/tokens*`
   endpoints (list / create / DELETE) are Phase 2 scope and explicitly
@@ -441,6 +478,7 @@
 ## [0.3.0] - 2026-06-08
 
 ### Added
+
 - **Person avatars as first-class data**
   - `persons.avatar_url` column (migration `0003_persons_avatar.sql`)
   - `PersonAvatar`: deterministic letter avatar with stable djb2 name → 8-color palette mapping; uploaded URL takes precedence and falls back on load failure
@@ -455,6 +493,7 @@
 - **Frontmatter-style YAML examples and component classes** documented in `docs/architecture/09-css-conventions.md`
 
 ### Changed
+
 - **Document editor — full GitHub-style redesign**
   - Two-column layout: editor + preview in main, fixed inspector on the right with grouped Type / Tags / People / Event date / History
   - Inline-editable title (24px, hover shows pencil), back link on its own row, save chip with dirty/all-saved status indicator
@@ -475,6 +514,7 @@
 - **Person `update` API surfaces** — `PersonListVM.update` / `EditPersonPanel.onUpdate` widened to `UpdatePersonInput` so the shared schema is the single source of truth
 
 ### Fixed
+
 - White bold-text-on-white-background in markdown preview (light mode)
 - Editor + preview being pushed past the viewport when content was long
 - Frontmatter `2026-05-30` no longer rendered as `2026-05-30T00:00:00.000Z`
@@ -482,6 +522,7 @@
 ## [0.2.2] - 2026-06-08
 
 ### Changed
+
 - Dependency upgrades — close out outdated batch (#5)
   - `@bogo/ui` minor: `@pierre/diffs` 1.2.3 → 1.2.7, `@tanstack/react-query` 5.100.14 → 5.101.0, `@xyflow/react` 12.10.2 → 12.11.0, `react` / `react-dom` 19.2.6 → 19.2.7, `react-router` 7.15.1 → 7.17.0, `@types/react` 19.2.15 → 19.2.17, `happy-dom` 20.9.0 → 20.10.2
   - `@bogo/worker` minor: `hono` 4.12.22 → 4.12.23, `@cloudflare/workers-types` 4.20260523.1 → 4.20260607.1, `wrangler` 4.94.0 → 4.98.0
@@ -490,12 +531,14 @@
 - `vite` / `@vitejs/plugin-react` deferred — major upgrade requires separate evaluation
 
 ### Fixed
+
 - `PersonTree.onNodeDragStop` signature adjusted for `@xyflow/react` 12.11's narrower event type
 - Removed deprecated `baseUrl` from `packages/ui/tsconfig.json` (TS 6.0 warning; `paths` entries already use relative `./` prefixes)
 
 ## [0.2.1] - 2026-06-07
 
 ### Changed
+
 - Dependency upgrades — refresh toolchain to latest
   - Minor: `vitest` 4.1.5 → 4.1.8, `@vitest/coverage-v8` 4.1.5 → 4.1.8, `turbo` 2.5.0 → 2.9.16
   - `packageManager`: `bun` 1.3.11 → 1.3.14
@@ -509,11 +552,13 @@
 - CLI: add `clip.yaml` for cf-access-protected API consumption
 
 ### Fixed
+
 - Tag E2E PUT response shape mismatch in regression test
 
 ## [0.2.0] - 2026-05-29
 
 ### Added
+
 - Tag system: end-to-end tags for documents and persons
   - DB migration with junction tables and composite UNIQUE constraints
   - Shared Zod schemas (`tagSchema`, `tagWithCountSchema`, `tagStatsSchema`)
@@ -530,11 +575,13 @@
 - Event date input on DocumentEditor (already in 0.1.2, polished here)
 
 ### Changed
+
 - DocumentPersons rendered as consistent tag-style chips
 - All select dropdowns now use a custom chevron icon
 - PUT `/tags/:id` returns the full updated tag object instead of `{ updated: true }`
 
 ### Fixed
+
 - PUT `/tags/:id` handles UNIQUE constraint violations → 409 DUPLICATE
 - PersonNode renders embedded tags as badges below name/title
 - Responsive version history layout for screens < xl
@@ -546,11 +593,13 @@
 ## [0.1.2] - 2026-05-26
 
 ### Added
+
 - Person document timeline component on People page
 - GET /persons/:id/documents API endpoint
 - Event date input on DocumentEditor
 
 ### Fixed
+
 - Version History now shows human-readable relative time instead of raw ISO timestamps
 - Document event date defaults to today when unset
 - Timeline vertical axis now passes through center of circles
@@ -559,10 +608,12 @@
 ## [0.1.1] - 2026-05-25
 
 ### Added
+
 - Toast notification system using sonner with theme-aware styling
 - Pencil edit affordance (hover-revealed) on DocType and FieldDef rows
 - Required toggle and type select dropdown on FieldDef rows
 - `fieldType` field to the update field definition API schema and route
 
 ### Changed
+
 - Migrated all mutation feedback from inline error banners to toast notifications

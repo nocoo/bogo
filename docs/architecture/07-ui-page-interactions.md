@@ -8,13 +8,13 @@ Detailed interaction design for each page, covering all UI states: loading, empt
 
 Every data-fetching view handles exactly these states:
 
-| State | UI | Trigger |
-|-------|------|---------|
-| Loading | Skeleton placeholder matching content shape | Initial fetch, no cached data |
-| Empty | Illustration + CTA button | Query returns empty array |
-| Data | Normal rendered content | Query returns data |
-| Error | Inline error card with retry button | Query/mutation fails |
-| Stale refresh | Dim overlay + spinner on existing content | Background refetch |
+| State         | UI                                          | Trigger                       |
+| ------------- | ------------------------------------------- | ----------------------------- |
+| Loading       | Skeleton placeholder matching content shape | Initial fetch, no cached data |
+| Empty         | Illustration + CTA button                   | Query returns empty array     |
+| Data          | Normal rendered content                     | Query returns data            |
+| Error         | Inline error card with retry button         | Query/mutation fails          |
+| Stale refresh | Dim overlay + spinner on existing content   | Background refetch            |
 
 ## Workspace Selection
 
@@ -378,30 +378,30 @@ Every data-fetching view handles exactly these states:
 
 ### Toast Notifications
 
-| Action | Toast type | Message pattern |
-|--------|-----------|-----------------|
-| Create success | Success | "Person created" / "Document saved" |
-| Update success | Success | "Changes saved" (subtle, 2s) |
-| Delete success | Info | "Deleted [name]" with undo (5s) |
-| Validation error | Error | Field-level errors in form, generic toast for unexpected |
-| Network error | Error | "Connection lost. Retrying..." with manual retry |
-| Optimistic rollback | Warning | "Action failed, reverted" |
+| Action              | Toast type | Message pattern                                          |
+| ------------------- | ---------- | -------------------------------------------------------- |
+| Create success      | Success    | "Person created" / "Document saved"                      |
+| Update success      | Success    | "Changes saved" (subtle, 2s)                             |
+| Delete success      | Info       | "Deleted [name]" with undo (5s)                          |
+| Validation error    | Error      | Field-level errors in form, generic toast for unexpected |
+| Network error       | Error      | "Connection lost. Retrying..." with manual retry         |
+| Optimistic rollback | Warning    | "Action failed, reverted"                                |
 
 ### Keyboard Shortcuts
 
-| Shortcut | Action | Scope |
-|----------|--------|-------|
-| ⌘K | Command palette (page search) | Global |
-| ⌘S | Save document | Document editor |
-| Escape | Close panel/modal/drawer | Global |
-| ⌘N | New document / new person (context) | Persons / Documents page |
-| ⌘Z | Undo last action (optimistic) | After mutation |
+| Shortcut | Action                              | Scope                    |
+| -------- | ----------------------------------- | ------------------------ |
+| ⌘K       | Command palette (page search)       | Global                   |
+| ⌘S       | Save document                       | Document editor          |
+| Escape   | Close panel/modal/drawer            | Global                   |
+| ⌘N       | New document / new person (context) | Persons / Documents page |
+| ⌘Z       | Undo last action (optimistic)       | After mutation           |
 
 ### Responsive Adaptations
 
-| Component | Desktop (≥1280) | Tablet (768-1279) | Mobile (<768) |
-|-----------|----------------|-------------------|---------------|
-| Person tree | Full graph viewport + detail panel | Full viewport, detail as modal | List view default, tree via button |
-| Document editor | Side-by-side editor + metadata | Stacked (editor above metadata) | Single column, metadata in accordion |
-| Settings | Full table | Same | Cards instead of table rows |
-| Version diff | Split view | Stacked/unified view | Stacked view |
+| Component       | Desktop (≥1280)                    | Tablet (768-1279)               | Mobile (<768)                        |
+| --------------- | ---------------------------------- | ------------------------------- | ------------------------------------ |
+| Person tree     | Full graph viewport + detail panel | Full viewport, detail as modal  | List view default, tree via button   |
+| Document editor | Side-by-side editor + metadata     | Stacked (editor above metadata) | Single column, metadata in accordion |
+| Settings        | Full table                         | Same                            | Cards instead of table rows          |
+| Version diff    | Split view                         | Stacked/unified view            | Stacked view                         |

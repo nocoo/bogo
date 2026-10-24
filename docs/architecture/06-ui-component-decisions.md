@@ -6,20 +6,20 @@ This document records the final component/library selections for the Bogo UI, th
 
 ## Decision Matrix
 
-| Concern | Library | Version | License | Justification |
-|---------|---------|---------|---------|---------------|
-| Org tree visualization | `@xyflow/react` | ^12 | MIT | Rich DOM/SVG graph viewport with zoom/pan, dagre layout for tree, custom nodes, built-in drag interaction |
-| Tree layout algorithm | `@dagrejs/dagre` | ^3 | MIT | Computes hierarchical positions for xyflow nodes (TB direction) |
-| Diff rendering | `@pierre/diffs` | ^1.2 | Apache-2.0 | Designated by product owner. Shiki-based, split/unified views, React binding via `@pierre/diffs/react` |
-| Data table | `@tanstack/react-table` | ^8 | MIT | Headless — full style control for basalt; sorting, filtering, pagination built-in |
-| Server state | `@tanstack/react-query` | ^5 | MIT | Caching, optimistic updates, background refetch, mutation lifecycle |
-| Virtual scrolling | `@tanstack/react-virtual` | ^3 | MIT | Hook-based virtualizer for long document lists and timelines |
-| Forms | `react-hook-form` | ^7 | MIT | Uncontrolled for performance; zod resolver for shared schema validation |
-| Validation | `zod` | ^4 | MIT | Shared with Worker (single source of truth for entity schemas) |
-| Markdown editor | `@uiw/react-md-editor` | ^4 | MIT | Split/preview mode, toolbar, TypeScript, lightweight for MVP (client-only, no SSR) |
-| Charts | `recharts` | ^3 | MIT | Declarative, responsive, composable chart components |
-| Toast notifications | `sonner` | ^2 | MIT | Promise-based toasts, stacking, swipe dismiss |
-| Date picker | `react-day-picker` | ^10 | MIT | Headless date selection, style-agnostic, accessible |
+| Concern                | Library                   | Version | License    | Justification                                                                                             |
+| ---------------------- | ------------------------- | ------- | ---------- | --------------------------------------------------------------------------------------------------------- |
+| Org tree visualization | `@xyflow/react`           | ^12     | MIT        | Rich DOM/SVG graph viewport with zoom/pan, dagre layout for tree, custom nodes, built-in drag interaction |
+| Tree layout algorithm  | `@dagrejs/dagre`          | ^3      | MIT        | Computes hierarchical positions for xyflow nodes (TB direction)                                           |
+| Diff rendering         | `@pierre/diffs`           | ^1.2    | Apache-2.0 | Designated by product owner. Shiki-based, split/unified views, React binding via `@pierre/diffs/react`    |
+| Data table             | `@tanstack/react-table`   | ^8      | MIT        | Headless — full style control for basalt; sorting, filtering, pagination built-in                         |
+| Server state           | `@tanstack/react-query`   | ^5      | MIT        | Caching, optimistic updates, background refetch, mutation lifecycle                                       |
+| Virtual scrolling      | `@tanstack/react-virtual` | ^3      | MIT        | Hook-based virtualizer for long document lists and timelines                                              |
+| Forms                  | `react-hook-form`         | ^7      | MIT        | Uncontrolled for performance; zod resolver for shared schema validation                                   |
+| Validation             | `zod`                     | ^4      | MIT        | Shared with Worker (single source of truth for entity schemas)                                            |
+| Markdown editor        | `@uiw/react-md-editor`    | ^4      | MIT        | Split/preview mode, toolbar, TypeScript, lightweight for MVP (client-only, no SSR)                        |
+| Charts                 | `recharts`                | ^3      | MIT        | Declarative, responsive, composable chart components                                                      |
+| Toast notifications    | `sonner`                  | ^2      | MIT        | Promise-based toasts, stacking, swipe dismiss                                                             |
+| Date picker            | `react-day-picker`        | ^10     | MIT        | Headless date selection, style-agnostic, accessible                                                       |
 
 ## Integration Details
 
@@ -38,29 +38,29 @@ This document records the final component/library selections for the Bogo UI, th
 import Dagre from "@dagrejs/dagre";
 
 function computeTreeLayout(persons: Person[]): { nodes: Node[]; edges: Edge[] } {
-  const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 100 });
+	const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+	g.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 100 });
 
-  for (const p of persons) {
-    g.setNode(p.id, { width: 240, height: 80 });
-  }
-  for (const p of persons) {
-    if (p.managerId) {
-      g.setEdge(p.managerId, p.id);
-    }
-  }
+	for (const p of persons) {
+		g.setNode(p.id, { width: 240, height: 80 });
+	}
+	for (const p of persons) {
+		if (p.managerId) {
+			g.setEdge(p.managerId, p.id);
+		}
+	}
 
-  Dagre.layout(g);
+	Dagre.layout(g);
 
-  const nodes = persons.map((p) => {
-    const pos = g.node(p.id);
-    return { id: p.id, position: { x: pos.x - 120, y: pos.y - 40 }, data: p, type: "person" };
-  });
-  const edges = persons
-    .filter((p) => p.managerId)
-    .map((p) => ({ id: `${p.managerId}-${p.id}`, source: p.managerId!, target: p.id }));
+	const nodes = persons.map((p) => {
+		const pos = g.node(p.id);
+		return { id: p.id, position: { x: pos.x - 120, y: pos.y - 40 }, data: p, type: "person" };
+	});
+	const edges = persons
+		.filter((p) => p.managerId)
+		.map((p) => ({ id: `${p.managerId}-${p.id}`, source: p.managerId!, target: p.id }));
 
-  return { nodes, edges };
+	return { nodes, edges };
 }
 ```
 
@@ -149,11 +149,11 @@ function DocumentEditor({ value, onChange }: Props) {
 
 ```typescript
 const table = useReactTable({
-  data: documents,
-  columns,
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
+	data: documents,
+	columns,
+	getCoreRowModel: getCoreRowModel(),
+	getSortedRowModel: getSortedRowModel(),
+	getPaginationRowModel: getPaginationRowModel(),
 });
 ```
 
@@ -169,10 +169,10 @@ const table = useReactTable({
 ```typescript
 // @bogo/shared — used by both Worker and UI
 export const personSchema = z.object({
-  name: z.string().min(1).max(200),
-  title: z.string().max(200),
-  managerId: z.string().uuid().nullable(),
-  dottedManagerId: z.string().uuid().nullable().optional(),
+	name: z.string().min(1).max(200),
+	title: z.string().max(200),
+	managerId: z.string().uuid().nullable(),
+	dottedManagerId: z.string().uuid().nullable().optional(),
 });
 
 // UI ViewModel
@@ -180,8 +180,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { personSchema } from "@bogo/shared";
 
 const form = useForm({
-  resolver: zodResolver(personSchema),
-  defaultValues: { name: "", title: "", managerId: null },
+	resolver: zodResolver(personSchema),
+	defaultValues: { name: "", title: "", managerId: null },
 });
 ```
 
@@ -205,9 +205,9 @@ const form = useForm({
 
 ```typescript
 const virtualizer = useVirtualizer({
-  count: documents.length,
-  getScrollElement: () => scrollRef.current,
-  estimateSize: () => 64,
+	count: documents.length,
+	getScrollElement: () => scrollRef.current,
+	estimateSize: () => 64,
 });
 ```
 
@@ -219,31 +219,31 @@ const virtualizer = useVirtualizer({
 
 ```json
 {
-  "dependencies": {
-    "@bogo/shared": "workspace:*",
-    "@dagrejs/dagre": "^3",
-    "@hookform/resolvers": "^5",
-    "@pierre/diffs": "^1.2",
-    "@tanstack/react-query": "^5",
-    "@tanstack/react-table": "^8",
-    "@tanstack/react-virtual": "^3",
-    "@uiw/react-md-editor": "^4",
-    "@xyflow/react": "^12",
-    "react": "^19",
-    "react-day-picker": "^10",
-    "react-dom": "^19",
-    "react-hook-form": "^7",
-    "react-router": "^7",
-    "recharts": "^3",
-    "sonner": "^2",
-    "zod": "^4"
-  },
-  "devDependencies": {
-    "@testing-library/react": "^16",
-    "@testing-library/user-event": "^14",
-    "msw": "^2",
-    "vitest": "^4"
-  }
+	"dependencies": {
+		"@bogo/shared": "workspace:*",
+		"@dagrejs/dagre": "^3",
+		"@hookform/resolvers": "^5",
+		"@pierre/diffs": "^1.2",
+		"@tanstack/react-query": "^5",
+		"@tanstack/react-table": "^8",
+		"@tanstack/react-virtual": "^3",
+		"@uiw/react-md-editor": "^4",
+		"@xyflow/react": "^12",
+		"react": "^19",
+		"react-day-picker": "^10",
+		"react-dom": "^19",
+		"react-hook-form": "^7",
+		"react-router": "^7",
+		"recharts": "^3",
+		"sonner": "^2",
+		"zod": "^4"
+	},
+	"devDependencies": {
+		"@testing-library/react": "^16",
+		"@testing-library/user-event": "^14",
+		"msw": "^2",
+		"vitest": "^4"
+	}
 }
 ```
 
@@ -252,8 +252,8 @@ Test dev dependencies listed: 4 (2 already present: `@testing-library/react`, `v
 
 ## Migration Path Notes
 
-| Library | Future upgrade path |
-|---------|-------------------|
-| `@uiw/react-md-editor` | → Milkdown if block editing needed |
-| `recharts` | → visx if heavy custom visualization required |
-| `@dagrejs/dagre` | → elkjs if layout performance degrades at scale |
+| Library                | Future upgrade path                             |
+| ---------------------- | ----------------------------------------------- |
+| `@uiw/react-md-editor` | → Milkdown if block editing needed              |
+| `recharts`             | → visx if heavy custom visualization required   |
+| `@dagrejs/dagre`       | → elkjs if layout performance degrades at scale |
