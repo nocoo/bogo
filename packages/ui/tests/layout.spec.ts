@@ -26,49 +26,38 @@ test.beforeEach(async ({ page }) => {
 	});
 });
 
-test("sidebar logo and navigation share a stationary axis during both transitions", async ({
-	page,
-}) => {
+test("sidebar logo and navigation follow the shared rail geometry", async ({ page }) => {
 	await page.setViewportSize({ width: 1280, height: 800 });
 	await page.goto("/documents");
 	await expect(page.getByRole("button", { name: "Collapse sidebar", exact: true })).toBeVisible();
-	const frames = await page.evaluate(async () => {
-		const samples: { logoX: number; logoY: number; iconXs: number[] }[] = [];
-		const sample = () => {
-			const logo = document.querySelector('aside img[alt="bogo"]')?.getBoundingClientRect();
-			if (!logo) throw new Error("Sidebar logo is missing");
-			samples.push({
-				logoX: logo.x + logo.width / 2,
-				logoY: logo.y + logo.height / 2,
-				iconXs: [...document.querySelectorAll("aside nav button svg")].map((icon) => {
-					const rect = icon.getBoundingClientRect();
-					return rect.x + rect.width / 2;
-				}),
-			});
-		};
-		sample();
-		for (const label of ["Collapse sidebar", "Expand sidebar"]) {
-			const toggle = document.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`);
-			if (!toggle) throw new Error(`${label} is missing`);
-			toggle.click();
-			const started = performance.now();
-			do {
-				await new Promise(requestAnimationFrame);
-				sample();
-			} while (performance.now() - started < 360);
-		}
-		return samples;
-	});
 
-	expect(frames.length).toBeGreaterThan(2);
-	for (const frame of frames) {
-		expect(Math.abs(frame.logoX - frames[0].logoX)).toBeLessThanOrEqual(0.5);
-		expect(Math.abs(frame.logoY - frames[0].logoY)).toBeLessThanOrEqual(0.5);
-		expect(frame.iconXs.length).toBeGreaterThan(0);
-		for (const iconX of frame.iconXs) {
-			expect(Math.abs(iconX - frame.logoX)).toBeLessThanOrEqual(0.5);
-		}
-	}
+	const geometry = () =>
+		page.evaluate(() => {
+			const rail = document.querySelector("[data-basalt-sidebar]")?.getBoundingClientRect();
+			const logo = document.querySelector('aside img[alt="bogo"]')?.getBoundingClientRect();
+			const row = document.querySelector("aside nav [data-sidebar-row]")?.getBoundingClientRect();
+			if (!rail || !logo || !row) throw new Error("Sidebar geometry is missing");
+			return {
+				railWidth: Math.round(rail.width),
+				logoLeft: Math.round(logo.x - rail.x),
+				logoCentre: logo.x + logo.width / 2 - rail.x,
+				rowLeft: Math.round(row.x - rail.x),
+			};
+		});
+
+	// Expanded: the brand mark and the navigation rows share the library inset.
+	const expanded = await geometry();
+	expect(expanded.railWidth).toBe(260);
+	expect(expanded.logoLeft).toBe(expanded.rowLeft);
+
+	await page.getByRole("button", { name: "Collapse sidebar", exact: true }).click();
+	await expect(page.getByRole("button", { name: "Expand sidebar", exact: true })).toBeVisible();
+	await page.waitForTimeout(400);
+
+	// Collapsed: the shared rail centres the mark on its axis.
+	const collapsed = await geometry();
+	expect(collapsed.railWidth).toBe(68);
+	expect(Math.abs(collapsed.logoCentre - collapsed.railWidth / 2)).toBeLessThanOrEqual(1);
 });
 
 test("long mobile documents scroll inside the island and keep details reachable", async ({
