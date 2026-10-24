@@ -6,7 +6,7 @@
 // the YAML payload fails to parse.
 // ---------------------------------------------------------------------------
 
-import jsYaml from "js-yaml";
+import { JSON_SCHEMA, load as loadYaml } from "js-yaml";
 import { Marked, type MarkedExtension, type Tokens } from "marked";
 
 function escapeHtml(str: string): string {
@@ -131,7 +131,7 @@ function extractFrontmatter(src: string): ExtractResult {
 	try {
 		// JSON_SCHEMA keeps types narrow (null/bool/int/float/string) and avoids
 		// YAML 1.1 surprises like `2026-05-30` being auto-coerced into a Date.
-		data = jsYaml.load(yamlText, { schema: jsYaml.JSON_SCHEMA });
+		data = loadYaml(yamlText, { schema: JSON_SCHEMA });
 	} catch {
 		// Malformed YAML — silently strip the block so it doesn't pollute the
 		// rendered preview as raw text or accidental setext headings.
