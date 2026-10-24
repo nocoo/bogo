@@ -199,19 +199,19 @@ Documents displayed chronologically by `event_date`, grouped by month. Evergreen
 
 ### Planned Components
 
-| Component | Purpose | Library |
-|-----------|---------|---------|
-| Tree | Org hierarchy display | Custom + @dnd-kit |
-| TreeNode | Individual person node | Custom |
-| DataTable | List views with sort/filter | @tanstack/react-table |
-| MarkdownEditor | Document editing | @uiw/react-md-editor |
-| CommandPalette | ⌘K search (already built) | Custom |
-| SlideOver | Person detail panel | Custom (Headless UI pattern) |
-| Modal | Create/edit forms | Custom |
-| Toast | Success/error feedback | sonner |
-| DatePicker | Event date selection | Custom or react-day-picker |
-| ColorPicker | Document type color | Custom (preset palette) |
-| Badge | Document type indicator | Custom |
+| Component      | Purpose                     | Library                      |
+| -------------- | --------------------------- | ---------------------------- |
+| Tree           | Org hierarchy display       | Custom + @dnd-kit            |
+| TreeNode       | Individual person node      | Custom                       |
+| DataTable      | List views with sort/filter | @tanstack/react-table        |
+| MarkdownEditor | Document editing            | @uiw/react-md-editor         |
+| CommandPalette | ⌘K search (already built)   | Custom                       |
+| SlideOver      | Person detail panel         | Custom (Headless UI pattern) |
+| Modal          | Create/edit forms           | Custom                       |
+| Toast          | Success/error feedback      | sonner                       |
+| DatePicker     | Event date selection        | Custom or react-day-picker   |
+| ColorPicker    | Document type color         | Custom (preset palette)      |
+| Badge          | Document type indicator     | Custom                       |
 
 ### Form Patterns
 
@@ -222,11 +222,11 @@ Documents displayed chronologically by `event_date`, grouped by month. Evergreen
 
 ## Responsive Breakpoints
 
-| Breakpoint | Behavior |
-|------------|----------|
-| < 768px (mobile) | Sidebar hidden, hamburger menu, single column, touch-friendly targets |
-| ≥ 768px (tablet) | Sidebar visible (collapsible), two-column where appropriate |
-| ≥ 1280px (desktop) | Full sidebar, three-panel layouts (tree + detail + documents) |
+| Breakpoint         | Behavior                                                              |
+| ------------------ | --------------------------------------------------------------------- |
+| < 768px (mobile)   | Sidebar hidden, hamburger menu, single column, touch-friendly targets |
+| ≥ 768px (tablet)   | Sidebar visible (collapsible), two-column where appropriate           |
+| ≥ 1280px (desktop) | Full sidebar, three-panel layouts (tree + detail + documents)         |
 
 ## Navigation Updates
 
@@ -234,33 +234,33 @@ Current sidebar navigation will evolve from placeholder pages to:
 
 ```typescript
 const NAV_GROUPS: NavGroup[] = [
-  {
-    label: "Workspace",
-    items: [
-      { title: "Dashboard", icon: LayoutDashboard, path: "/" },
-      { title: "Persons", icon: Users, path: "/persons" },
-      { title: "Documents", icon: FileText, path: "/documents" },
-    ],
-  },
-  {
-    label: "Configure",
-    items: [
-      { title: "Settings", icon: Settings, path: "/settings" },
-      { title: "Analytics", icon: BarChart3, path: "/analytics" },
-      { title: "System", icon: Monitor, path: "/system" },
-    ],
-  },
+	{
+		label: "Workspace",
+		items: [
+			{ title: "Dashboard", icon: LayoutDashboard, path: "/" },
+			{ title: "Persons", icon: Users, path: "/persons" },
+			{ title: "Documents", icon: FileText, path: "/documents" },
+		],
+	},
+	{
+		label: "Configure",
+		items: [
+			{ title: "Settings", icon: Settings, path: "/settings" },
+			{ title: "Analytics", icon: BarChart3, path: "/analytics" },
+			{ title: "System", icon: Monitor, path: "/system" },
+		],
+	},
 ];
 ```
 
 ## State Management
 
-| Concern | Solution |
-|---------|----------|
-| Server state (entities) | React Query (`@tanstack/react-query`) |
-| URL state (filters, pagination) | react-router search params |
-| UI state (sidebar, modals) | React useState / useReducer |
-| Workspace context | React Context (set on workspace selection) |
+| Concern                         | Solution                                   |
+| ------------------------------- | ------------------------------------------ |
+| Server state (entities)         | React Query (`@tanstack/react-query`)      |
+| URL state (filters, pagination) | react-router search params                 |
+| UI state (sidebar, modals)      | React useState / useReducer                |
+| Workspace context               | React Context (set on workspace selection) |
 
 ## Interaction Patterns
 

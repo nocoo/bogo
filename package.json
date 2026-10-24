@@ -38,7 +38,7 @@
 		"postcss-selector-parser": "^7.1.6"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.5.15",
+		"@biomejs/biome": "^2.6.2",
 		"@vitest/coverage-v8": "5.0.5",
 		"husky": "^9.1.0",
 		"picomatch": "^4.0.7",

@@ -16,7 +16,6 @@ bun dev
 
 `seed:local` is declared in the repo-root `package.json`. It runs
 [`scripts/seed-local.ts`](../../scripts/seed-local.ts), which:
-
 1. Applies `packages/worker/migrations/*` to **local** D1 via wrangler
 2. Writes [`packages/worker/seeds/northwind-labs.sql`](../../packages/worker/seeds/northwind-labs.sql)
    into wrangler's local sqlite (`.wrangler/state/v3/d1/…`) with
@@ -47,13 +46,13 @@ Wei Chen (CEO)
 └── Omar Haddad (VP People)
 ```
 
-| Surface | What the seed loads |
-|---|---|
-| Custom fields | Department, Level (shown on chart), Start Date, Location, On-call |
-| Doc types | 1:1, Performance Review, Meeting Notes |
-| Documents | six notes with person links + version=1 snapshots |
-| Tags | person: IC / Manager / New Hire; document: Confidential / Action Needed |
-| Table views | default All People + Engineering filter |
+| Surface       | What the seed loads                                                     |
+| ------------- | ----------------------------------------------------------------------- |
+| Custom fields | Department, Level (shown on chart), Start Date, Location, On-call       |
+| Doc types     | 1:1, Performance Review, Meeting Notes                                  |
+| Documents     | six notes with person links + version=1 snapshots                       |
+| Tags          | person: IC / Manager / New Hire; document: Confidential / Action Needed |
+| Table views   | default All People + Engineering filter                                 |
 
 IDs are fixed UUIDs in `00000000-0000-4000-a000-*`. Edit the SQL, then
 re-run `bun run seed:local`. Do not export `.wrangler/state`.

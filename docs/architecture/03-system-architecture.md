@@ -32,7 +32,6 @@ Bogo is a single-page application backed by a Cloudflare Worker. The Worker serv
 ### `@bogo/shared`
 
 Shared constants, types, and utilities consumed by both Worker and UI.
-
 - `BOGO_VERSION` — build-time version string
 - Shared TypeScript types (entity interfaces, API request/response shapes)
 - Validation schemas (zod) reused in both layers
@@ -62,7 +61,6 @@ Responsibilities:
 ## Authentication Flow
 
 Bogo accepts two identities:
-
 - **Browser session** — a real human via CF Access JWT (or the `localhost`
   dev shortcut when host matches loopback). Used by the SPA, by `bogo login`,
   and by any human-driven call to the worker.
@@ -231,33 +229,33 @@ All API routes are prefixed with `/api`.
 
 ### Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/live` | Health check for non-bearer requests; CF Access bypassed and Worker middleware short-circuits before auth. A present `Bearer bogo_*` is still resolved through the bearer branch first, so revoked CLI tokens cannot quietly reach this endpoint. |
-| GET | `/api/me` | Current authenticated identity (`{ data: { email } }`) |
-| GET | `/api/auth/cli` | Two-stage browser-login consent flow for the bogo CLI. Stage 1 (no `confirm` query) returns an HTML consent page with a HttpOnly + SameSite=Strict CSRF cookie; Stage 2 (matching `confirm`) atomically revokes any prior `cli-login` row for the owner, mints a `bogo_*` bearer, and 302s to the caller's loopback `/callback`. Rejects `authMethod === "bearer"` to prevent self-minting. See `docs/features/02-cli.md` §5.4. |
-| GET | `/api/workspaces` | List user's workspaces |
-| POST | `/api/workspaces` | Create workspace |
-| PUT | `/api/workspaces/:id` | Update workspace |
-| DELETE | `/api/workspaces/:id` | Delete workspace |
-| GET | `/api/w/:wid/persons` | List persons (flat or tree) |
-| POST | `/api/w/:wid/persons` | Create person |
-| PUT | `/api/w/:wid/persons/:id` | Update person |
-| DELETE | `/api/w/:wid/persons/:id` | Delete person |
-| PUT | `/api/w/:wid/persons/:id/move` | Move person in tree |
-| GET | `/api/w/:wid/fields` | List custom field definitions |
-| POST | `/api/w/:wid/fields` | Create field definition |
-| PUT | `/api/w/:wid/fields/:id` | Update field definition |
-| DELETE | `/api/w/:wid/fields/:id` | Delete field definition |
-| GET | `/api/w/:wid/documents` | List documents (filterable) |
-| POST | `/api/w/:wid/documents` | Create document |
-| GET | `/api/w/:wid/documents/:id` | Get document with versions |
-| PUT | `/api/w/:wid/documents/:id` | Update document (auto-versions) |
-| DELETE | `/api/w/:wid/documents/:id` | Delete document |
-| GET | `/api/w/:wid/document-types` | List document types |
-| POST | `/api/w/:wid/document-types` | Create document type |
-| PUT | `/api/w/:wid/document-types/:id` | Update document type |
-| DELETE | `/api/w/:wid/document-types/:id` | Delete document type |
+| Method | Path                             | Description                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/live`                      | Health check for non-bearer requests; CF Access bypassed and Worker middleware short-circuits before auth. A present `Bearer bogo_*` is still resolved through the bearer branch first, so revoked CLI tokens cannot quietly reach this endpoint.                                                                                                                                                                               |
+| GET    | `/api/me`                        | Current authenticated identity (`{ data: { email } }`)                                                                                                                                                                                                                                                                                                                                                                          |
+| GET    | `/api/auth/cli`                  | Two-stage browser-login consent flow for the bogo CLI. Stage 1 (no `confirm` query) returns an HTML consent page with a HttpOnly + SameSite=Strict CSRF cookie; Stage 2 (matching `confirm`) atomically revokes any prior `cli-login` row for the owner, mints a `bogo_*` bearer, and 302s to the caller's loopback `/callback`. Rejects `authMethod === "bearer"` to prevent self-minting. See `docs/features/02-cli.md` §5.4. |
+| GET    | `/api/workspaces`                | List user's workspaces                                                                                                                                                                                                                                                                                                                                                                                                          |
+| POST   | `/api/workspaces`                | Create workspace                                                                                                                                                                                                                                                                                                                                                                                                                |
+| PUT    | `/api/workspaces/:id`            | Update workspace                                                                                                                                                                                                                                                                                                                                                                                                                |
+| DELETE | `/api/workspaces/:id`            | Delete workspace                                                                                                                                                                                                                                                                                                                                                                                                                |
+| GET    | `/api/w/:wid/persons`            | List persons (flat or tree)                                                                                                                                                                                                                                                                                                                                                                                                     |
+| POST   | `/api/w/:wid/persons`            | Create person                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| PUT    | `/api/w/:wid/persons/:id`        | Update person                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| DELETE | `/api/w/:wid/persons/:id`        | Delete person                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| PUT    | `/api/w/:wid/persons/:id/move`   | Move person in tree                                                                                                                                                                                                                                                                                                                                                                                                             |
+| GET    | `/api/w/:wid/fields`             | List custom field definitions                                                                                                                                                                                                                                                                                                                                                                                                   |
+| POST   | `/api/w/:wid/fields`             | Create field definition                                                                                                                                                                                                                                                                                                                                                                                                         |
+| PUT    | `/api/w/:wid/fields/:id`         | Update field definition                                                                                                                                                                                                                                                                                                                                                                                                         |
+| DELETE | `/api/w/:wid/fields/:id`         | Delete field definition                                                                                                                                                                                                                                                                                                                                                                                                         |
+| GET    | `/api/w/:wid/documents`          | List documents (filterable)                                                                                                                                                                                                                                                                                                                                                                                                     |
+| POST   | `/api/w/:wid/documents`          | Create document                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| GET    | `/api/w/:wid/documents/:id`      | Get document with versions                                                                                                                                                                                                                                                                                                                                                                                                      |
+| PUT    | `/api/w/:wid/documents/:id`      | Update document (auto-versions)                                                                                                                                                                                                                                                                                                                                                                                                 |
+| DELETE | `/api/w/:wid/documents/:id`      | Delete document                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| GET    | `/api/w/:wid/document-types`     | List document types                                                                                                                                                                                                                                                                                                                                                                                                             |
+| POST   | `/api/w/:wid/document-types`     | Create document type                                                                                                                                                                                                                                                                                                                                                                                                            |
+| PUT    | `/api/w/:wid/document-types/:id` | Update document type                                                                                                                                                                                                                                                                                                                                                                                                            |
+| DELETE | `/api/w/:wid/document-types/:id` | Delete document type                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 ### URL Convention
 
@@ -281,14 +279,14 @@ The path parameter `:wid` is the only source of workspace identity. No body or q
 ```typescript
 // Pseudocode — runs before every /api/w/:wid/* handler
 async function workspaceGuard(c: Context, next: Next) {
-  const userId = c.get("userId"); // from auth middleware
-  const wid = c.req.param("wid"); // path param — validated against ownership
+	const userId = c.get("userId"); // from auth middleware
+	const wid = c.req.param("wid"); // path param — validated against ownership
 
-  const ws = await db.get("SELECT id FROM workspaces WHERE id = ? AND owner_id = ?", [wid, userId]);
-  if (!ws) return c.json({ error: { code: "WORKSPACE_NOT_FOUND", message: "..." } }, 404);
+	const ws = await db.get("SELECT id FROM workspaces WHERE id = ? AND owner_id = ?", [wid, userId]);
+	if (!ws) return c.json({ error: { code: "WORKSPACE_NOT_FOUND", message: "..." } }, 404);
 
-  c.set("workspaceId", wid);
-  await next();
+	c.set("workspaceId", wid);
+	await next();
 }
 ```
 
@@ -300,7 +298,6 @@ reuses the same worker endpoints as the SPA, but identifies itself via a
 bearer token instead of a CF Access JWT.
 
 **Boundary summary** (full design in `docs/features/02-cli.md`):
-
 - The CLI source code is **not** in this repo — only the schema
   (`clip.yaml`) and the worker-side support (the `api_tokens` table, the
   `/api/auth/cli` endpoint, the Bearer branch in `access-auth.ts`, the
@@ -351,12 +348,12 @@ UI                          Worker                         D1
 
 ## Error Handling
 
-| Layer | Strategy |
-|-------|----------|
-| Worker middleware | Catch-all → 500 with generic message (no stack in prod) |
-| Route handlers | Explicit validation → 400 with field-level errors |
-| D1 constraint violations | Catch UNIQUE/FK errors → map to 409/404 |
-| UI | React Query error boundaries, toast notifications |
+| Layer                    | Strategy                                                |
+| ------------------------ | ------------------------------------------------------- |
+| Worker middleware        | Catch-all → 500 with generic message (no stack in prod) |
+| Route handlers           | Explicit validation → 400 with field-level errors       |
+| D1 constraint violations | Catch UNIQUE/FK errors → map to 409/404                 |
+| UI                       | React Query error boundaries, toast notifications       |
 
 ## Build & Deploy Pipeline
 

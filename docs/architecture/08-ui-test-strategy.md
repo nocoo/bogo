@@ -8,23 +8,23 @@ Target: **95%+ unit test coverage** across the UI package. This document defines
 
 ### What counts toward unit coverage (vitest)
 
-| Layer | Testable surface | Coverage target |
-|-------|-----------------|----------------|
-| **ViewModel hooks** | All business logic, state transitions, computed values | 100% lines/branches |
-| **Model factories** | Query key generation, request/response transforms | 100% |
-| **API client** | Fetch wrapper, error mapping, auth header injection | 95%+ |
-| **Zod schemas** | Validation rules (in `@bogo/shared`) | 100% |
-| **Pure utilities** | `lib/utils.ts`, formatters, tree helpers | 100% |
-| **Component render** | Mount/unmount, props→output, conditional rendering | 90%+ |
+| Layer                | Testable surface                                       | Coverage target     |
+| -------------------- | ------------------------------------------------------ | ------------------- |
+| **ViewModel hooks**  | All business logic, state transitions, computed values | 100% lines/branches |
+| **Model factories**  | Query key generation, request/response transforms      | 100%                |
+| **API client**       | Fetch wrapper, error mapping, auth header injection    | 95%+                |
+| **Zod schemas**      | Validation rules (in `@bogo/shared`)                   | 100%                |
+| **Pure utilities**   | `lib/utils.ts`, formatters, tree helpers               | 100%                |
+| **Component render** | Mount/unmount, props→output, conditional rendering     | 90%+                |
 
 ### What does NOT count as unit (excluded from coverage gate)
 
-| Category | Why excluded | Where tested instead |
-|----------|-------------|---------------------|
-| Third-party component internals | @xyflow graph viewport, @pierre/diffs renderer, MDEditor | E2E (Playwright) |
-| CSS/Tailwind classes | Visual correctness ≠ logic correctness | Visual regression (future) |
-| React Router navigation | Integration behavior | E2E smoke tests |
-| Browser APIs (matchMedia, etc.) | Stubbed in unit tests, real in E2E | E2E + existing `use-mobile.test.ts` pattern |
+| Category                        | Why excluded                                             | Where tested instead                        |
+| ------------------------------- | -------------------------------------------------------- | ------------------------------------------- |
+| Third-party component internals | @xyflow graph viewport, @pierre/diffs renderer, MDEditor | E2E (Playwright)                            |
+| CSS/Tailwind classes            | Visual correctness ≠ logic correctness                   | Visual regression (future)                  |
+| React Router navigation         | Integration behavior                                     | E2E smoke tests                             |
+| Browser APIs (matchMedia, etc.) | Stubbed in unit tests, real in E2E                       | E2E + existing `use-mobile.test.ts` pattern |
 
 ## Directory-Level Gate Design
 
@@ -35,20 +35,20 @@ Coverage gates are checked per-directory to prevent low-coverage areas from hidi
 ```typescript
 // packages/ui/vitest.config.ts (future addition)
 export default defineConfig({
-  test: {
-    coverage: {
-      provider: "v8",
-      thresholds: {
-        "src/viewmodels/**": { lines: 98, branches: 95, functions: 98 },
-        "src/models/**":     { lines: 98, branches: 95, functions: 98 },
-        "src/api/**":        { lines: 95, branches: 90, functions: 95 },
-        "src/lib/**":        { lines: 100, branches: 95, functions: 100 },
-        "src/hooks/**":      { lines: 95, branches: 90, functions: 95 },
-        "src/components/**": { lines: 90, branches: 85, functions: 90 },
-        "src/pages/**":      { lines: 85, branches: 80, functions: 85 },
-      },
-    },
-  },
+	test: {
+		coverage: {
+			provider: "v8",
+			thresholds: {
+				"src/viewmodels/**": { lines: 98, branches: 95, functions: 98 },
+				"src/models/**": { lines: 98, branches: 95, functions: 98 },
+				"src/api/**": { lines: 95, branches: 90, functions: 95 },
+				"src/lib/**": { lines: 100, branches: 95, functions: 100 },
+				"src/hooks/**": { lines: 95, branches: 90, functions: 95 },
+				"src/components/**": { lines: 90, branches: 85, functions: 90 },
+				"src/pages/**": { lines: 85, branches: 80, functions: 85 },
+			},
+		},
+	},
 });
 ```
 
@@ -81,51 +81,51 @@ function createWrapper() {
 
 ### Test Categories per ViewModel
 
-| Category | What to test | Example |
-|----------|-------------|---------|
-| **Initial state** | Loading/empty before data arrives | `expect(result.current.isLoading).toBe(true)` |
-| **Data transformation** | Raw API → view-ready shape | Verify dagre layout produces correct positions |
-| **Computed values** | Derived state from raw data | `selectedPerson` computed from `nodes + selectedId` |
-| **Actions** | Mutation triggers, optimistic state | `act(() => result.current.movePerson("a", "b"))` |
-| **Error handling** | Mutation failure → rollback | Mock API error, verify state reverts |
-| **Edge cases** | Empty data, single node, max depth | Tree with 1 person, tree with 50 levels |
+| Category                | What to test                        | Example                                             |
+| ----------------------- | ----------------------------------- | --------------------------------------------------- |
+| **Initial state**       | Loading/empty before data arrives   | `expect(result.current.isLoading).toBe(true)`       |
+| **Data transformation** | Raw API → view-ready shape          | Verify dagre layout produces correct positions      |
+| **Computed values**     | Derived state from raw data         | `selectedPerson` computed from `nodes + selectedId` |
+| **Actions**             | Mutation triggers, optimistic state | `act(() => result.current.movePerson("a", "b"))`    |
+| **Error handling**      | Mutation failure → rollback         | Mock API error, verify state reverts                |
+| **Edge cases**          | Empty data, single node, max depth  | Tree with 1 person, tree with 50 levels             |
 
 ### Example: usePersonTree
 
 ```typescript
 describe("usePersonTree", () => {
-  it("computes dagre layout from flat person list", async () => {
-    server.use(mockPersonListHandler([root, child1, child2]));
-    const { result } = renderHook(() => usePersonTree("ws-1"), { wrapper: createWrapper() });
+	it("computes dagre layout from flat person list", async () => {
+		server.use(mockPersonListHandler([root, child1, child2]));
+		const { result } = renderHook(() => usePersonTree("ws-1"), { wrapper: createWrapper() });
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
+		await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(result.current.nodes).toHaveLength(3);
-    expect(result.current.edges).toHaveLength(2);
-    // Root is at top
-    expect(result.current.nodes[0].position.y).toBeLessThan(result.current.nodes[1].position.y);
-  });
+		expect(result.current.nodes).toHaveLength(3);
+		expect(result.current.edges).toHaveLength(2);
+		// Root is at top
+		expect(result.current.nodes[0].position.y).toBeLessThan(result.current.nodes[1].position.y);
+	});
 
-  it("movePerson calls API and invalidates query", async () => {
-    server.use(mockPersonListHandler([root, child1]), mockMoveHandler());
-    const { result } = renderHook(() => usePersonTree("ws-1"), { wrapper: createWrapper() });
+	it("movePerson calls API and invalidates query", async () => {
+		server.use(mockPersonListHandler([root, child1]), mockMoveHandler());
+		const { result } = renderHook(() => usePersonTree("ws-1"), { wrapper: createWrapper() });
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-    act(() => result.current.movePerson("child-1", "new-parent-id"));
+		await waitFor(() => expect(result.current.isLoading).toBe(false));
+		act(() => result.current.movePerson("child-1", "new-parent-id"));
 
-    await waitFor(() => expect(moveHandlerCalled).toBe(true));
-  });
+		await waitFor(() => expect(moveHandlerCalled).toBe(true));
+	});
 
-  it("rejects move that would create cycle", async () => {
-    // child1 is under root; moving root under child1 = cycle
-    server.use(mockPersonListHandler([root, child1]));
-    const { result } = renderHook(() => usePersonTree("ws-1"), { wrapper: createWrapper() });
+	it("rejects move that would create cycle", async () => {
+		// child1 is under root; moving root under child1 = cycle
+		server.use(mockPersonListHandler([root, child1]));
+		const { result } = renderHook(() => usePersonTree("ws-1"), { wrapper: createWrapper() });
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-    act(() => result.current.movePerson("root-id", "child-1"));
+		await waitFor(() => expect(result.current.isLoading).toBe(false));
+		act(() => result.current.movePerson("root-id", "child-1"));
 
-    expect(result.current.moveError).toBeTruthy();
-  });
+		expect(result.current.moveError).toBeTruthy();
+	});
 });
 ```
 
@@ -136,32 +136,33 @@ Models export React Query options factories — pure functions that return `quer
 ```typescript
 // models/person.model.test.ts
 describe("personModel", () => {
-  describe("listQueryOptions", () => {
-    it("generates correct query key", () => {
-      const opts = personModel.listQueryOptions("ws-123");
-      expect(opts.queryKey).toEqual(["workspaces", "ws-123", "persons"]);
-    });
+	describe("listQueryOptions", () => {
+		it("generates correct query key", () => {
+			const opts = personModel.listQueryOptions("ws-123");
+			expect(opts.queryKey).toEqual(["workspaces", "ws-123", "persons"]);
+		});
 
-    it("queryFn calls correct endpoint", async () => {
-      const fetchSpy = vi.spyOn(apiClient, "get");
-      const opts = personModel.listQueryOptions("ws-123");
-      await opts.queryFn({ signal: new AbortController().signal });
-      expect(fetchSpy).toHaveBeenCalledWith("/api/w/ws-123/persons", expect.any(Object));
-    });
-  });
+		it("queryFn calls correct endpoint", async () => {
+			const fetchSpy = vi.spyOn(apiClient, "get");
+			const opts = personModel.listQueryOptions("ws-123");
+			await opts.queryFn({ signal: new AbortController().signal });
+			expect(fetchSpy).toHaveBeenCalledWith("/api/w/ws-123/persons", expect.any(Object));
+		});
+	});
 
-  describe("moveMutationOptions", () => {
-    it("calls PUT with correct body", async () => {
-      const fetchSpy = vi.spyOn(apiClient, "put");
-      await personModel.moveMutationOptions.mutationFn({
-        workspaceId: "ws-1", personId: "p-1", newManagerId: "p-2"
-      });
-      expect(fetchSpy).toHaveBeenCalledWith(
-        "/api/w/ws-1/persons/p-1/move",
-        { body: { managerId: "p-2" } }
-      );
-    });
-  });
+	describe("moveMutationOptions", () => {
+		it("calls PUT with correct body", async () => {
+			const fetchSpy = vi.spyOn(apiClient, "put");
+			await personModel.moveMutationOptions.mutationFn({
+				workspaceId: "ws-1",
+				personId: "p-1",
+				newManagerId: "p-2",
+			});
+			expect(fetchSpy).toHaveBeenCalledWith("/api/w/ws-1/persons/p-1/move", {
+				body: { managerId: "p-2" },
+			});
+		});
+	});
 });
 ```
 
@@ -170,27 +171,30 @@ describe("personModel", () => {
 ```typescript
 // api/client.test.ts
 describe("apiClient", () => {
-  it("adds workspace context header", async () => {
-    const req = await apiClient.get("/api/w/ws-1/persons");
-    expect(fetchMock.lastCall()?.headers?.["X-Workspace-Id"]).toBeUndefined(); // no extra header, workspace in path
-  });
+	it("adds workspace context header", async () => {
+		const req = await apiClient.get("/api/w/ws-1/persons");
+		expect(fetchMock.lastCall()?.headers?.["X-Workspace-Id"]).toBeUndefined(); // no extra header, workspace in path
+	});
 
-  it("throws typed error on 4xx", async () => {
-    fetchMock.mockResponseOnce(JSON.stringify({ error: { code: "NOT_FOUND", message: "..." } }), { status: 404 });
-    await expect(apiClient.get("/api/w/ws-1/persons/bad")).rejects.toMatchObject({
-      code: "NOT_FOUND", status: 404
-    });
-  });
+	it("throws typed error on 4xx", async () => {
+		fetchMock.mockResponseOnce(JSON.stringify({ error: { code: "NOT_FOUND", message: "..." } }), {
+			status: 404,
+		});
+		await expect(apiClient.get("/api/w/ws-1/persons/bad")).rejects.toMatchObject({
+			code: "NOT_FOUND",
+			status: 404,
+		});
+	});
 
-  it("retries once on 5xx", async () => {
-    fetchMock.mockResponses(
-      [JSON.stringify({}), { status: 500 }],
-      [JSON.stringify({ data: [] }), { status: 200 }]
-    );
-    const result = await apiClient.get("/api/w/ws-1/persons");
-    expect(result).toEqual({ data: [] });
-    expect(fetchMock.mock.calls).toHaveLength(2);
-  });
+	it("retries once on 5xx", async () => {
+		fetchMock.mockResponses(
+			[JSON.stringify({}), { status: 500 }],
+			[JSON.stringify({ data: [] }), { status: 200 }],
+		);
+		const result = await apiClient.get("/api/w/ws-1/persons");
+		expect(result).toEqual({ data: [] });
+		expect(fetchMock.mock.calls).toHaveLength(2);
+	});
 });
 ```
 
@@ -224,16 +228,16 @@ describe("PersonDetailPanel", () => {
 
 ## Mocking Strategy
 
-| Dependency | Mock approach |
-|-----------|--------------|
-| API calls | MSW (`msw`) — intercepts fetch at network level |
-| React Query | Real QueryClient with `retry: false`, `gcTime: 0` |
-| @xyflow/react | Mock module (DOM/SVG viewport not fully renderable in jsdom) |
-| @pierre/diffs | Mock module (library-owned rendering not available in jsdom) |
-| @uiw/react-md-editor | Mock module (returns simple textarea) |
-| react-router | `MemoryRouter` wrapper |
-| matchMedia | `vi.stubGlobal` (existing pattern) |
-| IntersectionObserver | `vi.stubGlobal` with mock |
+| Dependency           | Mock approach                                                |
+| -------------------- | ------------------------------------------------------------ |
+| API calls            | MSW (`msw`) — intercepts fetch at network level              |
+| React Query          | Real QueryClient with `retry: false`, `gcTime: 0`            |
+| @xyflow/react        | Mock module (DOM/SVG viewport not fully renderable in jsdom) |
+| @pierre/diffs        | Mock module (library-owned rendering not available in jsdom) |
+| @uiw/react-md-editor | Mock module (returns simple textarea)                        |
+| react-router         | `MemoryRouter` wrapper                                       |
+| matchMedia           | `vi.stubGlobal` (existing pattern)                           |
+| IntersectionObserver | `vi.stubGlobal` with mock                                    |
 
 ### MSW Setup
 
@@ -258,8 +262,8 @@ import { server } from "./src/tests/mocks/server";
 
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => {
-  server.resetHandlers();
-  cleanup();
+	server.resetHandlers();
+	cleanup();
 });
 afterAll(() => server.close());
 ```
@@ -309,29 +313,28 @@ src/components/person/
 
 ## Test Layers Summary
 
-| Layer | Tool | Scope | Coverage gate |
-|-------|------|-------|---------------|
-| L1 Unit | vitest + @testing-library/react + MSW | ViewModel, Model, API, Components | 95%+ (dir-level gates) |
-| L2 E2E | vitest (Worker integration) | API endpoints, D1 queries | Existing gate |
-| L3 E2E | Playwright | Full user flows, visual, drag interactions | Page coverage gate |
-| G1 | tsc + biome | Type safety, lint | Zero errors |
-| G2 | osv-scanner + gitleaks | Dependency vulns, secrets | Zero findings |
+| Layer   | Tool                                  | Scope                                      | Coverage gate          |
+| ------- | ------------------------------------- | ------------------------------------------ | ---------------------- |
+| L1 Unit | vitest + @testing-library/react + MSW | ViewModel, Model, API, Components          | 95%+ (dir-level gates) |
+| L2 E2E  | vitest (Worker integration)           | API endpoints, D1 queries                  | Existing gate          |
+| L3 E2E  | Playwright                            | Full user flows, visual, drag interactions | Page coverage gate     |
+| G1      | tsc + biome                           | Type safety, lint                          | Zero errors            |
+| G2      | osv-scanner + gitleaks                | Dependency vulns, secrets                  | Zero findings          |
 
 ## What Gets Mocked vs Real in Each Layer
 
-| Concern | L1 Unit | L3 Playwright |
-|---------|---------|---------------|
-| API responses | MSW (mocked) | Real Worker (local dev server) |
-| React Query | Real client (test config) | Real (browser) |
-| @xyflow graph viewport | Mocked (SVG viewport not in jsdom) | Real (browser DOM/SVG) |
-| @pierre/diffs | Mocked | Real (browser DOM) |
-| D1 database | Not involved | Real (local miniflare) |
-| Browser APIs | Stubbed | Real |
+| Concern                | L1 Unit                            | L3 Playwright                  |
+| ---------------------- | ---------------------------------- | ------------------------------ |
+| API responses          | MSW (mocked)                       | Real Worker (local dev server) |
+| React Query            | Real client (test config)          | Real (browser)                 |
+| @xyflow graph viewport | Mocked (SVG viewport not in jsdom) | Real (browser DOM/SVG)         |
+| @pierre/diffs          | Mocked                             | Real (browser DOM)             |
+| D1 database            | Not involved                       | Real (local miniflare)         |
+| Browser APIs           | Stubbed                            | Real                           |
 
 ## Achieving 95%+ Coverage
 
 The MVVM architecture makes this feasible:
-
 1. **ViewModels** (60% of logic): Fully testable via `renderHook` — no DOM, no graph viewport, no third-party UI
 2. **Models** (20% of logic): Pure functions returning query options — trivially testable
 3. **API client** (10% of logic): Fetch wrapper with MSW — straightforward

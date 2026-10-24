@@ -51,9 +51,9 @@ expects.
 Cloudflare moved off Header-based Bypass in 2026 — the only viable
 production wiring is **two hostnames, one worker**:
 
-| Hostname                  | CF Access | Purpose                                   |
-|---------------------------|-----------|-------------------------------------------|
-| `your-bogo.example.com`   | ✅ Allow on email allowlist | Browser SPA + `/api/auth/cli` consent page |
+| Hostname                    | CF Access                        | Purpose                                       |
+| --------------------------- | -------------------------------- | --------------------------------------------- |
+| `your-bogo.example.com`     | ✅ Allow on email allowlist      | Browser SPA + `/api/auth/cli` consent page    |
 | `api.your-bogo.example.com` | ❌ Not covered by any Access app | All other CLI requests; bearer auth in worker |
 
 Two `wrangler.toml` routes:
@@ -123,12 +123,12 @@ Edit `clip.yaml` (split-hostname model — see §3):
 
 ```yaml
 name: "Your Bogo"
-alias: yourbogo                                  # → ~/.clip/yourbogo/ + global command "yourbogo"
+alias: yourbogo # → ~/.clip/yourbogo/ + global command "yourbogo"
 version: "0.4.0"
-baseUrl: "https://api.your-bogo.example.com"     # CLI business host (not behind CF Access)
+baseUrl: "https://api.your-bogo.example.com" # CLI business host (not behind CF Access)
 auth:
   type: browser-login
-  loginUrl: "https://your-bogo.example.com/api/auth/cli"   # SPA host, CF Access protected
+  loginUrl: "https://your-bogo.example.com/api/auth/cli" # SPA host, CF Access protected
   tokenParam: api_key
   headerName: Authorization
   headerPrefix: Bearer
@@ -165,7 +165,6 @@ upstream URL beyond what your yaml says.
 `bogo login` mints a row in `api_tokens` keyed by `owner_email`. The
 worker accepts any identity CF Access lets through, so **the CF Access
 policy is the operator's allowlist**. Two practical setups:
-
 - **Personal**: Allow policy with `Emails Ending In @yourdomain.com`.
 - **Team**: Allow policy with `Country` / `IdP groups` / explicit list.
 

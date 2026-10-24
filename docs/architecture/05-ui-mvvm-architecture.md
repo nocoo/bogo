@@ -10,12 +10,12 @@ The UI follows a strict **Model–ViewModel–View** (MVVM) separation. UI compo
 
 The Model layer owns all external communication and raw data shapes.
 
-| Concern | Implementation |
-|---------|---------------|
-| API client | Typed fetch wrapper (`api/client.ts`) |
-| Entity types | Shared interfaces from `@bogo/shared` |
-| Zod schemas | Shared validation schemas from `@bogo/shared` |
-| React Query config | Query/mutation factories in `models/` |
+| Concern            | Implementation                                |
+| ------------------ | --------------------------------------------- |
+| API client         | Typed fetch wrapper (`api/client.ts`)         |
+| Entity types       | Shared interfaces from `@bogo/shared`         |
+| Zod schemas        | Shared validation schemas from `@bogo/shared` |
+| React Query config | Query/mutation factories in `models/`         |
 
 **Rule**: Model code has zero React UI imports. It exports typed functions and React Query options objects.
 
@@ -23,14 +23,14 @@ The Model layer owns all external communication and raw data shapes.
 
 ViewModels are custom React hooks that consume Models and expose view-ready state + actions.
 
-| Concern | Implementation |
-|---------|---------------|
-| Data fetching orchestration | Compose React Query hooks |
-| Derived/computed state | `useMemo` / selectors over query data |
-| Form state | `react-hook-form` + zod resolver |
-| Tree operations | Layout computation, drag validation |
-| Optimistic updates | Mutation `onMutate` / `onError` rollback |
-| Navigation side effects | Router integration |
+| Concern                     | Implementation                           |
+| --------------------------- | ---------------------------------------- |
+| Data fetching orchestration | Compose React Query hooks                |
+| Derived/computed state      | `useMemo` / selectors over query data    |
+| Form state                  | `react-hook-form` + zod resolver         |
+| Tree operations             | Layout computation, drag validation      |
+| Optimistic updates          | Mutation `onMutate` / `onError` rollback |
+| Navigation side effects     | Router integration                       |
 
 **Rule**: ViewModels are pure hooks — no JSX, no DOM refs, no styling. They are fully testable with `renderHook`.
 
@@ -38,12 +38,12 @@ ViewModels are custom React hooks that consume Models and expose view-ready stat
 
 Views are React components that consume ViewModel hooks and render UI.
 
-| Concern | Implementation |
-|---------|---------------|
-| Layout & styling | Tailwind CSS classes |
-| User interactions | Event handlers delegating to ViewModel actions |
-| Conditional rendering | Based on ViewModel state (loading/error/data) |
-| Component composition | Slot patterns, children, render props |
+| Concern               | Implementation                                 |
+| --------------------- | ---------------------------------------------- |
+| Layout & styling      | Tailwind CSS classes                           |
+| User interactions     | Event handlers delegating to ViewModel actions |
+| Conditional rendering | Based on ViewModel state (loading/error/data)  |
+| Component composition | Slot patterns, children, render props          |
 
 **Rule**: Views contain no `fetch`, no business logic, no data transformation. They read ViewModel state and call ViewModel actions.
 
@@ -165,26 +165,26 @@ Each ViewModel hook returns a typed object:
 ```typescript
 // viewmodels/person/use-person-tree.ts
 interface PersonTreeVM {
-  // State
-  nodes: Node<PersonNodeData>[];
-  edges: Edge[];
-  isLoading: boolean;
-  error: Error | null;
+	// State
+	nodes: Node<PersonNodeData>[];
+	edges: Edge[];
+	isLoading: boolean;
+	error: Error | null;
 
-  // Actions
-  onNodesChange: OnNodesChange;
-  onConnect: OnConnect;
-  movePerson: (personId: string, newManagerId: string) => void;
-  addPerson: (parentId: string) => void;
-  deletePerson: (personId: string) => void;
+	// Actions
+	onNodesChange: OnNodesChange;
+	onConnect: OnConnect;
+	movePerson: (personId: string, newManagerId: string) => void;
+	addPerson: (parentId: string) => void;
+	deletePerson: (personId: string) => void;
 
-  // Derived
-  selectedPerson: Person | null;
-  setSelectedPerson: (id: string | null) => void;
+	// Derived
+	selectedPerson: Person | null;
+	setSelectedPerson: (id: string | null) => void;
 }
 
 export function usePersonTree(workspaceId: string): PersonTreeVM {
-  // ... implementation using models
+	// ... implementation using models
 }
 ```
 
@@ -196,9 +196,9 @@ Provides the currently selected workspace ID to all nested components without pr
 
 ```typescript
 interface WorkspaceContextValue {
-  workspaceId: string;
-  workspace: Workspace;
-  switchWorkspace: (id: string) => void;
+	workspaceId: string;
+	workspace: Workspace;
+	switchWorkspace: (id: string) => void;
 }
 ```
 
@@ -232,21 +232,21 @@ For mutations that benefit from instant feedback (tree moves, inline edits):
 ```typescript
 // In ViewModel
 const moveMutation = useMutation({
-  ...personModel.moveMutationOptions,
-  onMutate: async ({ personId, newManagerId }) => {
-    await queryClient.cancelQueries({ queryKey: personKeys.list(wid) });
-    const previous = queryClient.getQueryData(personKeys.list(wid));
-    queryClient.setQueryData(personKeys.list(wid), (old) =>
-      optimisticallyMovePerson(old, personId, newManagerId)
-    );
-    return { previous };
-  },
-  onError: (_err, _vars, context) => {
-    queryClient.setQueryData(personKeys.list(wid), context?.previous);
-    toast.error("Failed to move person");
-  },
-  onSettled: () => {
-    queryClient.invalidateQueries({ queryKey: personKeys.list(wid) });
-  },
+	...personModel.moveMutationOptions,
+	onMutate: async ({ personId, newManagerId }) => {
+		await queryClient.cancelQueries({ queryKey: personKeys.list(wid) });
+		const previous = queryClient.getQueryData(personKeys.list(wid));
+		queryClient.setQueryData(personKeys.list(wid), (old) =>
+			optimisticallyMovePerson(old, personId, newManagerId),
+		);
+		return { previous };
+	},
+	onError: (_err, _vars, context) => {
+		queryClient.setQueryData(personKeys.list(wid), context?.previous);
+		toast.error("Failed to move person");
+	},
+	onSettled: () => {
+		queryClient.invalidateQueries({ queryKey: personKeys.list(wid) });
+	},
 });
 ```
