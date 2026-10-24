@@ -9,11 +9,11 @@ import {
 	CommandPalette,
 	Sidebar,
 	SidebarFooter,
+	SidebarGroup,
 	SidebarHeader,
 	SidebarIconItem,
 	SidebarItem,
 	SidebarNav,
-	SidebarPartition,
 	SidebarSearch,
 	SidebarUser,
 	Tooltip,
@@ -102,129 +102,141 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
 	return (
 		<>
-			<Sidebar collapsed={collapsed}>
-				{/* The 68px rail has a fixed 34px icon axis, including during width transitions. */}
-				<SidebarHeader className="w-[260px] gap-3 pl-[22px]">
-					<Link
-						to="/"
-						aria-label="Bogo overview"
-						className="flex min-w-0 items-center gap-2 rounded-md"
+			<Sidebar collapsed={collapsed} aria-label="Main navigation">
+				<SidebarHeader>
+					<div
+						className={
+							collapsed
+								? "flex w-full justify-center"
+								: "flex w-full min-w-0 items-center justify-between"
+						}
 					>
-						<img src="/logo-24.png" alt="bogo" width={24} height={24} className="shrink-0" />
-						{!collapsed && (
-							<>
-								<span className="text-lg font-semibold tracking-tight text-basalt-foreground">
-									bogo.
-								</span>
-								<span className="ml-1 rounded-md bg-basalt-secondary px-1.5 py-0.5 font-mono text-[10px] font-medium text-basalt-muted-foreground">
-									v{BOGO_VERSION}
-								</span>
-							</>
-						)}
-					</Link>
-					{!collapsed && (
-						<Button
-							variant="ghost"
-							size="icon"
-							className="ml-auto h-7 w-7 shrink-0"
-							onClick={onToggle}
-							aria-label="Collapse sidebar"
+						<div
+							className={
+								collapsed ? "flex items-center" : "flex min-w-0 items-center gap-basalt-space-lg"
+							}
 						>
-							<PanelLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
-						</Button>
-					)}
+							<Link to="/" aria-label="Bogo overview" className="flex shrink-0 items-center">
+								<img src="/logo-24.png" alt="bogo" width={24} height={24} className="shrink-0" />
+							</Link>
+							{!collapsed && (
+								<>
+									<span className="truncate text-lg font-semibold text-basalt-foreground md:text-xl">
+										bogo.
+									</span>
+									<span className="shrink-0 rounded-md bg-basalt-secondary px-basalt-space-md py-basalt-space-xs font-mono text-[10px] leading-none font-medium text-basalt-muted-foreground">
+										v{BOGO_VERSION}
+									</span>
+								</>
+							)}
+						</div>
+						{!collapsed && (
+							<Button
+								variant="ghost"
+								size="icon"
+								className="h-7 w-7 shrink-0"
+								onClick={onToggle}
+								aria-label="Collapse sidebar"
+							>
+								<PanelLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
+							</Button>
+						)}
+					</div>
 				</SidebarHeader>
 
 				{collapsed ? (
-					<>
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={onToggle}
-							aria-label="Expand sidebar"
-							className="mb-1 ml-3.5 h-10 w-10 shrink-0"
-						>
-							<PanelLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
-						</Button>
-						<Tooltip delayDuration={0}>
-							<TooltipTrigger asChild>
-								<SidebarIconItem
-									onClick={() => setSearchOpen(true)}
-									aria-label="Search (⌘K)"
-									className="mb-2 ml-3.5 shrink-0"
-								>
-									<Search className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
-								</SidebarIconItem>
-							</TooltipTrigger>
-							<TooltipContent side="right" sideOffset={8}>
-								Search (⌘K)
-							</TooltipContent>
-						</Tooltip>
-					</>
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={onToggle}
+						aria-label="Expand sidebar"
+						className="mb-basalt-space-sm self-center"
+					>
+						<PanelLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
+					</Button>
 				) : (
-					<div className="w-[260px] px-3 pb-2">
-						<SidebarSearch className="pl-3.5" onClick={() => setSearchOpen(true)}>
-							Search pages…
-						</SidebarSearch>
+					<div className="px-basalt-nav-inset">
+						<SidebarSearch onClick={() => setSearchOpen(true)}>Search pages…</SidebarSearch>
 					</div>
 				)}
 
-				<SidebarNav
-					aria-label="Main navigation"
-					className={collapsed ? "w-[68px] gap-3 pt-1" : "w-[260px] gap-3 pt-1"}
-				>
-					{NAV_GROUPS.map((group) => (
-						<div key={group.label} className="space-y-1">
-							{!collapsed && (
-								<SidebarPartition className="pl-[26px]">{group.label}</SidebarPartition>
-							)}
-							<div className={collapsed ? "flex flex-col items-center gap-1" : "space-y-0.5 px-3"}>
-								{group.items.map((item) =>
-									collapsed ? (
-										<Tooltip key={item.path} delayDuration={0}>
-											<TooltipTrigger asChild>
-												<SidebarIconItem
-													active={isNavActive(item.path, pathname)}
-													aria-label={item.title}
-													onClick={() => navigate(item.path)}
-												>
-													<item.icon className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
-												</SidebarIconItem>
-											</TooltipTrigger>
-											<TooltipContent side="right" sideOffset={8}>
-												{item.title}
-											</TooltipContent>
-										</Tooltip>
-									) : (
-										<SidebarItem
-											key={item.path}
-											className="pl-3.5"
+				<SidebarNav aria-label="Main navigation">
+					{collapsed ? (
+						<>
+							<Tooltip delayDuration={0}>
+								<TooltipTrigger asChild>
+									<SidebarIconItem onClick={() => setSearchOpen(true)} aria-label="Search (⌘K)">
+										<Search className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
+									</SidebarIconItem>
+								</TooltipTrigger>
+								<TooltipContent side="right" sideOffset={8}>
+									Search (⌘K)
+								</TooltipContent>
+							</Tooltip>
+							{ALL_NAV_ITEMS.map((item) => (
+								<Tooltip key={item.path} delayDuration={0}>
+									<TooltipTrigger asChild>
+										<SidebarIconItem
 											active={isNavActive(item.path, pathname)}
+											aria-label={item.title}
 											onClick={() => navigate(item.path)}
 										>
-											<item.icon
-												className="h-4 w-4 shrink-0"
-												aria-hidden="true"
-												strokeWidth={1.5}
-											/>
-											<span className="flex-1 truncate text-left">{item.title}</span>
-										</SidebarItem>
-									),
-								)}
-							</div>
-						</div>
-					))}
+											<item.icon className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
+										</SidebarIconItem>
+									</TooltipTrigger>
+									<TooltipContent side="right" sideOffset={8}>
+										{item.title}
+									</TooltipContent>
+								</Tooltip>
+							))}
+						</>
+					) : (
+						NAV_GROUPS.map((group) => (
+							<SidebarGroup key={group.label} label={group.label}>
+								{group.items.map((item) => (
+									<SidebarItem
+										key={item.path}
+										active={isNavActive(item.path, pathname)}
+										onClick={() => navigate(item.path)}
+									>
+										<item.icon className="h-4 w-4 shrink-0" aria-hidden="true" strokeWidth={1.5} />
+										<span className="flex-1 truncate text-left">{item.title}</span>
+									</SidebarItem>
+								))}
+							</SidebarGroup>
+						))
+					)}
 				</SidebarNav>
 
-				<SidebarFooter className={collapsed ? "w-[68px] px-4" : "w-[260px]"}>
-					<SidebarUser
-						name={collapsed ? "" : userInfo.displayName}
-						email={collapsed ? undefined : (userInfo.email ?? "CF Access")}
-						className={collapsed ? "gap-0" : undefined}
-						avatar={
-							<PersonAvatar name={userInfo.displayName} avatarUrl={userInfo.avatarUrl} size="lg" />
-						}
-					/>
+				<SidebarFooter>
+					{collapsed ? (
+						<Tooltip delayDuration={0}>
+							<TooltipTrigger asChild>
+								<span className="inline-flex self-center">
+									<PersonAvatar
+										name={userInfo.displayName}
+										avatarUrl={userInfo.avatarUrl}
+										size="lg"
+									/>
+								</span>
+							</TooltipTrigger>
+							<TooltipContent side="right" sideOffset={8}>
+								{userInfo.displayName}
+							</TooltipContent>
+						</Tooltip>
+					) : (
+						<SidebarUser
+							name={userInfo.displayName}
+							email={userInfo.email ?? "CF Access"}
+							avatar={
+								<PersonAvatar
+									name={userInfo.displayName}
+									avatarUrl={userInfo.avatarUrl}
+									size="lg"
+								/>
+							}
+						/>
+					)}
 				</SidebarFooter>
 			</Sidebar>
 
