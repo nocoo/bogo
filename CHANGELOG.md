@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.5 — 2026-10-24
+
+- Rebuild the sidebar on the Basalt template: shared header inset, collapsible groups, 38px rows, nav-inset search and library-centred collapsed rail replace the local widths, paddings and partition labels.
+- Follow the shared rail geometry in the sidebar layout spec.
+- Upgrade `@nocoo/basalt` to 3.2.1, React Router to 8.5.0, marked to 18.1.1, js-yaml to 5.5.0 and `@cloudflare/workers-types` to 5.20261023.1.
+
 ## [0.9.0] - 2026-09-11
 
 ### Added
