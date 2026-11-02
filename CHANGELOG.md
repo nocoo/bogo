@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.6 — 2026-11-02
+
+- Bump `@biomejs/biome`, `@dagrejs/dagre`, `marked`, `wrangler`, `@pierre/diffs`, `react-router`, and `jose` to latest patch/minor releases.
+
 ## v0.9.5 — 2026-10-24
 
 - Rebuild the sidebar on the Basalt template: shared header inset, collapsible groups, 38px rows, nav-inset search and library-centred collapsed rail replace the local widths, paddings and partition labels.
