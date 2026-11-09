@@ -1,4 +1,7 @@
 # pre-push: L2 (E2E) + G2 (Security gate) + CLI e2e (conditional)
+if [ -z "${BASH_VERSION-}" ]; then
+	exec bash "$0" "$@"
+fi
 # Run independent stages in parallel; fail fast on any non-zero exit.
 set -o pipefail
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -17,7 +20,9 @@ run_bg() {
 }
 
 wait_stage() {
-  local name="$1" pid_var="PID_$1" pid status
+  local name="$1"
+  local pid_var="PID_$name"
+  local pid status
   pid=${!pid_var}
   wait "$pid" 2>/dev/null || true
   status=$(cat "$TMPDIR_HOOK/$name.exit" 2>/dev/null || echo 1)
