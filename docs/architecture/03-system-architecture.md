@@ -32,6 +32,7 @@ Bogo is a single-page application backed by a Cloudflare Worker. The Worker serv
 ### `@bogo/shared`
 
 Shared constants, types, and utilities consumed by both Worker and UI.
+
 - `BOGO_VERSION` — build-time version string
 - Shared TypeScript types (entity interfaces, API request/response shapes)
 - Validation schemas (zod) reused in both layers
@@ -42,6 +43,7 @@ Shared constants, types, and utilities consumed by both Worker and UI.
 Cloudflare Worker running Hono framework.
 
 Responsibilities:
+
 1. **Authentication middleware** — Validate CF Access JWT, extract user identity
 2. **API routes** — RESTful JSON endpoints for all CRUD operations
 3. **Static asset serving** — Serve Vite-built SPA via Workers Sites / static assets binding
@@ -53,6 +55,7 @@ Responsibilities:
 Vite React SPA (TypeScript, Tailwind CSS).
 
 Responsibilities:
+
 1. **Routing** — react-router v7, nested layouts
 2. **State management** — React Query for server state, local state for UI
 3. **Rendering** — Basalt design system, responsive layout
@@ -61,6 +64,7 @@ Responsibilities:
 ## Authentication Flow
 
 Bogo accepts two identities:
+
 - **Browser session** — a real human via CF Access JWT (or the `localhost`
   dev shortcut when host matches loopback). Used by the SPA, by `bogo login`,
   and by any human-driven call to the worker.
@@ -188,6 +192,7 @@ against the live D1 (see `docs/features/02-cli.md` §775-779). A phase 2
 `/api/auth/tokens/*` surface is planned but explicitly out of scope here.
 
 **Key points:**
+
 - **Two production hostnames, one worker** — `bogo.hexly.ai` is fronted
   by CF Access (browser SPA + `/api/auth/cli` consent page need a real
   CF Access JWT), and `api.bogo.hexly.ai` is **not** behind any Access
@@ -298,6 +303,7 @@ reuses the same worker endpoints as the SPA, but identifies itself via a
 bearer token instead of a CF Access JWT.
 
 **Boundary summary** (full design in `docs/features/02-cli.md`):
+
 - The CLI source code is **not** in this repo — only the schema
   (`clip.yaml`) and the worker-side support (the `api_tokens` table, the
   `/api/auth/cli` endpoint, the Bearer branch in `access-auth.ts`, the

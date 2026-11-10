@@ -16,6 +16,7 @@ bun dev
 
 `seed:local` is declared in the repo-root `package.json`. It runs
 [`scripts/seed-local.ts`](../../scripts/seed-local.ts), which:
+
 1. Applies `packages/worker/migrations/*` to **local** D1 via wrangler
 2. Writes [`packages/worker/seeds/northwind-labs.sql`](../../packages/worker/seeds/northwind-labs.sql)
    into wrangler's local sqlite (`.wrangler/state/v3/d1/…`) with

@@ -1,6 +1,6 @@
 {
 	"name": "@nocoo/bogo",
-	"version": "0.9.6",
+	"version": "0.9.7",
 	"description": "Command-line companion for bogo (https://bogo.hexly.ai) — generated from clip.yaml",
 	"type": "module",
 	"bin": {
@@ -15,7 +15,7 @@
 	},
 	"dependencies": {
 		"@nocoo/base-cli": "^0.3.0",
-		"commander": "^15.0.0"
+		"commander": "15.1.0"
 	},
 	"engines": {
 		"node": ">=22"

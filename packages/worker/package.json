@@ -1,6 +1,6 @@
 {
 	"name": "@bogo/worker",
-	"version": "0.9.6",
+	"version": "0.9.7",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -16,7 +16,7 @@
 	},
 	"dependencies": {
 		"@bogo/shared": "workspace:*",
-		"hono": "^4.13.13",
+		"hono": "4.13.17",
 		"jose": "^6.2.14"
 	},
 	"devDependencies": {

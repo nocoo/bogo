@@ -335,12 +335,14 @@ src/components/person/
 ## Achieving 95%+ Coverage
 
 The MVVM architecture makes this feasible:
+
 1. **ViewModels** (60% of logic): Fully testable via `renderHook` — no DOM, no graph viewport, no third-party UI
 2. **Models** (20% of logic): Pure functions returning query options — trivially testable
 3. **API client** (10% of logic): Fetch wrapper with MSW — straightforward
 4. **Components** (10% of logic): Thin shells delegating to ViewModels — render tests catch conditional logic
 
 The 5% uncovered is typically:
+
 - Third-party library integration glue (mocked modules)
 - CSS-only conditional branches in JSX (no logic impact)
 - Error boundaries' fallback render (tested manually or in E2E)

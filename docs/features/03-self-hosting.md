@@ -165,6 +165,7 @@ upstream URL beyond what your yaml says.
 `bogo login` mints a row in `api_tokens` keyed by `owner_email`. The
 worker accepts any identity CF Access lets through, so **the CF Access
 policy is the operator's allowlist**. Two practical setups:
+
 - **Personal**: Allow policy with `Emails Ending In @yourdomain.com`.
 - **Team**: Allow policy with `Country` / `IdP groups` / explicit list.
 
