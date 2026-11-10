@@ -74,6 +74,55 @@ function isNavActive(itemPath: string, currentPath: string): boolean {
 	);
 }
 
+function NavItemButton({ item, currentPath }: { item: NavItem; currentPath: string }) {
+	const navigate = useNavigate();
+	return (
+		<SidebarItem
+			active={isNavActive(item.path, currentPath)}
+			onClick={() => navigate(item.path)}
+		>
+			<item.icon className="h-4 w-4 shrink-0" aria-hidden="true" strokeWidth={1.5} />
+			<span className="flex-1 truncate text-left">{item.title}</span>
+		</SidebarItem>
+	);
+}
+
+function NavGroupSection({
+	group,
+	currentPath,
+}: {
+	group: (typeof NAV_GROUPS)[number];
+	currentPath: string;
+}) {
+	return (
+		<SidebarGroup label={group.label}>
+			{group.items.map((item) => (
+				<NavItemButton key={item.path} item={item} currentPath={currentPath} />
+			))}
+		</SidebarGroup>
+	);
+}
+
+function CollapsedNavItem({ item, currentPath }: { item: NavItem; currentPath: string }) {
+	const navigate = useNavigate();
+	return (
+		<Tooltip delayDuration={0}>
+			<TooltipTrigger asChild>
+				<SidebarIconItem
+					active={isNavActive(item.path, currentPath)}
+					aria-label={item.title}
+					onClick={() => navigate(item.path)}
+				>
+					<item.icon className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
+				</SidebarIconItem>
+			</TooltipTrigger>
+			<TooltipContent side="right" sideOffset={8}>
+				{item.title}
+			</TooltipContent>
+		</Tooltip>
+	);
+}
+
 interface AppSidebarProps {
 	collapsed: boolean;
 	onToggle: () => void;
@@ -173,36 +222,12 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 								</TooltipContent>
 							</Tooltip>
 							{ALL_NAV_ITEMS.map((item) => (
-								<Tooltip key={item.path} delayDuration={0}>
-									<TooltipTrigger asChild>
-										<SidebarIconItem
-											active={isNavActive(item.path, pathname)}
-											aria-label={item.title}
-											onClick={() => navigate(item.path)}
-										>
-											<item.icon className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
-										</SidebarIconItem>
-									</TooltipTrigger>
-									<TooltipContent side="right" sideOffset={8}>
-										{item.title}
-									</TooltipContent>
-								</Tooltip>
+								<CollapsedNavItem key={item.path} item={item} currentPath={pathname} />
 							))}
 						</>
 					) : (
 						NAV_GROUPS.map((group) => (
-							<SidebarGroup key={group.label} label={group.label}>
-								{group.items.map((item) => (
-									<SidebarItem
-										key={item.path}
-										active={isNavActive(item.path, pathname)}
-										onClick={() => navigate(item.path)}
-									>
-										<item.icon className="h-4 w-4 shrink-0" aria-hidden="true" strokeWidth={1.5} />
-										<span className="flex-1 truncate text-left">{item.title}</span>
-									</SidebarItem>
-								))}
-							</SidebarGroup>
+							<NavGroupSection key={group.label} group={group} currentPath={pathname} />
 						))
 					)}
 				</SidebarNav>
