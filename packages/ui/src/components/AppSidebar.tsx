@@ -77,10 +77,7 @@ function isNavActive(itemPath: string, currentPath: string): boolean {
 function NavItemButton({ item, currentPath }: { item: NavItem; currentPath: string }) {
 	const navigate = useNavigate();
 	return (
-		<SidebarItem
-			active={isNavActive(item.path, currentPath)}
-			onClick={() => navigate(item.path)}
-		>
+		<SidebarItem active={isNavActive(item.path, currentPath)} onClick={() => navigate(item.path)}>
 			<item.icon className="h-4 w-4 shrink-0" aria-hidden="true" strokeWidth={1.5} />
 			<span className="flex-1 truncate text-left">{item.title}</span>
 		</SidebarItem>
@@ -185,23 +182,36 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 							)}
 						</Link>
 						{collapsed ? null : (
-							<Button variant="ghost" size="icon" onClick={onToggle} aria-label="Collapse sidebar">
-								<PanelLeft aria-hidden="true" strokeWidth={1.5} />
-							</Button>
+							<Tooltip delayDuration={0}>
+								<TooltipTrigger asChild>
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={onToggle}
+										aria-label="Collapse sidebar"
+									>
+										<PanelLeft aria-hidden="true" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent side="bottom" sideOffset={8}>
+									Collapse sidebar
+								</TooltipContent>
+							</Tooltip>
 						)}
 					</div>
 				</SidebarHeader>
 
 				{collapsed ? (
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={onToggle}
-						aria-label="Expand sidebar"
-						className="mb-basalt-space-sm self-center"
-					>
-						<PanelLeft aria-hidden="true" strokeWidth={1.5} />
-					</Button>
+					<Tooltip delayDuration={0}>
+						<TooltipTrigger asChild>
+							<Button variant="ghost" size="icon" onClick={onToggle} aria-label="Expand sidebar">
+								<PanelLeft aria-hidden="true" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="right" sideOffset={8}>
+							Expand sidebar
+						</TooltipContent>
+					</Tooltip>
 				) : (
 					<div className="px-basalt-nav-inset">
 						<SidebarSearch onClick={() => setSearchOpen(true)}>Search pages…</SidebarSearch>
