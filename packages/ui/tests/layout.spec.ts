@@ -34,7 +34,10 @@ test("sidebar logo and navigation follow the shared rail geometry", async ({ pag
 	const geometry = () =>
 		page.evaluate(() => {
 			const rail = document.querySelector("[data-basalt-sidebar]")?.getBoundingClientRect();
-			const logo = document.querySelector('aside img[alt="bogo"]')?.getBoundingClientRect();
+			const mark =
+				document.querySelector('aside a[href="/"] img') ??
+				document.querySelector('aside a[href="/"]');
+			const logo = mark?.getBoundingClientRect();
 			const row = document.querySelector("aside nav [data-sidebar-row]")?.getBoundingClientRect();
 			if (!rail || !logo || !row) throw new Error("Sidebar geometry is missing");
 			return {
@@ -45,10 +48,10 @@ test("sidebar logo and navigation follow the shared rail geometry", async ({ pag
 			};
 		});
 
-	// Expanded: the brand mark and the navigation rows share the library inset.
+	// Expanded: the mark slot uses the header layout inset ahead of nav-row padding.
 	const expanded = await geometry();
 	expect(expanded.railWidth).toBe(260);
-	expect(expanded.logoLeft).toBe(expanded.rowLeft);
+	expect(expanded.logoLeft - expanded.rowLeft).toBe(12);
 
 	await page.getByRole("button", { name: "Collapse sidebar", exact: true }).click();
 	await expect(page.getByRole("button", { name: "Expand sidebar", exact: true })).toBeVisible();
