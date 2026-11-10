@@ -18,7 +18,7 @@ jobs:
     with:
       runtime-version: "1.3.11"
       install-policy: trusted
-      test-command: turbo build --filter=@bogo/shared && bun run test:unit:coverage
+      test-command: bun turbo build --filter=@bogo/shared && bun run test:unit:coverage
       coverage-path: packages/*/coverage
       osv-config: osv-scanner.toml
       build: true
