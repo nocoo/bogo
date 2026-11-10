@@ -211,13 +211,11 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 					{collapsed ? (
 						<Tooltip delayDuration={0}>
 							<TooltipTrigger asChild>
-								<span className="inline-flex self-center">
-									<PersonAvatar
-										name={userInfo.displayName}
-										avatarUrl={userInfo.avatarUrl}
-										size="lg"
-									/>
-								</span>
+								<PersonAvatar
+									name={userInfo.displayName}
+									avatarUrl={userInfo.avatarUrl}
+									size="lg"
+								/>
 							</TooltipTrigger>
 							<TooltipContent side="right" sideOffset={8}>
 								{userInfo.displayName}
