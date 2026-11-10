@@ -20,6 +20,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@nocoo/basalt";
+import { Link } from "@nocoo/basalt/components/link";
 import {
 	FileText,
 	FileType,
@@ -33,9 +34,10 @@ import {
 	Tags,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { PersonAvatar } from "@/components/person/PersonAvatar";
 import { useUserInfo } from "@/hooks/use-user-info";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
 	title: string;
@@ -62,6 +64,8 @@ const NAV_GROUPS = [
 	{ label: "Workspace", items: WORKSPACE_ITEMS },
 	{ label: "Settings", items: SETTINGS_ITEMS },
 ];
+
+const SIDEBAR_MARK_SLOT_CLASS = "flex w-full items-center";
 
 function isNavActive(itemPath: string, currentPath: string): boolean {
 	return (
@@ -105,40 +109,35 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 			<Sidebar collapsed={collapsed} aria-label="Main navigation">
 				<SidebarHeader>
 					<div
-						className={
-							collapsed
-								? "flex w-full justify-center"
-								: "flex w-full min-w-0 items-center justify-between"
-						}
+						className={cn(
+							SIDEBAR_MARK_SLOT_CLASS,
+							collapsed ? "justify-center" : "justify-between pl-basalt-layout-sm",
+						)}
 					>
-						<div
-							className={
-								collapsed ? "flex items-center" : "flex min-w-0 items-center gap-basalt-space-lg"
-							}
+						<Link
+							href="/"
+							aria-label="Bogo overview"
+							className="flex items-center gap-basalt-space-lg text-basalt-foreground no-underline hover:no-underline"
 						>
-							<Link to="/" aria-label="Bogo overview" className="flex shrink-0 items-center">
-								<img src="/logo-24.png" alt="bogo" width={24} height={24} className="shrink-0" />
-							</Link>
-							{!collapsed && (
+							<img
+								src="/logo-24.png"
+								alt=""
+								width={24}
+								height={24}
+								className="h-7 w-7 shrink-0 object-contain"
+							/>
+							{collapsed ? null : (
 								<>
-									<span className="truncate text-lg font-semibold text-basalt-foreground md:text-xl">
-										bogo.
-									</span>
-									<span className="shrink-0 rounded-md bg-basalt-secondary px-basalt-space-md py-basalt-space-xs font-mono text-[10px] leading-none font-medium text-basalt-muted-foreground">
+									<span className="text-basalt-xl font-semibold text-basalt-foreground">bogo.</span>
+									<span className="rounded-basalt-md bg-basalt-secondary px-basalt-space-md py-basalt-space-xs text-basalt-sm leading-basalt-tight font-medium text-basalt-muted-foreground">
 										v{BOGO_VERSION}
 									</span>
 								</>
 							)}
-						</div>
-						{!collapsed && (
-							<Button
-								variant="ghost"
-								size="icon"
-								className="h-7 w-7 shrink-0"
-								onClick={onToggle}
-								aria-label="Collapse sidebar"
-							>
-								<PanelLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
+						</Link>
+						{collapsed ? null : (
+							<Button variant="ghost" size="icon" onClick={onToggle} aria-label="Collapse sidebar">
+								<PanelLeft aria-hidden="true" strokeWidth={1.5} />
 							</Button>
 						)}
 					</div>
@@ -152,7 +151,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 						aria-label="Expand sidebar"
 						className="mb-basalt-space-sm self-center"
 					>
-						<PanelLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.5} />
+						<PanelLeft aria-hidden="true" strokeWidth={1.5} />
 					</Button>
 				) : (
 					<div className="px-basalt-nav-inset">
