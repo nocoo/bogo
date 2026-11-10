@@ -1,3 +1,5 @@
+# CI slot standard v1 (nocoo/base-ci docs/slots.md): strict slot-status; S1–G2, B1, L1, L2, L3, Z1 via quality.yml.
+# L1.5 / P1 na in slot-status; coverage-gates + CLI E2E stay as repo-specific jobs (no slot).
 name: CI
 
 on:
@@ -7,18 +9,49 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   quality:
-    uses: nocoo/base-ci/.github/workflows/quality.yml@633a5545fcfec91b688840650d4edf3e9cc1abbd # v2026.10
+    uses: nocoo/base-ci/.github/workflows/quality.yml@1ea10ecab22b72512399485391603fe03a161016 # v2026.12
     with:
       runtime-version: "1.3.11"
-      install-policy: "trusted"
-      test-command: "bun run test:unit:coverage"
-      coverage-path: "packages/*/coverage"
-      osv-config: "osv-scanner.toml"
+      install-policy: trusted
+      test-command: bun turbo build --filter=@bogo/shared && bun run test:unit:coverage
+      coverage-path: packages/*/coverage
+      osv-config: osv-scanner.toml
+      build: true
+      build-command: bun run build
+      workflow-lint: true
+      workflow-lint-required-workflow: nocoo/base-ci/.github/workflows/deploy-worker.yml
+      l2: true
+      l2-command: bun run build && bun turbo test:e2e --filter=@bogo/worker
+      l3: true
+      l3-browser-directory: packages/ui
+      l3-browsers: chromium
+      l3-prepare-command: bun run build
+      l3-command: PLAYWRIGHT_HTML_OPEN=never bun run test:e2e:pw -- --reporter=line,html
+      l3-artifact-name: playwright-report
+      l3-artifact-path: packages/ui/playwright-report/
+      l3-artifact-retention-days: 7
+      env-json: '{"WRANGLER_SEND_METRICS": "false", "CI": "true"}'
+      slot-status: >-
+        {"S1": {"status": "impl"},
+        "S2": {"status": "impl"},
+        "S3": {"status": "impl"},
+        "G1": {"status": "impl"},
+        "G2": {"status": "impl"},
+        "B1": {"status": "impl"},
+        "L1": {"status": "impl"},
+        "L1.5": {"status": "na", "reason": "无 @cloudflare/vitest-pool-workers / miniflare 独立 Worker 运行时测试套件；HTTP 集成在 L2"},
+        "L2": {"status": "impl"},
+        "L3": {"status": "impl"},
+        "P1": {"status": "na", "reason": "根 package.json 为 private，npm 不由 Worker CD 发布"},
+        "Z1": {"status": "impl"}}
 
   coverage-gates:
-    name: "Coverage Gates"
+    name: Coverage Gates (routes / pages / clip.yaml)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -34,54 +67,30 @@ jobs:
           path: clip
           persist-credentials: false
       - name: Setup bogo
-        uses: nocoo/base-ci/.github/actions/setup-js@633a5545fcfec91b688840650d4edf3e9cc1abbd # v2026.10
+        uses: nocoo/base-ci/.github/actions/setup-js@1ea10ecab22b72512399485391603fe03a161016 # v2026.12
         with:
           package-manager: bun
           runtime-version: "1.3.11"
           working-directory: bogo
-          install-policy: "trusted"
+          install-policy: trusted
       - name: Setup clip
-        uses: nocoo/base-ci/.github/actions/setup-js@633a5545fcfec91b688840650d4edf3e9cc1abbd # v2026.10
+        uses: nocoo/base-ci/.github/actions/setup-js@1ea10ecab22b72512399485391603fe03a161016 # v2026.12
         with:
           package-manager: bun
           runtime-version: "1.3.11"
           working-directory: clip
-          install-policy: "project"
-      - name: "G: Route coverage (L2)"
+          install-policy: project
+      - name: Route map coverage gate
         run: cd bogo && bun run gate:routes
-      - name: "G: Page coverage (L3)"
+      - name: Page map coverage gate
         run: cd bogo && bun run gate:pages
-      - name: "G: clip.yaml validates against generator"
+      - name: clip.yaml validates against generator
         env:
           BOGO_REQUIRE_CLI_E2E: "1"
         run: cd bogo && bun run gate:clip-yaml
 
-  l2-e2e:
-    name: "L2 Worker E2E"
-    uses: nocoo/base-ci/.github/workflows/test-job.yml@633a5545fcfec91b688840650d4edf3e9cc1abbd # v2026.10
-    with:
-      runtime-version: "1.3.11"
-      install-policy: "trusted"
-      timeout-minutes: 15
-      pre-command: "bun run build"
-      command: "bun turbo test:e2e --filter=@bogo/worker"
-
-  l3-playwright:
-    name: "L3 Playwright E2E"
-    uses: nocoo/base-ci/.github/workflows/test-job.yml@633a5545fcfec91b688840650d4edf3e9cc1abbd # v2026.10
-    with:
-      runtime-version: "1.3.11"
-      install-policy: "trusted"
-      browser: "chromium"
-      browser-working-directory: "packages/ui"
-      timeout-minutes: 20
-      pre-command: "bun run build"
-      command: "PLAYWRIGHT_HTML_OPEN=never bun run test:e2e:pw -- --reporter=line,html"
-      artifact-name: playwright-report
-      artifact-path: packages/ui/playwright-report/
-
   cli-e2e:
-    name: "CLI E2E (clip-generated bogo CLI)"
+    name: CLI E2E (clip-generated bogo CLI)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -99,20 +108,20 @@ jobs:
           path: clip
           persist-credentials: false
       - name: Setup bogo
-        uses: nocoo/base-ci/.github/actions/setup-js@633a5545fcfec91b688840650d4edf3e9cc1abbd # v2026.10
+        uses: nocoo/base-ci/.github/actions/setup-js@1ea10ecab22b72512399485391603fe03a161016 # v2026.12
         with:
           package-manager: bun
           runtime-version: "1.3.11"
           working-directory: bogo
-          install-policy: "trusted"
+          install-policy: trusted
       - name: Setup clip
-        uses: nocoo/base-ci/.github/actions/setup-js@633a5545fcfec91b688840650d4edf3e9cc1abbd # v2026.10
+        uses: nocoo/base-ci/.github/actions/setup-js@1ea10ecab22b72512399485391603fe03a161016 # v2026.12
         with:
           package-manager: bun
           runtime-version: "1.3.11"
           working-directory: clip
-          install-policy: "project"
+          install-policy: project
       - name: Build static (wrangler needs packages/worker/static)
         run: cd bogo && bun run build
-      - name: "CLI E2E: login + CRUD + revoke"
+      - name: CLI E2E login + CRUD + revoke
         run: cd bogo && bun run test:cli-e2e
