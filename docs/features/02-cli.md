@@ -3,11 +3,13 @@
 ## 1. Objective
 
 把 bogo 从浏览器 SPA 扩展成"**浏览器 + 命令行**"双形态。用户（哥本人 + agent 自动化脚本）在 Mac 上跑一条命令就能：
+
 1. **登录** — `bogo login` 弹浏览器，复用 CF Access 已识别的身份,落 token 到 `~/.clip/bogo/credentials.json`(0600)
 2. **完整 CRUD** — `bogo workspaces-list`、`bogo persons-create <wid> --name …`、`bogo documents-update <wid> <id> …` 等覆盖所有 `/api/*` 端点
 3. **自证可用** — 仓库里有 `bogo cli` 的 e2e 测试,能从「`clip generate` → 启 wrangler dev → `bogo login` → 调一圈 CRUD → 撤销 token → 验 401」端到端跑通
 
 **CLI 本身的代码不写在这个仓库**——本仓库只产出一份 `clip.yaml`,由 [`../clip` v1.0.0+](../../../clip) `clip generate` 自动生成 commander 驱动的 TypeScript CLI 项目。本仓库要做的是:
+
 - worker 端补 bearer-token 鉴权 + `/api/auth/cli` 端点
 - 维护一份与 worker 实现同步的根 `clip.yaml`
 - 写 e2e 测试证明生成的 CLI 真能调通
@@ -52,6 +54,7 @@ bogo persons-list <wid>          # GET /api/w/:wid/persons (wid 是位置参数)
 ### 2.3 worker 必须实现的 callback 协议(两阶段 consent)
 
 `../cli-base/src/login.ts` 的 `performLogin`:
+
 1. 起 loopback HTTP server,监听 `127.0.0.1:RANDOM`(仅环回)
 2. 生成 `state` 随机 nonce(CSRF)
 3. `openBrowser(<apiUrl> + <loginPath> + "?callback=http://127.0.0.1:RANDOM/callback&state=<nonce>")`
@@ -59,6 +62,7 @@ bogo persons-list <wid>          # GET /api/w/:wid/persons (wid 是位置参数)
 5. 校验 `state` → `onSaveToken(token)` → 落 `credentials.json`
 
 worker `/api/auth/cli` 必须接 `callback` 和 `state` query 参数。**为防 drive-by CSRF**(任何已登 CF Access 的用户若被诱导 `<img src=…/api/auth/cli?callback=attacker_loopback>`,worker 会把 token 302 给攻击者控制的 loopback 进程):端点拆**两阶段 consent**——
+
 - **Stage 1** (无 `confirm` query):
   - 不写 DB,不签 token
   - 设 HttpOnly + SameSite=Strict cookie `bogo_cli_csrf=<64-hex>`,Path=`/api/auth/cli`,maxAge=600s
@@ -93,6 +97,7 @@ worker `/api/auth/cli` 必须接 `callback` 和 `state` query 参数。**为防 
 ### 3.0 clip v1.0.0 codegen 行为(命令面的硬约束)
 
 写命令前必须遵守以下事实(`../clip/packages/cli/src/codegen/templates.ts`):
+
 - **path params 永远是位置参数**(`templates.ts:20`):`/api/w/:wid/persons/:id` ⇒ `bogo persons-update <wid> <id>`,**不会**生成 `--wid` flag
 - **query / body params 是 camelCase flag,原样从 yaml key 取名**(`templates.ts:27,36`):yaml 写 `personIds` ⇒ flag 是 `--personIds`,**不会**自动转 `--person-ids`(也没有 alias)
 - **boolean flag 必须传字符串 `"true"` / `"false"`**(`templates.ts:223`):`bogo fields-create <wid> --required true`,**不能**裸 `--required`
@@ -229,6 +234,7 @@ CREATE INDEX idx_api_tokens_hash  ON api_tokens(token_hash);
 ### 4.2 Token 明文格式
 
 `bogo_<base64url(32 字节 randomBytes)>` ≈ 50 字符。
+
 - `bogo_` 前缀便于 gitleaks / grep 命中
 - 用 Workers 原生 `crypto.getRandomValues`
 
@@ -303,6 +309,7 @@ export async function accessAuth(c, next) {
 ### 5.4 `packages/worker/src/routes/auth.ts`(实际实现摘要)
 
 `/api/auth/cli` 同时承担三个职责,按短路顺序:
+
 1. **拒 bearer 自助换 token**:`authMethod === "bearer"` → 403,无 DB 写。leak 的 token 不能延展自己的生命周期。
 2. **校验 callback**:`isLoopbackCallback(callback)` 过滤非 loopback / 非 http / 非 `/callback` / 含 userinfo,失败 → 400。
 3. **两阶段 consent** (anti-CSRF,见 §2.3):
@@ -753,6 +760,7 @@ custom_domain = true
 ### Worker 端责任
 
 `api.bogo.hexly.ai` 全公网可达,所有鉴权由 `packages/worker/src/middleware/access-auth.ts` 完成(§5.3):
+
 - `Authorization: Bearer bogo_*` 前缀必匹配 → DB hash 查 row + 校验 `revoked_at`/`expires_at`,不命中 401
 - 非 bearer 请求(包括健康检查) → `/api/live` 公开,其余按 CF Access JWT 校验(理论上 `api.*` 不会带 CF Access JWT,所以业务 endpoint 直接 401)
 
@@ -783,6 +791,7 @@ bogo documents-create <wid> --title "Q3 plan" --content "..." --personIds <uuid-
 > `clip generate` 用 **`--output`**(无短参数 `-o`,见 `../clip/packages/cli/src/index.ts:17-18`)。
 
 撤销:v1 暂时手动改 D1:
+
 ```bash
 cd packages/worker
 bunx wrangler d1 execute bogo --remote --command "UPDATE api_tokens SET revoked_at=datetime('now') WHERE prefix='bogo_xxxxxx'"
@@ -996,6 +1005,7 @@ afterAll:
 ```
 
 **实现细节**:
+
 - 端口分配:`getPort()` 或固定 `27036`(与 worker e2e 的 17036 错开)
 - `readLineMatching` 用 readline 包 stdout 直至匹配并 return 第一个捕获组之外的整行 URL;5s 超时,超时则 dump stdout 给报错信息
 - 测试 schema 替换 `baseUrl` **和** `loginUrl` 都改到 `http://127.0.0.1:${PORT}`
@@ -1006,6 +1016,7 @@ afterAll:
 加根 `package.json` script:`"test:cli-e2e": "cd tests/cli-e2e && bun test"`
 
 加 `.husky/pre-push` 一段(语义:CI 严格、本地可跳过):
+
 ```bash
 if [ -n "$BOGO_REQUIRE_CLI_E2E" ] || [ -z "$BOGO_SKIP_CLI_E2E" ]; then
   bun run test:cli-e2e
@@ -1095,6 +1106,7 @@ Gate:pre-push(条件性)
 | **G3 Coverage**        | `bash scripts/check-coverage.sh` 阈值不降                                                                | pre-push   | all             |
 
 **手测 checklist**(PR 描述里勾):
+
 - [ ] 本地 dev:`bun dev` 后 `curl -i 'http://localhost:37036/api/auth/cli?callback=http://127.0.0.1:9999/callback'` → **200 HTML consent 页 + Set-Cookie: bogo_cli_csrf=…; HttpOnly; SameSite=Strict**(不再是 302)
 - [ ] consent 页表单 hidden `confirm=<csrf>` 与 Set-Cookie 的 token 一致;手动 follow form → 302 含 api_key
 - [ ] **drive-by 模拟**:用 stage 1 拿到的 cookie 但传**不同** `confirm=…` → 403,DB 无新 row

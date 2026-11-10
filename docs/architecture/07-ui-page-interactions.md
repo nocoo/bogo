@@ -21,11 +21,13 @@ Every data-fetching view handles exactly these states:
 ### Route: `/workspaces` (or redirect from `/` if no workspace selected)
 
 **States**:
+
 - **Loading**: 2-3 skeleton cards
 - **Empty** (new user): Welcome message + "Create your first workspace" CTA
 - **Data**: Card grid (workspace name, person count, last updated)
 
 **Interactions**:
+
 - Click card → set workspace context → navigate to `/`
 - Click "+" card → create modal (name input only)
 - Long press / context menu → rename, delete (with confirmation)
@@ -37,6 +39,7 @@ Every data-fetching view handles exactly these states:
 ### Route: `/` (requires workspace context)
 
 **Layout**:
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  Stats row: [Persons: 24] [Documents: 89] [This week: 5]│
@@ -49,11 +52,13 @@ Every data-fetching view handles exactly these states:
 ```
 
 **States**:
+
 - **Loading**: Stat cards as skeletons, activity list as 5 skeleton rows
 - **Empty workspace** (just created): Stats show zeros, activity says "No activity yet", quick actions highlighted
 - **Data**: Numbers + recent activity timeline
 
 **Interactions**:
+
 - Click stat card → navigate to relevant page
 - Click activity item → navigate to document/person detail
 - Quick action buttons → navigate or open modal
@@ -70,6 +75,7 @@ Every data-fetching view handles exactly these states:
 ### Tree View
 
 **Layout**:
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │  [+ Add Person]  [View: ● Tree ○ List]  [Zoom controls]   │
@@ -94,12 +100,14 @@ Every data-fetching view handles exactly these states:
 ```
 
 **States**:
+
 - **Loading**: Graph viewport with single centered skeleton node
 - **Empty** (only root exists): Root node + "Add your first team member" floating tooltip
 - **Data**: Full tree rendered with dagre layout
 - **Error**: Error banner above graph viewport, tree shows last cached state
 
 **Node interactions**:
+
 - **Click node**: Select → open detail panel (slide-over from right)
 - **Double-click node**: Inline edit name/title
 - **Drag node**: Detach from parent → hover over new parent (highlight target) → drop to reparent
@@ -110,6 +118,7 @@ Every data-fetching view handles exactly these states:
 - **Zoom/Pan**: Mouse wheel zoom, drag viewport to pan, minimap for navigation
 
 **Drag-to-reparent flow (detailed)**:
+
 1. User starts dragging a node
 2. Valid drop targets (all other nodes except self and descendants) show green highlight border
 3. Invalid targets (self, descendants) show red X indicator
@@ -122,6 +131,7 @@ Every data-fetching view handles exactly these states:
 **Layout**: `@tanstack/react-table` with columns: Name, Title, Manager, Dotted Line, Created
 
 **Interactions**:
+
 - Click row → open same detail panel
 - Sort by any column header
 - Search/filter input above table
@@ -130,6 +140,7 @@ Every data-fetching view handles exactly these states:
 ### Person Detail Panel
 
 **Layout** (slide-over, 400px):
+
 ```
 ┌─────────────────────────────────────┐
 │  [← Close]         [Edit] [Delete]  │
@@ -176,6 +187,7 @@ Every data-fetching view handles exactly these states:
 ### Route: `/documents`
 
 **Layout**:
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │  [+ New Document]  [Filter: type ▼] [Filter: person ▼]    │
@@ -199,6 +211,7 @@ Every data-fetching view handles exactly these states:
 ```
 
 **States**:
+
 - **Loading**: 3 skeleton groups with 2-3 skeleton rows each
 - **Empty**: "No documents yet" + CTA "Create your first document"
 - **Empty filtered**: "No documents match your filters" + clear filters link
@@ -206,6 +219,7 @@ Every data-fetching view handles exactly these states:
 - **Error**: Error banner, retry button
 
 **Interactions**:
+
 - Click document row → navigate to `/documents/:id` (editor)
 - Filter by type: Dropdown with document type badges (colored)
 - Filter by person: Searchable dropdown with person names
@@ -215,6 +229,7 @@ Every data-fetching view handles exactly these states:
 ### Document Editor (`/documents/:id`)
 
 **Layout**:
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │  [← Back]  Title input  [Type: Meeting ▼]  [Save] [···]   │
@@ -235,6 +250,7 @@ Every data-fetching view handles exactly these states:
 ```
 
 **States**:
+
 - **Loading**: Skeleton editor + metadata panel
 - **Data**: Editor with content, metadata filled
 - **Saving**: "Saving..." indicator in header (debounced auto-save)
@@ -243,6 +259,7 @@ Every data-fetching view handles exactly these states:
 - **Conflict** (future): If version mismatch on save → show diff + resolve
 
 **Interactions**:
+
 - Edit content → debounce 2s → auto-save (PUT) → version increment
 - Manual save: Ctrl+S / button
 - Change type: Dropdown selection → immediate save
@@ -254,6 +271,7 @@ Every data-fetching view handles exactly these states:
 ### Version History Drawer
 
 **Layout**:
+
 ```
 ┌───────────────────────────────────┐
 │  Version History                   │
@@ -274,6 +292,7 @@ Every data-fetching view handles exactly these states:
 ```
 
 **Interactions**:
+
 - Click version → preview that version's content (read-only)
 - Select two versions → show diff via `@pierre/diffs`
 - "Restore this version" → creates new version with old content (append, not overwrite)
@@ -289,6 +308,7 @@ Every data-fetching view handles exactly these states:
 ### Custom Fields Tab
 
 **Layout**:
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │  Custom Fields                              [+ Add Field]  │
@@ -301,6 +321,7 @@ Every data-fetching view handles exactly these states:
 ```
 
 **Interactions**:
+
 - Drag handle (☰) to reorder → `PUT` sort_order
 - Add field: Modal with name, type, required, default_value, options (if select)
 - Edit: Same modal, pre-filled
@@ -309,6 +330,7 @@ Every data-fetching view handles exactly these states:
 ### Document Types Tab
 
 **Layout**:
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │  Document Types                             [+ Add Type]   │
@@ -320,6 +342,7 @@ Every data-fetching view handles exactly these states:
 ```
 
 **Interactions**:
+
 - Drag to reorder
 - Add/edit: Modal with name + color picker (preset palette)
 - Delete: Confirmation "Documents using this type will become untyped"
@@ -336,6 +359,7 @@ Every data-fetching view handles exactly these states:
 ### Route: `/analytics`
 
 **Layout**:
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │  Org Stats                │  Document Activity             │
@@ -354,6 +378,7 @@ Every data-fetching view handles exactly these states:
 ```
 
 **States**:
+
 - **Loading**: Skeleton charts
 - **Empty**: "Not enough data yet" (< 3 persons or < 5 documents)
 - **Data**: Charts rendered via recharts
@@ -365,6 +390,7 @@ Every data-fetching view handles exactly these states:
 ### Route: `/system`
 
 **Layout**: Simple info cards
+
 - Worker version + deploy time
 - D1 database stats (table counts via API)
 - Health check status (green/red dot)

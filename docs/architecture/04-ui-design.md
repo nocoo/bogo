@@ -75,6 +75,7 @@ First screen after login if user has multiple workspaces. Simple card grid with 
 ### Dashboard (`/`)
 
 Overview of the selected workspace:
+
 - Person count, document count, recent activity
 - Quick-access cards for common actions
 - Activity timeline (recent documents edited)
@@ -104,6 +105,7 @@ Interactive tree visualization of the person hierarchy.
 ```
 
 **Interactions:**
+
 - **Drag & drop**: Rearrange hierarchy by dragging a person node onto a new parent. Triggers `PUT /persons/:id/move`.
 - **Click node**: Opens person detail panel (slide-over or right panel)
 - **Add person**: Modal form, parent defaults to selected node

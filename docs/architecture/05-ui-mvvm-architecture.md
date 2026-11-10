@@ -132,6 +132,7 @@ View → ViewModel → Model → @bogo/shared
 ```
 
 **Import rules** (enforced via convention, can add ESLint boundaries later):
+
 - `components/` and `pages/` may import from `viewmodels/`, `hooks/`, `lib/`, `contexts/`
 - `viewmodels/` may import from `models/`, `lib/`, `contexts/`
 - `models/` may import from `api/`, `@bogo/shared`
@@ -207,6 +208,7 @@ Set at the layout level after workspace selection. All ViewModel hooks read from
 ### QueryClient Provider
 
 `@tanstack/react-query` QueryClientProvider wraps the entire app at the root. Configured with:
+
 - `staleTime`: 30s (default)
 - `gcTime`: 5min
 - `refetchOnWindowFocus`: true

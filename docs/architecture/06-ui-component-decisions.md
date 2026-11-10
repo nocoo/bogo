@@ -28,6 +28,7 @@ This document records the final component/library selections for the Bogo UI, th
 **Why over @dnd-kit**: Product decision — xyflow provides a more visually polished graph viewport experience with zoom, pan, minimap, and smooth animated transitions out of the box.
 
 **Architecture**:
+
 - `PersonTree.tsx` (View): Renders `<ReactFlow>` with custom node types
 - `usePersonTree.ts` (ViewModel): Computes dagre layout from flat person list, handles drag-to-reparent logic
 - `PersonNode.tsx` (View): Custom node component with name, title, avatar, expand/collapse
@@ -69,6 +70,7 @@ function computeTreeLayout(persons: Person[]): { nodes: Node[]; edges: Edge[] } 
 **Dotted-line edges**: Rendered as dashed edges with different edge type, non-interactive (advisory only).
 
 **Testing strategy**:
+
 - ViewModel (`usePersonTree`): Unit test layout computation, drag validation logic, mutation calls — all via `renderHook`
 - View (`PersonTree`): Lightweight render test verifying ReactFlow mounts and receives correct nodes/edges
 - Interaction (E2E): Playwright tests for drag-to-reparent flow
@@ -95,6 +97,7 @@ function DocumentDiff({ oldContent, newContent }: Props) {
 ```
 
 **API notes**:
+
 - `MultiFileDiff`: Two-file comparison component. Props: `oldFile`, `newFile`, `options`.
 - `CodeView`: Multi-file scroll container using `items`/`initialItems` + `options`. Use for version history browsing (multiple diffs in one view).
 - `diffStyle`: `"split"` (side-by-side) or `"unified"` (stacked).
@@ -103,11 +106,13 @@ function DocumentDiff({ oldContent, newContent }: Props) {
 **Theme integration**: Use Shiki themes compatible with basalt's dark oklch palette. Load only the `markdown` language grammar to minimize bundle. Custom theme token mapping if needed via Shiki's `createTheme`.
 
 **Vite considerations**:
+
 - ESM-native, no special Vite config needed
 - Library-owned component styles are isolated from basalt global styles
 - Shiki grammars/themes loaded on-demand (first render has a small delay); preload `markdown` grammar at app startup for instant diff rendering
 
 **Testing strategy**:
+
 - Snapshot test: Verify component mounts with props without crashing
 - Integration: Playwright visual test for rendered diff output
 - No unit testing of library internals (third-party responsibility)
@@ -132,6 +137,7 @@ function DocumentEditor({ value, onChange }: Props) {
 ```
 
 **Vite considerations**:
+
 - Works in CSR without issues
 - If SSR is added later: requires `optimizeDeps.include: ["@uiw/react-md-editor"]` in vite.config.ts
 - CSS imports are standard — compatible with Vite's CSS pipeline
@@ -139,6 +145,7 @@ function DocumentEditor({ value, onChange }: Props) {
 **Theme override**: Apply basalt dark mode via `data-color-mode="dark"` attribute on container.
 
 **Testing strategy**:
+
 - ViewModel (`useDocumentEditor`): Test debounce save logic, version tracking, dirty state
 - View: Render test verifying editor mounts
 - E2E: Playwright test for typing → auto-save → version increment flow
@@ -158,6 +165,7 @@ const table = useReactTable({
 ```
 
 **Testing strategy**:
+
 - Column definitions: Pure functions, unit testable
 - Table ViewModel: Test sort/filter/page state transitions
 - View: Render test with mock data verifying row output
@@ -186,6 +194,7 @@ const form = useForm({
 ```
 
 **Testing strategy**:
+
 - Zod schemas: Pure unit tests in `@bogo/shared`
 - Form ViewModel: Test validation triggers, error state, submit behavior via `renderHook`
 - Form View: Render test verifying fields display and error messages appear
@@ -195,6 +204,7 @@ const form = useForm({
 **Usage**: Dashboard + Analytics pages for org statistics and document activity.
 
 **Testing strategy**:
+
 - Data transformation (ViewModel): Unit test aggregation functions
 - Chart rendering: Snapshot test verifying SVG output structure
 - No pixel-perfect visual testing in unit layer (Playwright for visual regression)
@@ -212,6 +222,7 @@ const virtualizer = useVirtualizer({
 ```
 
 **Testing strategy**:
+
 - ViewModel: Test that correct items are computed for viewport
 - View: Render test with mocked virtualizer
 

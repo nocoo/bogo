@@ -40,11 +40,13 @@
 ### Collapse / Expand
 
 **术语**：
+
 - `descendants(pid)` = 通过 solid `managerId` 链能到达的所有子孙 person id 集合（含直接与间接）。
 - `hiddenCount(pid)` = 若 `pid` 处于折叠态，则等于 `descendants(pid).size`；否则 = 0。
 - `visibleSet` = 全体 persons 中，"不存在任一祖先处于折叠态"的那些人。
 
 **规则**：
+
 1. `hasReports(pid) = descendants(pid).size > 0`。只有 `hasReports` 为真时，节点右下角才显示
    chevron chip；否则完全不渲染，避免视觉噪音。
 2. Chip 内部：折叠态显示 `▶ N`，展开态显示 `▼`（不显示数字，因为已经全部展开可数）。
@@ -56,6 +58,7 @@
    同时关闭右侧 EditPanel、时间线面板，避免"孤儿面板"。
 
 **Batch 操作**（v1 就纳入，因为只多两行 handler）：
+
 - Toolbar 上一个 `Collapse all` 按钮：折叠所有 `hasReports` 节点。
 - Toolbar 上一个 `Expand all` 按钮：清空 `collapsedIds`。
 
@@ -65,6 +68,7 @@
 本 spec **移除该数据变更行为**。
 
 本 spec 完成后的 drag 行为：
+
 1. `nodesDraggable={true}` 保留 —— 用户仍可以拖动节点，但仅调整**画布上的视觉位置**。
 2. `onNodeDragStop` 不再调用 `vm.handleDrop`，也不再 wire 任何 mutation。默认不 wire 该 handler。
 3. `vm.handleDrop`、`dropError`、`clearDropError`、`findDropTarget`、`wouldCreateCycle` 这套
@@ -143,6 +147,7 @@ computeTreeLayout(
 ## Persistence
 
 **Key 格式**：`bogo:orgTree:collapsed:${userEmail}:${workspaceId}` — JSON `string[]`。
+
 - `userEmail` 来自 `useUserInfo()`，未登录时不持久化（用内存 Set）。
 - `workspaceId` 来自 `useWorkspaceContext()`；切换 workspace 时读取对应 key。
 - 写入时机：`toggleCollapse` / `collapseAll` / `expandAll` 后 debounced 300ms。
@@ -247,6 +252,7 @@ packages/ui/src/components/person/PersonTree.tsx
 ### L3 Playwright（新增）
 
 `packages/ui/tests-e2e/people-tree-advanced.spec.ts`：
+
 1. 页面加载 → 点击某个经理的 chevron chip → 期望其子孙 DOM 节点不再出现，chip 显示 `▶ N`。
 2. Collapse all → Expand all round-trip → 节点数恢复。
 3. 折叠状态刷新页面后保留（走 localStorage）。
@@ -334,6 +340,7 @@ packages/ui/src/components/person/PersonTree.tsx
 ## Decisions（时间线）
 
 **2026-07-04（初稿）**
+
 1. 高级功能范围原拟 = 折叠 + 拖拽强化 + Minimap/快捷键（三选三）。
 2. 折叠按钮位置 = 节点右下角 chevron chip（不是 hover 侧边浮动、也不是整卡点击）。
 3. Dotted line **不** 参与 descendants 计算 —— 折叠只作用于实线汇报。
@@ -349,6 +356,7 @@ packages/ui/src/components/person/PersonTree.tsx
 
 **2026-07-09（review 修订）** — 内部一致性与技术正确性修正：
 8. **快捷键作用域收紧（v1）**：初次意图是用 `useKeyPress` 传入 `target: ref.current`
+
 - `document.activeElement` containment 守卫。**在 v2 修订中被推翻**（见第 13 条）。
   Testing Strategy 保留"焦点在画布之外不触发"的回归测试。
 
@@ -365,6 +373,7 @@ packages/ui/src/components/person/PersonTree.tsx
 **2026-07-09（review 修订 v2 — 快捷键实现策略）** — 推翻第 8 条：
 13. `@xyflow/react` v12 的 `useKeyPress` 不能承担"仅在画布 focused 时生效"的合同。
 读源码（`index.mjs:376–473`）确认：
+
 - effect 依赖是 `[keyCode, setKeyPressed]`，`options.target` 不在依赖里；首次
   render 时 `ref.current === null` → `target` 回退到 `document` 并直接绑定；ref
   后来变成 DOM 也不会重新绑，全站监听已经生效。

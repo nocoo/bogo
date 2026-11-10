@@ -36,6 +36,7 @@ A node in the workspace's org tree. Has one direct manager and optionally one do
 | updated_at        | timestamp |                                            |
 
 **Constraints:**
+
 - Exactly one person per workspace with `is_root = true` and `manager_id = NULL` (DB: partial unique index + CHECK)
 - Every non-root person MUST have a non-NULL `manager_id` (DB: CHECK constraint)
 - `manager_id` forms a strict tree (no cycles, enforced by API ancestry walk)

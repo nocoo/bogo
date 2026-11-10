@@ -53,6 +53,7 @@ CREATE UNIQUE INDEX idx_persons_root_unique
 **Workspace isolation**: Composite FK `(workspace_id, manager_id)` referencing `(workspace_id, id)` ensures a person's manager is always within the same workspace. Same for dotted-line manager.
 
 **Root invariants**:
+
 - Partial unique index guarantees **at most one** root per workspace.
 - CHECK constraint enforces `is_root=1 ⟹ manager_id IS NULL` and `is_root=0 ⟹ manager_id IS NOT NULL`.
 - API enforces **at least one** root: workspace creation atomically inserts the root person in the same transaction.
@@ -192,10 +193,12 @@ CREATE INDEX idx_docpersons_person ON document_persons(workspace_id, person_id);
 ## Workspace Isolation Strategy
 
 **DB-level enforcement** via composite foreign keys:
+
 - Every child table carries `workspace_id` and uses composite FKs referencing `(workspace_id, id)` on the parent.
 - This makes it structurally impossible for cross-workspace references to exist, regardless of API bugs.
 
 **API-level enforcement** (defense in depth):
+
 - The Worker extracts `workspace_id` from the authenticated session and injects it into every D1 query.
 - Path parameter `:wid` in `/api/w/:wid/...` is validated against the user's ownership via workspace guard middleware. No body/query parameter can override workspace scoping.
 
@@ -274,6 +277,7 @@ Each version row is a **complete snapshot** — no deltas. This keeps reads simp
 ## ID Generation
 
 All primary keys use **UUIDv7** (RFC 9562):
+
 - Lexicographically sortable by creation time
 - Generated client-side (Worker) before INSERT
 - 36-char lowercase string representation (`xxxxxxxx-xxxx-7xxx-yxxx-xxxxxxxxxxxx`)

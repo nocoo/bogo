@@ -58,6 +58,7 @@ CREATE INDEX idx_tag_persons_tag ON tag_persons(workspace_id, tag_id);
 ```
 
 **Design notes:**
+
 - Join tables include `workspace_id` with composite foreign keys to prevent cross-workspace references at DB level, even if the API layer has a bug.
 - `tags` table includes `UNIQUE (workspace_id, id)` to satisfy the composite FK from join tables.
 - `documents(workspace_id, id)` and `persons(workspace_id, id)` composite UNIQUEs must also exist. The migration adds these if not already present.
