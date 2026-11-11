@@ -2,15 +2,6 @@ import { ThemeToggle } from "@nocoo/basalt/components/theme-toggle";
 import { ThemeProvider } from "@nocoo/basalt/providers/theme";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { initTheme } from "./theme-init.js";
-
-function renderWithTheme() {
-	return render(
-		<ThemeProvider storageKey="theme" defaultTheme="system">
-			<ThemeToggle aria-label="Toggle theme" />
-		</ThemeProvider>,
-	);
-}
 
 let matchMediaResult = true;
 
@@ -34,12 +25,27 @@ function createFakeStorage(): Storage {
 	};
 }
 
+function renderBasaltThemeToggle() {
+	return render(
+		<ThemeProvider storageKey="theme" defaultTheme="system">
+			<ThemeToggle />
+		</ThemeProvider>,
+	);
+}
+
+function expectDocumentTheme(mode: "light" | "dark") {
+	expect(document.documentElement.classList.contains("dark")).toBe(mode === "dark");
+	expect(document.documentElement.classList.contains("light")).toBe(mode === "light");
+	expect(document.documentElement.dataset.mode).toBe(mode);
+}
+
 beforeEach(() => {
 	const fakeStorage = createFakeStorage();
 	vi.stubGlobal("localStorage", fakeStorage);
 	Object.defineProperty(window, "localStorage", { value: fakeStorage, configurable: true });
 	document.documentElement.classList.remove("dark", "light");
-	matchMediaResult = true;
+	delete document.documentElement.dataset.mode;
+	matchMediaResult = false;
 	vi.spyOn(window, "matchMedia").mockImplementation(
 		(query: string) =>
 			({
@@ -60,51 +66,63 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
-describe("ThemeToggle", () => {
-	it("renders with a theme control", () => {
-		renderWithTheme();
-		expect(screen.getByRole("button", { name: "Toggle theme" })).toBeTruthy();
+describe("ThemeToggle (basalt 3.3)", () => {
+	it("cycles system → light → dark → system with aria labels and document classes", () => {
+		renderBasaltThemeToggle();
+
+		const systemBtn = screen.getByRole("button", { name: "Switch to light theme" });
+		expect(systemBtn.getAttribute("data-theme")).toBe("system");
+		expectDocumentTheme("light");
+
+		fireEvent.click(systemBtn);
+		const lightBtn = screen.getByRole("button", { name: "Switch to dark theme" });
+		expect(lightBtn.getAttribute("data-theme")).toBe("light");
+		expectDocumentTheme("light");
+
+		fireEvent.click(lightBtn);
+		const darkBtn = screen.getByRole("button", { name: "Use system theme" });
+		expect(darkBtn.getAttribute("data-theme")).toBe("dark");
+		expectDocumentTheme("dark");
+
+		fireEvent.click(darkBtn);
+		const backToSystem = screen.getByRole("button", { name: "Switch to light theme" });
+		expect(backToSystem.getAttribute("data-theme")).toBe("system");
+		expectDocumentTheme("light");
 	});
 
-	it("cycles system → light → dark on click", () => {
-		renderWithTheme();
-		const btn = screen.getByRole("button", { name: "Toggle theme" });
-
-		fireEvent.click(btn);
-		expect(document.documentElement.classList.contains("light")).toBe(true);
-		expect(document.documentElement.classList.contains("dark")).toBe(false);
-
-		fireEvent.click(btn);
-		expect(document.documentElement.classList.contains("dark")).toBe(true);
-		expect(document.documentElement.classList.contains("light")).toBe(false);
-	});
-});
-
-describe("initTheme", () => {
-	it("stored=light → html has light, not dark", () => {
+	it("restores stored light theme on mount", () => {
 		localStorage.setItem("theme", "light");
-		initTheme();
-		expect(document.documentElement.classList.contains("dark")).toBe(false);
-		expect(document.documentElement.classList.contains("light")).toBe(true);
+		renderBasaltThemeToggle();
+		expect(
+			screen.getByRole("button", { name: "Switch to dark theme" }).getAttribute("data-theme"),
+		).toBe("light");
+		expectDocumentTheme("light");
 	});
 
-	it("stored=dark → html has dark", () => {
+	it("restores stored dark theme on mount", () => {
 		localStorage.setItem("theme", "dark");
-		initTheme();
-		expect(document.documentElement.classList.contains("dark")).toBe(true);
-		expect(document.documentElement.classList.contains("light")).toBe(false);
+		renderBasaltThemeToggle();
+		expect(
+			screen.getByRole("button", { name: "Use system theme" }).getAttribute("data-theme"),
+		).toBe("dark");
+		expectDocumentTheme("dark");
 	});
 
-	it("no stored + system dark → html has dark", () => {
+	it("uses system preference when no stored value (system=dark)", () => {
 		matchMediaResult = true;
-		initTheme();
-		expect(document.documentElement.classList.contains("dark")).toBe(true);
+		renderBasaltThemeToggle();
+		expect(
+			screen.getByRole("button", { name: "Switch to light theme" }).getAttribute("data-theme"),
+		).toBe("system");
+		expectDocumentTheme("dark");
 	});
 
-	it("no stored + system light → html has light", () => {
+	it("uses system preference when no stored value (system=light)", () => {
 		matchMediaResult = false;
-		initTheme();
-		expect(document.documentElement.classList.contains("dark")).toBe(false);
-		expect(document.documentElement.classList.contains("light")).toBe(true);
+		renderBasaltThemeToggle();
+		expect(
+			screen.getByRole("button", { name: "Switch to light theme" }).getAttribute("data-theme"),
+		).toBe("system");
+		expectDocumentTheme("light");
 	});
 });
