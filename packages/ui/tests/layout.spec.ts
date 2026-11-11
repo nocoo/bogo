@@ -35,8 +35,8 @@ test("sidebar logo and navigation follow the shared rail geometry", async ({ pag
 		page.evaluate(() => {
 			const rail = document.querySelector("[data-basalt-sidebar]")?.getBoundingClientRect();
 			const mark =
-				document.querySelector('aside a[href="/"] img') ??
-				document.querySelector('aside a[href="/"]');
+				document.querySelector("aside [data-basalt-sidebar-brand] img") ??
+				document.querySelector('aside a[href="/"] img');
 			const logo = mark?.getBoundingClientRect();
 			const row = document.querySelector("aside nav [data-sidebar-row]")?.getBoundingClientRect();
 			if (!rail || !logo || !row) throw new Error("Sidebar geometry is missing");
@@ -48,7 +48,6 @@ test("sidebar logo and navigation follow the shared rail geometry", async ({ pag
 			};
 		});
 
-	// Expanded: the mark slot uses the header layout inset ahead of nav-row padding.
 	const expanded = await geometry();
 	expect(expanded.railWidth).toBe(260);
 	expect(expanded.logoLeft - expanded.rowLeft).toBe(12);
@@ -57,10 +56,33 @@ test("sidebar logo and navigation follow the shared rail geometry", async ({ pag
 	await expect(page.getByRole("button", { name: "Expand sidebar", exact: true })).toBeVisible();
 	await page.waitForTimeout(400);
 
-	// Collapsed: the shared rail centres the mark on its axis.
 	const collapsed = await geometry();
 	expect(collapsed.railWidth).toBe(68);
 	expect(Math.abs(collapsed.logoCentre - collapsed.railWidth / 2)).toBeLessThanOrEqual(1);
+});
+
+test("expanded sidebar exposes Cloudflare Access sign out", async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 800 });
+	await page.goto("/");
+	await expect(page.getByRole("link", { name: "Sign out", exact: true })).toHaveAttribute(
+		"href",
+		"/cdn-cgi/access/logout",
+	);
+});
+
+test("mobile navigation drawer opens, dismisses, and returns focus to the menu button", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto("/documents");
+	const menu = page.getByRole("button", { name: "Open navigation menu", exact: true });
+	await menu.click();
+	const drawer = page.getByRole("dialog");
+	await expect(drawer).toBeVisible();
+	await expect(drawer.getByRole("button", { name: "Close navigation", exact: true })).toBeVisible();
+	await drawer.getByRole("button", { name: "Close navigation", exact: true }).click();
+	await expect(drawer).toBeHidden();
+	await expect(menu).toBeFocused();
 });
 
 test("long mobile documents scroll inside the island and keep details reachable", async ({
