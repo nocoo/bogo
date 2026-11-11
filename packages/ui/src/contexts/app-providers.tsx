@@ -10,25 +10,26 @@ function AppLink({
 	href,
 	className,
 	children,
+	...props
 }: {
 	href: string;
 	className?: string;
 	children?: ReactNode;
-}) {
+} & Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href">) {
 	if (
 		href.startsWith("http:") ||
-		href.startsWith("https:") ||
+		href.startsWith("https://") ||
 		href.startsWith("mailto:") ||
 		href.startsWith("tel:")
 	) {
 		return (
-			<a href={href} className={className}>
+			<a href={href} className={className} {...props}>
 				{children}
 			</a>
 		);
 	}
 	return (
-		<Link to={href} className={className}>
+		<Link to={href} className={className} {...props}>
 			{children}
 		</Link>
 	);

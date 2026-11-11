@@ -1,59 +1,85 @@
-import { Button, ContentIsland, Sheet, SheetContent, SheetTitle } from "@nocoo/basalt";
-import { AppHeader } from "@nocoo/basalt/components/app-header";
+import {
+	ContentIsland,
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+	SidebarProvider,
+} from "@nocoo/basalt";
+import { AppHeader, AppHeaderMenuButton, ProjectLinks } from "@nocoo/basalt/components/app-header";
 import { AppMain, AppShell, AppSkipLink } from "@nocoo/basalt/components/app-shell";
-import { LinkButton } from "@nocoo/basalt/components/button";
-import { Menu } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ThemeToggle } from "@nocoo/basalt/components/theme-toggle";
+import { useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router";
-import { AppSidebar } from "@/components/AppSidebar";
-import { Github } from "@/components/icons/Github";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { WorkspaceSelector } from "@/components/workspace/WorkspaceSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { HeaderTooltip, HexlyLink } from "./header-links";
+import { MobileNavProvider, useMobileNav } from "./mobile-nav-context";
+import { PersistedSidebarProvider, Sidebar } from "./sidebar";
 
 type HeaderCrumb = { label: string; href?: string };
 
-function resolveAncestors(pathname: string): HeaderCrumb[] {
+function resolvePageBreadcrumbs(pathname: string): HeaderCrumb[] {
 	if (pathname === "/") return [];
-	const home = { label: "Home", href: "/" };
-	if (/^\/people\/[^/]+$/.test(pathname)) return [home, { label: "Table", href: "/table" }];
-	if (/^\/documents\/[^/]+$/.test(pathname))
-		return [home, { label: "Documents", href: "/documents" }];
-	if (pathname.startsWith("/settings/")) return [home, { label: "Settings", href: "/settings" }];
-	return [home];
+	if (/^\/people\/[^/]+$/.test(pathname)) return [{ label: "Table", href: "/table" }];
+	if (/^\/documents\/[^/]+$/.test(pathname)) return [{ label: "Documents", href: "/documents" }];
+	if (pathname.startsWith("/settings/")) return [{ label: "Settings", href: "/settings" }];
+	return [];
 }
 
-export function DashboardLayout() {
-	const [collapsed, setCollapsed] = useState(false);
+function DashboardLayoutInner() {
 	const isMobile = useIsMobile();
-	const [mobileOpen, setMobileOpen] = useState(false);
+	const { mobileOpen, setMobileOpen } = useMobileNav();
 	const location = useLocation();
+	const menuButton = useRef<HTMLButtonElement>(null);
 
-	const ancestorCrumbs: HeaderCrumb[] = resolveAncestors(location.pathname);
-	const breadcrumbs: HeaderCrumb[] =
-		isMobile && ancestorCrumbs.length > 1
-			? [ancestorCrumbs[ancestorCrumbs.length - 1]]
-			: ancestorCrumbs;
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: pathname is intentionally the trigger — the effect closes the mobile drawer on any route change and doesn't read pathname in its body.
 	useEffect(() => {
+		void location.pathname;
 		setMobileOpen(false);
-	}, [location.pathname]);
+	}, [location.pathname, setMobileOpen]);
+
+	const allBreadcrumbs: HeaderCrumb[] = [
+		{ label: "Home", href: "/" },
+		...resolvePageBreadcrumbs(location.pathname),
+	];
+	const breadcrumbs =
+		isMobile && allBreadcrumbs.length > 1
+			? [allBreadcrumbs[allBreadcrumbs.length - 1]]
+			: allBreadcrumbs;
 
 	return (
 		<AppShell>
-			<AppSkipLink>Skip to main content</AppSkipLink>
-			{!isMobile ? (
-				<AppSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
-			) : (
+			<AppSkipLink href="#main-content">Skip to main content</AppSkipLink>
+
+			{!isMobile && (
+				<PersistedSidebarProvider>
+					<Sidebar ariaLabel="Main navigation" />
+				</PersistedSidebarProvider>
+			)}
+
+			{isMobile && (
 				<Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
 					<SheetContent
+						id="mobile-navigation-sheet"
 						side="left"
-						className="w-[260px] max-w-[260px] border-0 bg-basalt-background p-0 [&>button]:hidden"
+						className="w-[260px] max-w-[260px] border-0 bg-basalt-background p-0 sm:max-w-[260px] sm:p-0"
+						onCloseAutoFocus={(event) => {
+							event.preventDefault();
+							menuButton.current?.focus();
+						}}
 					>
-						<SheetTitle className="sr-only">Navigation</SheetTitle>
-						<AppSidebar collapsed={false} onToggle={() => setMobileOpen(false)} />
+						<SheetHeader className="sr-only">
+							<SheetTitle>Navigation</SheetTitle>
+							<SheetDescription>Browse Bogo dashboard pages</SheetDescription>
+						</SheetHeader>
+						<SidebarProvider collapsed={false} defaultWidth={260}>
+							<Sidebar
+								ariaLabel="Navigation"
+								variant="mobile"
+								onNavigate={() => setMobileOpen(false)}
+								onDismiss={() => setMobileOpen(false)}
+							/>
+						</SidebarProvider>
 					</SheetContent>
 				</Sheet>
 			)}
@@ -62,41 +88,23 @@ export function DashboardLayout() {
 				<AppHeader
 					leading={
 						isMobile ? (
-							<HeaderTooltip label="Open navigation">
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={() => setMobileOpen(true)}
-									aria-label="Open navigation"
-								>
-									<Menu aria-hidden="true" strokeWidth={1.5} />
-								</Button>
-							</HeaderTooltip>
+							<AppHeaderMenuButton
+								ref={menuButton}
+								label="Open navigation menu"
+								aria-expanded={mobileOpen}
+								aria-haspopup="dialog"
+								aria-controls={mobileOpen ? "mobile-navigation-sheet" : undefined}
+								onClick={() => setMobileOpen(true)}
+							/>
 						) : null
 					}
 					breadcrumbs={breadcrumbs}
+					breadcrumbsLabel="Breadcrumb"
 					actions={
 						<>
 							<WorkspaceSelector />
-							<HeaderTooltip label="GitHub repository">
-								<LinkButton
-									variant="ghost"
-									size="icon"
-									href="https://github.com/nocoo/bogo"
-									target="_blank"
-									rel="noopener noreferrer"
-									aria-label="GitHub repository"
-									className="hidden sm:inline-flex"
-								>
-									<Github
-										className="h-[1.125rem] w-[1.125rem]"
-										aria-hidden="true"
-										strokeWidth={1.5}
-									/>
-								</LinkButton>
-							</HeaderTooltip>
-							<HexlyLink />
-							<ThemeToggle />
+							<ProjectLinks github="nocoo/bogo" hexly="bogo" name="Bogo" />
+							<ThemeToggle aria-label="Toggle theme" />
 						</>
 					}
 				/>
@@ -107,5 +115,13 @@ export function DashboardLayout() {
 				</div>
 			</AppMain>
 		</AppShell>
+	);
+}
+
+export function DashboardLayout() {
+	return (
+		<MobileNavProvider>
+			<DashboardLayoutInner />
+		</MobileNavProvider>
 	);
 }
