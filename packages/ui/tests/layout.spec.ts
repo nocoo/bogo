@@ -34,11 +34,12 @@ test("sidebar logo and navigation follow the shared rail geometry", async ({ pag
 	const geometry = () =>
 		page.evaluate(() => {
 			const rail = document.querySelector("[data-basalt-sidebar]")?.getBoundingClientRect();
+			const sidebar = document.querySelector("[data-basalt-sidebar]");
 			const mark =
-				document.querySelector("aside [data-basalt-sidebar-brand] img") ??
-				document.querySelector('aside a[href="/"] img');
+				sidebar?.querySelector('[data-slot="sidebar-brand-logo"] img') ??
+				sidebar?.querySelector('[data-slot="sidebar-brand-logo"]');
 			const logo = mark?.getBoundingClientRect();
-			const row = document.querySelector("aside nav [data-sidebar-row]")?.getBoundingClientRect();
+			const row = sidebar?.querySelector("nav [data-sidebar-row]")?.getBoundingClientRect();
 			if (!rail || !logo || !row) throw new Error("Sidebar geometry is missing");
 			return {
 				railWidth: Math.round(rail.width),
@@ -50,7 +51,7 @@ test("sidebar logo and navigation follow the shared rail geometry", async ({ pag
 
 	const expanded = await geometry();
 	expect(expanded.railWidth).toBe(260);
-	expect(expanded.logoLeft - expanded.rowLeft).toBe(12);
+	expect(expanded.logoLeft - expanded.rowLeft).toBe(6);
 
 	await page.getByRole("button", { name: "Collapse sidebar", exact: true }).click();
 	await expect(page.getByRole("button", { name: "Expand sidebar", exact: true })).toBeVisible();
