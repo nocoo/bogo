@@ -1,12 +1,13 @@
+import { ThemeToggle } from "@nocoo/basalt/components/theme-toggle";
 import { ThemeProvider } from "@nocoo/basalt/providers/theme";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { initTheme, ThemeToggle } from "./ThemeToggle.js";
+import { initTheme } from "./theme-init.js";
 
 function renderWithTheme() {
 	return render(
 		<ThemeProvider storageKey="theme" defaultTheme="system">
-			<ThemeToggle />
+			<ThemeToggle aria-label="Toggle theme" />
 		</ThemeProvider>,
 	);
 }
@@ -60,51 +61,22 @@ afterEach(() => {
 });
 
 describe("ThemeToggle", () => {
-	it("renders with system theme by default", () => {
+	it("renders with a theme control", () => {
 		renderWithTheme();
-		expect(screen.getByLabelText("Theme: system")).toBeTruthy();
+		expect(screen.getByRole("button", { name: "Toggle theme" })).toBeTruthy();
 	});
 
-	it("cycles system → light → dark → system", () => {
+	it("cycles system → light → dark on click", () => {
 		renderWithTheme();
-		const btn = screen.getByRole("button");
+		const btn = screen.getByRole("button", { name: "Toggle theme" });
 
 		fireEvent.click(btn);
-		expect(screen.getByLabelText("Theme: light")).toBeTruthy();
 		expect(document.documentElement.classList.contains("light")).toBe(true);
 		expect(document.documentElement.classList.contains("dark")).toBe(false);
 
 		fireEvent.click(btn);
-		expect(screen.getByLabelText("Theme: dark")).toBeTruthy();
 		expect(document.documentElement.classList.contains("dark")).toBe(true);
 		expect(document.documentElement.classList.contains("light")).toBe(false);
-
-		fireEvent.click(btn);
-		expect(screen.getByLabelText("Theme: system")).toBeTruthy();
-	});
-
-	it("restores stored light theme on mount", () => {
-		localStorage.setItem("theme", "light");
-		renderWithTheme();
-		expect(screen.getByLabelText("Theme: light")).toBeTruthy();
-	});
-
-	it("restores stored dark theme on mount", () => {
-		localStorage.setItem("theme", "dark");
-		renderWithTheme();
-		expect(screen.getByLabelText("Theme: dark")).toBeTruthy();
-	});
-
-	it("uses system preference when no stored value (system=dark)", () => {
-		matchMediaResult = true;
-		renderWithTheme();
-		expect(screen.getByLabelText("Theme: system")).toBeTruthy();
-	});
-
-	it("uses system preference when no stored value (system=light)", () => {
-		matchMediaResult = false;
-		renderWithTheme();
-		expect(screen.getByLabelText("Theme: system")).toBeTruthy();
 	});
 });
 

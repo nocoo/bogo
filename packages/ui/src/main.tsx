@@ -2,7 +2,7 @@ import "./index.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
-import { initTheme } from "./components/layout/ThemeToggle";
+import { initTheme } from "./components/layout/theme-init";
 
 initTheme();
 
