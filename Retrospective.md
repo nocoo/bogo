@@ -2,6 +2,12 @@
 
 Accident narratives for this repo.
 
+## 2026-11-14: Sidebar regression test formatting rejected
+
+- **What:** The first sidebar E2E test commit was rejected by the normal pre-commit hook because two new statements did not match Biome formatting.
+- **Why:** A preceding check-only formatter reported the differences, but the shell command continued to attempt the commit.
+- **Prevention:** Chain the targeted check and commit with `&&`; apply the reported formatting before staging. The hook was not bypassed, and the corrected test commit passed.
+
 Routing: narrative stays here. A project-specific rule that will recur may become one line in `AGENTS.md`. Cross-project lessons go to nmem or a global rule. If it can be checked by a machine, add a hook or test instead of prose.
 
 ## CLI Access header Bypass is gone
