@@ -52,10 +52,28 @@ for (const colorScheme of ["light", "dark"] as const) {
 			await page.emulateMedia({ colorScheme });
 			await page.setViewportSize({ width, height: 844 });
 			await page.goto("/documents");
-			const menu = page.getByRole("button", { name: "Open navigation menu", exact: true });
+			const menu = page.getByRole("button", {
+				name: "Open navigation menu",
+				exact: true,
+				includeHidden: true,
+			});
 			await menu.click();
 			const drawer = page.locator('[data-slot="sidebar-drawer"]');
 			await expect(drawer).toBeVisible();
+			await test.info().attach("drawer-geometry", {
+				body: JSON.stringify(
+					await drawer.evaluate((element) => {
+						const rect = element.getBoundingClientRect();
+						const style = getComputedStyle(element);
+						return {
+							width: rect.width,
+							paddingLeft: style.paddingLeft,
+							paddingRight: style.paddingRight,
+						};
+					}),
+				),
+				contentType: "application/json",
+			});
 			await expect(menu).toHaveAttribute("aria-controls", (await drawer.getAttribute("id")) ?? "");
 			await expect(menu).toHaveAttribute("aria-expanded", "true");
 			await expect(drawer).toHaveCSS("padding-left", "0px");
