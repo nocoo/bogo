@@ -1,16 +1,8 @@
-import {
-	ContentIsland,
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetHeader,
-	SheetTitle,
-	SidebarProvider,
-} from "@nocoo/basalt";
+import { ContentIsland, SidebarDrawer } from "@nocoo/basalt";
 import { AppHeader, AppHeaderMenuButton, ProjectLinks } from "@nocoo/basalt/components/app-header";
 import { AppMain, AppShell, AppSkipLink } from "@nocoo/basalt/components/app-shell";
 import { ThemeToggle } from "@nocoo/basalt/components/theme-toggle";
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { Outlet, useLocation } from "react-router";
 import { WorkspaceSelector } from "@/components/workspace/WorkspaceSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -32,6 +24,7 @@ function DashboardLayoutInner() {
 	const { mobileOpen, setMobileOpen } = useMobileNav();
 	const location = useLocation();
 	const menuButton = useRef<HTMLButtonElement>(null);
+	const drawerId = useId();
 
 	useEffect(() => {
 		void location.pathname;
@@ -58,30 +51,21 @@ function DashboardLayoutInner() {
 			)}
 
 			{isMobile && (
-				<Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-					<SheetContent
-						id="mobile-navigation-sheet"
-						side="left"
-						className="w-[260px] max-w-[260px] border-0 bg-basalt-background p-0 sm:max-w-[260px] sm:p-0"
-						onCloseAutoFocus={(event) => {
-							event.preventDefault();
-							menuButton.current?.focus();
-						}}
-					>
-						<SheetHeader className="sr-only">
-							<SheetTitle>Navigation</SheetTitle>
-							<SheetDescription>Browse Bogo dashboard pages</SheetDescription>
-						</SheetHeader>
-						<SidebarProvider collapsed={false} defaultWidth={260}>
-							<Sidebar
-								ariaLabel="Navigation"
-								variant="mobile"
-								onNavigate={() => setMobileOpen(false)}
-								onDismiss={() => setMobileOpen(false)}
-							/>
-						</SidebarProvider>
-					</SheetContent>
-				</Sheet>
+				<SidebarDrawer
+					id={drawerId}
+					open={mobileOpen}
+					onOpenChange={setMobileOpen}
+					returnFocusRef={menuButton}
+					title="Navigation"
+					description="Browse Bogo dashboard pages"
+				>
+					<Sidebar
+						ariaLabel="Navigation"
+						variant="mobile"
+						onNavigate={() => setMobileOpen(false)}
+						onDismiss={() => setMobileOpen(false)}
+					/>
+				</SidebarDrawer>
 			)}
 
 			<AppMain>
@@ -93,7 +77,7 @@ function DashboardLayoutInner() {
 								label="Open navigation menu"
 								aria-expanded={mobileOpen}
 								aria-haspopup="dialog"
-								aria-controls={mobileOpen ? "mobile-navigation-sheet" : undefined}
+								aria-controls={drawerId}
 								onClick={() => setMobileOpen(true)}
 							/>
 						) : null
