@@ -1,8 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
-import { testEnvironment, waitForHealthyWorker } from "../helpers/test-worker";
+import { join } from "node:path";
+import {
+	availablePort,
+	createTestWorker,
+	testEnvironment,
+	waitForHealthyWorker,
+} from "../helpers/test-worker";
 
 describe("test Worker readiness", () => {
 	for (const status of [200, 401, 503]) {
@@ -38,12 +45,49 @@ describe("test Worker readiness", () => {
 	}
 
 	test("reports early process failure with its diagnostic log", async () => {
-		const child = spawn("bun", ["-e", "process.exit(42)"]);
+		const child = spawn("bun", [
+			"-e",
+			"console.error('startup configuration rejected'); process.exit(42)",
+		]);
+		let stderr = "";
+		child.stderr.on("data", (data) => {
+			stderr += String(data);
+		});
 		await once(child, "exit");
 		await expect(
-			waitForHealthyWorker("http://127.0.0.1:1", child, () => "startup configuration rejected"),
+			waitForHealthyWorker("http://127.0.0.1:1", child, () => stderr.trim()),
 		).rejects.toThrow("Test Worker exited (42): startup configuration rejected");
 	});
+
+	test("reports a genuinely invalid Wrangler entrypoint from its owned config", async () => {
+		const fixture = createTestWorker();
+		const config = JSON.parse(readFileSync(fixture.config, "utf8"));
+		config.main = join(fixture.directory, "missing-entry.ts");
+		writeFileSync(fixture.config, JSON.stringify(config));
+		try {
+			await expect(fixture.start(await availablePort())).rejects.toThrow("missing-entry.ts");
+		} finally {
+			await fixture.stop();
+		}
+	}, 60_000);
+
+	test("stops a live but unhealthy Worker and releases its owned store", async () => {
+		const fixture = createTestWorker();
+		const port = await availablePort();
+		const entry = join(fixture.directory, "unhealthy-worker.mjs");
+		writeFileSync(
+			entry,
+			'export default { fetch() { return Response.json({status:"error",component:"worker"}, {status:503}); } };',
+		);
+		const config = JSON.parse(readFileSync(fixture.config, "utf8"));
+		config.main = entry;
+		writeFileSync(fixture.config, JSON.stringify(config));
+		await expect(fixture.start(port)).rejects.toThrow("HTTP 503");
+		expect(existsSync(fixture.directory)).toBe(false);
+		await expect(
+			fetch(`http://127.0.0.1:${port}/api/live`, { signal: AbortSignal.timeout(2000) }),
+		).rejects.toThrow();
+	}, 60_000);
 
 	test("does not inherit provider credentials or personal home", () => {
 		const env = testEnvironment("/owned/test/home");

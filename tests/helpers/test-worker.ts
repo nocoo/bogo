@@ -124,57 +124,63 @@ export function createTestWorker() {
 		) as { results: { value: string }[] }[];
 		if (result[0]?.results[0]?.value !== "test") throw new Error("Test database marker mismatch");
 	}
+	async function stop() {
+		if (stopped) return;
+		stopped = true;
+		writeFileSync(join(directory, "worker.log"), output);
+		if (child?.pid && child.exitCode === null && child.signalCode === null) {
+			const exited = new Promise<void>((done) => child?.once("exit", () => done()));
+			process.kill(-child.pid, "SIGTERM");
+			await exited;
+		}
+		if (!initialized) return;
+		assertMarker();
+		if (readFileSync(config, "utf8").includes('"name":"bogo-test"')) {
+			rmSync(directory, { recursive: true });
+		}
+	}
 	return {
 		directory,
 		config,
 		persist,
 		env,
 		async start(port: number) {
-			command(["d1", "migrations", "apply", "bogo"]);
-			command([
-				"d1",
-				"execute",
-				"bogo",
-				"--command",
-				"CREATE TABLE _test_marker (key TEXT PRIMARY KEY, value TEXT NOT NULL); INSERT INTO _test_marker VALUES ('env','test')",
-			]);
-			assertMarker();
-			initialized = true;
-			child = spawn(wrangler, ["dev", "--port", String(port), ...args], {
-				cwd: directory,
-				env,
-				detached: true,
-				stdio: ["ignore", "pipe", "pipe"],
-			});
-			for (const stream of [child.stdout, child.stderr]) {
-				stream?.on("data", (data) => {
-					output = `${output}${String(data)}`.slice(-20_000);
+			try {
+				command(["d1", "migrations", "apply", "bogo"]);
+				command([
+					"d1",
+					"execute",
+					"bogo",
+					"--command",
+					"CREATE TABLE _test_marker (key TEXT PRIMARY KEY, value TEXT NOT NULL); INSERT INTO _test_marker VALUES ('env','test')",
+				]);
+				assertMarker();
+				initialized = true;
+				child = spawn(wrangler, ["dev", "--port", String(port), ...args], {
+					cwd: directory,
+					env,
+					detached: true,
+					stdio: ["ignore", "pipe", "pipe"],
 				});
+				for (const stream of [child.stdout, child.stderr]) {
+					stream?.on("data", (data) => {
+						output = `${output}${String(data)}`.slice(-20_000);
+					});
+				}
+				child.on("error", (error) => {
+					output += String(error);
+				});
+				await waitForHealthyWorker(`http://127.0.0.1:${port}`, child, () => output);
+			} catch (error) {
+				await stop();
+				throw error;
 			}
-			child.on("error", (error) => {
-				output += String(error);
-			});
-			await waitForHealthyWorker(`http://127.0.0.1:${port}`, child, () => output);
 		},
 		execute(sql: string) {
 			assertMarker();
 			return command(["d1", "execute", "bogo", "--command", sql]);
 		},
-		async stop() {
-			if (stopped) return;
-			stopped = true;
-			writeFileSync(join(directory, "worker.log"), output);
-			if (child?.pid && child.exitCode === null && child.signalCode === null) {
-				const exited = new Promise<void>((done) => child?.once("exit", () => done()));
-				process.kill(-child.pid, "SIGTERM");
-				await exited;
-			}
-			if (!initialized) return;
-			assertMarker();
-			if (readFileSync(config, "utf8").includes('"name":"bogo-test"')) {
-				rmSync(directory, { recursive: true });
-			}
-		},
+		stop,
 	};
 }
 
