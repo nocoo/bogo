@@ -94,12 +94,12 @@ for pkg_dir in "$repo/packages"/*; do
 	[ -d "$pkg_dir" ] || continue
 	wire_pkg_node_modules "${pkg_dir##*/}"
 done
-mkdir -p "$snapshot/.cache"
+mkdir -p "$snapshot/.turbo"
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX
 unset GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
-export XDG_CACHE_HOME="$snapshot/.cache"
-export XDG_STATE_HOME="$snapshot/.cache"
-export TURBO_CACHE_DIR="$snapshot/.cache/turbo"
+export XDG_CACHE_HOME="$snapshot/.turbo/xdg-cache"
+export XDG_STATE_HOME="$snapshot/.turbo/xdg-state"
+export TURBO_CACHE_DIR="$snapshot/.turbo/cache"
 PATH="$snapshot/node_modules/.bin:$PATH"
 
 cd "$snapshot" || exit 1
