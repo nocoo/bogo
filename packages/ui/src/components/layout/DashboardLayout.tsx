@@ -75,6 +75,7 @@ function DashboardLayoutInner() {
 							<AppHeaderMenuButton
 								ref={menuButton}
 								label="Open navigation menu"
+								tooltip={false}
 								aria-expanded={mobileOpen}
 								aria-haspopup="dialog"
 								aria-controls={drawerId}

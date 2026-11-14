@@ -1,5 +1,8 @@
 import { BOGO_VERSION } from "@bogo/shared";
 import {
+	Avatar,
+	AvatarFallback,
+	AvatarImage,
 	Sidebar as BasaltSidebar,
 	CommandEmpty,
 	CommandGroup,
@@ -35,9 +38,9 @@ import {
 } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
-import { PersonAvatar } from "@/components/person/PersonAvatar";
 import { useUserInfo } from "@/hooks/use-user-info";
 import { ACCESS_LOGOUT_URL } from "@/lib/access";
+import { avatarInitial } from "@/lib/avatar";
 
 const SIDEBAR_COLLAPSED_KEY = "bogo:sidebar-collapsed";
 type SidebarCollapsedPreference = "false" | "true";
@@ -186,7 +189,10 @@ function BogoSidebarBody({
 	}, []);
 
 	const avatar = (
-		<PersonAvatar name={userInfo.displayName} avatarUrl={userInfo.avatarUrl} size="lg" />
+		<Avatar role="img" aria-label={`Avatar for ${userInfo.displayName}`}>
+			<AvatarImage {...(userInfo.avatarUrl ? { src: userInfo.avatarUrl } : {})} alt="" />
+			<AvatarFallback>{avatarInitial(userInfo.displayName)}</AvatarFallback>
+		</Avatar>
 	);
 
 	return (
