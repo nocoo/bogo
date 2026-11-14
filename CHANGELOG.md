@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.8 — 2026-11-14
+
+- Upgrade exact `@nocoo/basalt` to 3.3.4 and adopt `SidebarDrawer`, removing consumer drawer geometry and focus overrides. The user-approved mobile acceptance is outer 320px / inner 260px with zero padding.
+- Keep first Escape and focus return reliable for pointer and keyboard navigation. Use default 36px Basalt avatars with stable collapse alignment, profile-photo crop and first-letter fallback.
+- Isolate HTTP, browser and generated CLI tests in owned local Wrangler configurations and marker-checked stores, retain startup diagnostics, and clean up unhealthy or normally terminated workers without accessing personal credentials.
+- Add cache-eviction, sparse-data, validation, storage-error, keyboard and photo regressions. All four coverage dimensions now meet 95%, without lowering thresholds or removing tests.
+- Include the separately merged maintenance updates for Biome, Turbo, Hono, jose, marked, Lucide, Vite and its React plugin, plus the pre-commit cache-path correction.
+
 ## v0.9.6 — 2026-11-02
 
 - Bump `@biomejs/biome`, `@dagrejs/dagre`, `marked`, `wrangler`, `@pierre/diffs`, `react-router`, and `jose` to latest patch/minor releases.
