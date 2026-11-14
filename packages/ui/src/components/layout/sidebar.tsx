@@ -190,7 +190,11 @@ function BogoSidebarBody({
 
 	const avatar = (
 		<Avatar role="img" aria-label={`Avatar for ${userInfo.displayName}`}>
-			<AvatarImage {...(userInfo.avatarUrl ? { src: userInfo.avatarUrl } : {})} alt="" />
+			<AvatarImage
+				{...(userInfo.avatarUrl ? { src: userInfo.avatarUrl } : {})}
+				alt=""
+				className="object-cover"
+			/>
 			<AvatarFallback>{avatarInitial(userInfo.displayName)}</AvatarFallback>
 		</Avatar>
 	);
