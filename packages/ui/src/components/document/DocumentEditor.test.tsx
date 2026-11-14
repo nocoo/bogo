@@ -51,6 +51,33 @@ function createVM(overrides: Partial<DocumentVM> = {}): DocumentVM {
 }
 
 describe("DocumentEditor", () => {
+	it("labels recent version times and toggles a comparison closed", () => {
+		vi.useFakeTimers();
+		const now = new Date("2026-11-14T08:00:00Z");
+		vi.setSystemTime(now);
+		try {
+			const vm = createVM({
+				versions: [0, 30 * 60, 2 * 3600, 2 * 86400, 8 * 86400].map((seconds, index) => ({
+					id: `recent-${index}`,
+					documentId: "doc-1",
+					version: 5 - index,
+					title: `Revision ${index}`,
+					createdAt: new Date(now.getTime() - seconds * 1000).toISOString(),
+				})),
+			});
+			render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);
+			for (const label of ["just now", "30m ago", "2h ago", "2d ago"]) {
+				expect(screen.getAllByText(label).length).toBeGreaterThan(0);
+			}
+			const compare = screen.getAllByLabelText("Compare v4 to v5")[0];
+			fireEvent.click(compare);
+			expect(screen.getAllByTestId("multi-file-diff").length).toBeGreaterThan(0);
+			fireEvent.click(compare);
+			expect(screen.queryByTestId("multi-file-diff")).toBeNull();
+		} finally {
+			vi.useRealTimers();
+		}
+	});
 	it("shows loading state", () => {
 		const vm = createVM({ document: null, isLoading: true });
 		const { container } = render(<DocumentEditor vm={vm} allPersons={[]} onBack={vi.fn()} />);

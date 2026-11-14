@@ -70,6 +70,12 @@ function renderComponent(overrides: Partial<Parameters<typeof DocumentPersons>[0
 }
 
 describe("DocumentPersons", () => {
+	it("keeps existing associations visible while candidate people are loading", () => {
+		renderComponent({ allPersonsLoading: true });
+		expect(screen.getByText("Alice")).toBeTruthy();
+		expect(screen.getByRole("status", { name: "Loading people" })).toBeTruthy();
+		expect(screen.queryByLabelText("Select person to add")).toBeNull();
+	});
 	it("shows loading state", () => {
 		renderComponent({ isLoading: true });
 		expect(screen.getByLabelText("Loading persons")).toBeTruthy();

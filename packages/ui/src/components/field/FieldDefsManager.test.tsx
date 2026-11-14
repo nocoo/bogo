@@ -60,6 +60,32 @@ const DEF_NUMBER = {
 };
 
 describe("FieldDefsManager", () => {
+	it("edits options on a select field that has no stored options", () => {
+		const update = vi.fn();
+		render(
+			<FieldDefsManager vm={createVM({ defs: [{ ...DEF_SELECT, options: null }], update })} />,
+		);
+		const options = screen.getByLabelText("Options for Level");
+		fireEvent.change(options, { target: { value: " Alpha, , Beta " } });
+		fireEvent.blur(options);
+		expect(update).toHaveBeenCalledWith("fd-2", { options: ["Alpha", "Beta"] });
+	});
+
+	it("does not write unchanged options after blur", () => {
+		const update = vi.fn();
+		render(<FieldDefsManager vm={createVM({ defs: [DEF_SELECT], update })} />);
+		fireEvent.blur(screen.getByLabelText("Options for Level"));
+		expect(update).not.toHaveBeenCalled();
+	});
+
+	it("keeps controls pending during field creation and deletion", () => {
+		render(
+			<FieldDefsManager vm={createVM({ defs: [DEF_TEXT], isCreating: true, isRemoving: true })} />,
+		);
+		expect((screen.getByLabelText("Delete Department") as HTMLButtonElement).disabled).toBe(true);
+		fireEvent.click(screen.getByLabelText("Add field definition"));
+		expect((screen.getByText("Creating...") as HTMLButtonElement).disabled).toBe(true);
+	});
 	it("shows loading spinner", () => {
 		const vm = createVM({ isLoading: true });
 		const { container } = render(<FieldDefsManager vm={vm} />);

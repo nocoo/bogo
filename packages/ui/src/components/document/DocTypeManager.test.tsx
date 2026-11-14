@@ -47,6 +47,14 @@ const TYPE_NO_COLOR = {
 };
 
 describe("DocTypeManager", () => {
+	it("disables deletion while an earlier document type deletion is pending", () => {
+		const remove = vi.fn();
+		render(<DocTypeManager vm={createVM({ types: [TYPE_A], isRemoving: true, remove })} />);
+		const button = screen.getByLabelText(`Delete ${TYPE_A.name}`);
+		expect((button as HTMLButtonElement).disabled).toBe(true);
+		fireEvent.click(button);
+		expect(remove).not.toHaveBeenCalled();
+	});
 	it("shows loading spinner", () => {
 		const vm = createVM({ isLoading: true });
 		const { container } = render(<DocTypeManager vm={vm} />);

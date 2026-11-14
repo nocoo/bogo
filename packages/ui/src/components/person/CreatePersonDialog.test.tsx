@@ -34,6 +34,34 @@ const ALICE = {
 };
 
 describe("CreatePersonDialog", () => {
+	it("uses the first person when no root is present", () => {
+		const onSubmit = vi.fn();
+		render(
+			<CreatePersonDialog
+				persons={[ALICE]}
+				onSubmit={onSubmit}
+				onClose={vi.fn()}
+				isCreating={false}
+			/>,
+		);
+		const name = screen.getByPlaceholderText("Person name");
+		fireEvent.keyDown(name, { key: "Enter" });
+		expect(onSubmit).not.toHaveBeenCalled();
+		fireEvent.change(name, { target: { value: "  New Member  " } });
+		fireEvent.keyDown(name, { key: "Enter" });
+		expect(onSubmit).toHaveBeenCalledWith("New Member", ALICE.id);
+	});
+
+	it("does not submit without an available manager", () => {
+		const onSubmit = vi.fn();
+		render(
+			<CreatePersonDialog persons={[]} onSubmit={onSubmit} onClose={vi.fn()} isCreating={false} />,
+		);
+		const name = screen.getByPlaceholderText("Person name");
+		fireEvent.change(name, { target: { value: "New" } });
+		fireEvent.keyDown(name, { key: "Enter" });
+		expect(onSubmit).not.toHaveBeenCalled();
+	});
 	it("defaults manager to root person", () => {
 		render(
 			<CreatePersonDialog

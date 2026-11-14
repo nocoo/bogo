@@ -60,6 +60,31 @@ function renderWithProviders(ui: ReactNode) {
 }
 
 describe("PersonDocTimeline", () => {
+	it("groups consecutive dated documents and tolerates a type without a color", async () => {
+		mockFetch.mockImplementation((url: string) =>
+			Promise.resolve(
+				ok(
+					url.includes("/doc-types")
+						? [{ id: "type", name: "Notes", color: null }]
+						: ["2026-03-15", "2026-03-15", "2026-03-16"].map((eventDate, index) => ({
+								id: `dated-${index}`,
+								workspaceId: "ws-1",
+								typeId: "type",
+								title: `Dated ${index}`,
+								version: 1,
+								eventDate,
+								tags: [],
+							})),
+				),
+			),
+		);
+		renderWithProviders(<PersonDocTimeline personId="p-1" onClose={vi.fn()} />);
+		fireEvent.click(screen.getByText("Switch"));
+		await screen.findByText("Dated 2");
+		expect(screen.getAllByText("2026-03-15")).toHaveLength(1);
+		expect(screen.getAllByText("2026-03-16")).toHaveLength(1);
+		expect(screen.getAllByText("Notes")).toHaveLength(3);
+	});
 	it("shows loading state", async () => {
 		mockFetch.mockReturnValue(
 			new Promise(() => {
