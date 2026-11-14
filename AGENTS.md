@@ -27,14 +27,15 @@ This file is the contract; hooks, CI and configuration enforce it. Raise weaker 
 
 ## Stack / Layout
 
-| Component                              | Choice                                                            |
-| -------------------------------------- | ----------------------------------------------------------------- |
-| Runtime / install                      | TypeScript 7, Bun 1.3.14/Turbo; CI/CD pins Bun 1.3.11             |
-| App / data                             | Hono Cloudflare Worker, D1 `bogo`, Vite SPA, clip-generated CLI   |
-| Static / tests                         | TypeScript, Biome, Vitest, local HTTP, Playwright and Bun CLI E2E |
-| `packages/shared/`, `packages/worker/` | Types and API/data layer                                          |
-| `packages/ui/`, `packages/cli/`        | Dashboard and generated CLI                                       |
-| `clip.yaml`, `tests/cli-e2e/`          | Code-generation contract and CLI journeys                         |
+| Component                              | Choice                                                                               |
+| -------------------------------------- | ------------------------------------------------------------------------------------ |
+| Runtime / install                      | TypeScript 7, Bun 1.3.14/Turbo; CI/CD pins Bun 1.3.11                                |
+| App / data                             | Hono Cloudflare Worker, D1 `bogo`, Vite SPA, clip-generated CLI                      |
+| Shared UI                              | Exact `@nocoo/basalt@3.3.4`; [sidebar acceptance](docs/verification/basalt-3.3.4.md) |
+| Static / tests                         | TypeScript, Biome, Vitest, local HTTP, Playwright and Bun CLI E2E                    |
+| `packages/shared/`, `packages/worker/` | Types and API/data layer                                                             |
+| `packages/ui/`, `packages/cli/`        | Dashboard and generated CLI                                                          |
+| `clip.yaml`, `tests/cli-e2e/`          | Code-generation contract and CLI journeys                                            |
 
 ## Commands
 
@@ -65,7 +66,7 @@ Daily local development uses `bun run seed:local`, then `bun run dev`. Do not re
 | L2 API                            | Real local HTTP over 100% of endpoint/method combinations                                                                             | planned  | Commit route gate and push/CI real HTTP suite exist; structural method/path hits do not prove assertion completeness                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | L3 workflows                      | Critical dashboard and generated CLI login/CRUD/revoke                                                                                | enforced | CI Playwright and CLI jobs; pre-push CLI checks have a local skip hatch, which must not be used to bypass verification                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | G2 security                       | Dependency and secret scans; missing tools fail                                                                                       | enforced | Commit staged secrets, push security runner, CI shared scanners; local push range still relies on upstream/fallback                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| D1 isolation                      | Local per-run state, guarded fixture writes/cleanup and marker                                                                        | planned  | L2 rejects remote credentials but uses fixed `.wrangler/e2e`; L3 shares `.wrangler/e2e-pw`, reuses servers and lacks complete per-run/marker guards                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| D1 isolation                      | Local per-run state, guarded fixture writes/cleanup and marker                                                                        | enforced | `tests/helpers/test-worker.ts` creates a temporary HOME/config/D1 store with a synthetic database ID and `_test_marker(env=test)`; no personal `.dev.vars` reads. L2/CLI allocate ports; browser refuses server reuse. Startup validates HTTP 200 + worker health, captures diagnostics and reaps failed workers; Playwright uses graceful termination. SQL and cleanup verify the marker.                                                                                                                                                                                                            |
 | Build                             | Real UI bundle before local/production serving                                                                                        | enforced | CI prepares assets for L2/L3/CLI E2E and release                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | Docs / npm                        | API/schema and intended publication reviewed                                                                                          | manual   | Feature/architecture docs; npm is not published by Worker CD                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
@@ -74,15 +75,15 @@ Daily local development uses `bun run seed:local`, then `bun run dev`. Do not re
 | pre-commit | Index snapshot: gitleaks, types, Biome, routes/pages, coverage (`<30s` warm) | Keep rejection probes when changing hook; add skip/focus gate |
 | pre-push   | Worker L2, G2, clip YAML in parallel, then CLI E2E                           | Verify stdin push refs, <3min                                 |
 
-CI sets `BOGO_REQUIRE_CLI_E2E=1`; local `BOGO_SKIP_CLI_E2E` exists but must not bypass verification. Install restores Husky. Hooks are check-only; never use `--no-verify` on commits or branch pushes. Shared workflows are pinned at `ad43150de3a2be2fa464b5cd2f921dc4fa9f8f0f`.
+CI sets `BOGO_REQUIRE_CLI_E2E=1`; local `BOGO_SKIP_CLI_E2E` exists but must not bypass verification. Install restores Husky. Hooks are check-only; never use `--no-verify` on commits or branch pushes. Shared workflows are pinned at `1ea10ecab22b72512399485391603fe03a161016`.
 
 ## Resources / Isolation
 
-| Lane      | Port / directory          | Boundary                                                      |
-| --------- | ------------------------- | ------------------------------------------------------------- |
-| Daily dev | UI 7036, Worker 37036     | Local dev database and explicit seed command                  |
-| L2        | 17036, `.wrangler/e2e`    | Local Wrangler; per-run directory still needed                |
-| L3        | 27036, `.wrangler/e2e-pw` | Local Wrangler; no shared-server reuse in the required design |
+| Lane      | Port / directory                                   | Boundary                                                |
+| --------- | -------------------------------------------------- | ------------------------------------------------------- |
+| Daily dev | UI 7036, Worker 37036                              | Local dev database and explicit seed command            |
+| L2 / CLI  | Allocated loopback ports; temporary per-run stores | Owned local Wrangler config, HOME and marker-checked D1 |
+| Browser   | 27036; temporary per-run store                     | Fresh owned server; no reuse; SIGTERM cleanup           |
 
 Required harnesses reject remote bindings/credential fallback, allocate fresh local SQLite state and verify `_test_marker(key,value)` with `env=test` before fixture resets or cleanup. Keep production and daily-dev stores physically separate from every automated lane.
 
