@@ -147,6 +147,50 @@ test("one Escape dismisses navigation and restores the menu without changing des
 	await expect(page.locator("[data-basalt-sidebar]")).toHaveJSProperty("clientWidth", 68);
 });
 
+for (const photoAvailable of [true, false]) {
+	test(`sidebar retains identity with an ${photoAvailable ? "available" : "unavailable"} profile photo`, async ({
+		page,
+	}) => {
+		await page.route("**/api/me", (route) =>
+			route.fulfill({
+				json: {
+					data: {
+						name: "Sidebar User",
+						email: "sidebar@example.test",
+						avatar: photoAvailable ? "/test-profile-photo.svg" : "/missing-test-avatar",
+					},
+				},
+			}),
+		);
+		await page.route("**/missing-test-avatar", (route) =>
+			route.fulfill({ status: 404, body: "Missing test photo" }),
+		);
+		await page.route("**/test-profile-photo.svg", (route) =>
+			route.fulfill({
+				contentType: "image/svg+xml",
+				body: '<svg xmlns="http://www.w3.org/2000/svg" width="96" height="48"><rect width="96" height="48" fill="navy" /></svg>',
+			}),
+		);
+		await page.setViewportSize({ width: 1280, height: 800 });
+		await page.goto("/documents");
+		const avatar = page.getByRole("img", { name: "Avatar for Sidebar User", exact: true });
+		if (photoAvailable) {
+			await expect(avatar.locator("img")).toBeVisible();
+			await expect(avatar.locator("img")).toHaveJSProperty("naturalWidth", 96);
+			await expect(avatar.locator("img")).toHaveJSProperty("naturalHeight", 48);
+			await expect(avatar.locator("img")).toHaveCSS("object-fit", "cover");
+		} else {
+			await expect(avatar.getByText("S", { exact: true })).toBeVisible();
+		}
+		expect((await avatar.boundingBox())?.width).toBe(36);
+		expect((await avatar.boundingBox())?.height).toBe(36);
+		await expect(page.getByRole("link", { name: "Sign out", exact: true })).toHaveAttribute(
+			"href",
+			"/cdn-cgi/access/logout",
+		);
+	});
+}
+
 test("mobile route selection closes the drawer and preserves authentication chrome", async ({
 	page,
 }) => {
