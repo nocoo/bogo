@@ -1,22 +1,18 @@
-import { execSync } from "node:child_process";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
+import { dirname, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { testEnvironment } from "../../../../tests/helpers/test-worker";
 
 // Full bearer auth lifecycle E2E for the bogo CLI flow.
 //
-// All D1 operations (including the revoke UPDATE) MUST use the same
-// `--persist-to .wrangler/e2e` directory as global-setup.ts so the wrangler
-// dev server actually sees the revoked row (a default-local UPDATE would
-// silently miss and the "401 after revoke" assertion would always pass).
+// Revoke only inside the marker-checked, per-run database served by global setup.
 //
 // `/api/auth/cli` is a two-stage flow (anti-CSRF, see routes/auth.ts):
 // stage 1 returns HTML + Set-Cookie, stage 2 submits the form with a matching
 // `confirm` token. `mintViaConsent` follows both steps from the same fetch
 // context to keep tests honest about the real flow.
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const WORKER_ROOT = join(__dirname, "..", "..");
+const wrangler = resolve(import.meta.dirname, "../../node_modules/.bin/wrangler");
 const BASE = process.env.BOGO_E2E_BASE || "http://localhost:17036";
 
 async function mintViaConsent(opts: {
@@ -127,11 +123,30 @@ describe("bearer auth lifecycle (login → use → revoke → reject)", () => {
 		// from a restricted charset (`bogo_` + base64url), so the literal
 		// concatenation here cannot inject SQL.
 		const prefix = (token as string).slice(0, 12);
-		execSync(
-			`npx wrangler d1 execute bogo --local --persist-to .wrangler/e2e ` +
-				`--command "UPDATE api_tokens SET revoked_at=datetime('now') WHERE prefix='${prefix}'"`,
-			{ cwd: WORKER_ROOT, stdio: "ignore" },
-		);
+		const config = process.env.BOGO_E2E_CONFIG;
+		const persist = process.env.BOGO_E2E_PERSIST;
+		if (!config || !persist) throw new Error("Missing isolated E2E database");
+		const execute = (sql: string) =>
+			execFileSync(
+				wrangler,
+				[
+					"d1",
+					"execute",
+					"bogo",
+					"--config",
+					config,
+					"--local",
+					"--persist-to",
+					persist,
+					"--command",
+					sql,
+					"--json",
+				],
+				{ cwd: dirname(config), env: testEnvironment(dirname(config)), encoding: "utf8" },
+			);
+		const marker = JSON.parse(execute("SELECT value FROM _test_marker WHERE key='env'"));
+		expect(marker[0].results).toEqual([{ value: "test" }]);
+		execute(`UPDATE api_tokens SET revoked_at=datetime('now') WHERE prefix='${prefix}'`);
 
 		// Step 4 — the same bearer now lands on the bearer branch's 401, NOT
 		// on the localhost shortcut. This is the assertion that the bearer
