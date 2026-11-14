@@ -73,6 +73,19 @@ describe("VersionDiff", () => {
 		);
 	});
 
+	it.each([1, 2])(
+		"shows a failure instead of a partial diff when version %s fails",
+		async (failedVersion) => {
+			getVersion.mockImplementation(async (_wid: string, _id: string, version: number) => {
+				if (version === failedVersion) throw new Error("Version unavailable");
+				return version === 1 ? V1 : V2;
+			});
+			renderDiff({ wid: "w-1", documentId: "doc-1", oldVersion: 1, newVersion: 2 });
+			await screen.findByText("Failed to load version content.");
+			expect(screen.queryByTestId("multi-file-diff")).toBeNull();
+		},
+	);
+
 	it("renders version comparison header", async () => {
 		renderDiff({ wid: "w-1", documentId: "doc-1", oldVersion: 1, newVersion: 2 });
 		await waitFor(() => screen.getByText("Comparing v1 → v2"));

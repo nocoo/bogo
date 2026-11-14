@@ -11,8 +11,8 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
+import { availablePort, createTestWorker, testEnvironment } from "../helpers/test-worker";
 
 // Smoke E2E for the clip-generated bogo CLI (docs/features/02-cli.md
 // Commit 7). The spec calls out four pitfalls that, if missed, make
@@ -33,10 +33,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "..", "..");
-const WORKER_ROOT = join(REPO_ROOT, "packages", "worker");
 const CLIP_YAML = join(REPO_ROOT, "clip.yaml");
-const PORT = 27036;
-const BASE = `http://127.0.0.1:${PORT}`;
 
 function hasOnPath(cmd: string): boolean {
 	try {
@@ -69,20 +66,6 @@ if (!clipRunner && process.env.BOGO_REQUIRE_CLI_E2E) {
 }
 
 const maybeDescribe = clipRunner ? describe : describe.skip;
-
-async function waitForServer(url: string, timeoutMs = 30_000): Promise<void> {
-	const deadline = Date.now() + timeoutMs;
-	while (Date.now() < deadline) {
-		try {
-			const res = await fetch(url);
-			if (res.ok || res.status === 401 || res.status === 503) return;
-		} catch {
-			/* not yet */
-		}
-		await sleep(300);
-	}
-	throw new Error(`Wrangler did not start within ${timeoutMs}ms at ${url}`);
-}
 
 async function readLineMatching(
 	stream: NodeJS.ReadableStream,
@@ -128,36 +111,23 @@ function waitForExit(proc: ChildProcess, timeoutMs = 15_000): Promise<number | n
 	});
 }
 
-function killWranglerGroup(proc: ChildProcess | null): void {
-	if (!proc?.pid) return;
-	try {
-		// Negative PID = process group. Wrangler spawns workerd as a child;
-		// killing only `npx` leaves workerd holding the port.
-		process.kill(-proc.pid, "SIGTERM");
-	} catch {
-		try {
-			proc.kill("SIGTERM");
-		} catch {
-			/* already gone */
-		}
-	}
-}
-
 maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 	if (!clipRunner) return; // type narrowing — describe.skip already declined
 
 	let tmpDir: string;
 	let clipHome: string;
-	let persist: string;
 	let fakeBin: string;
 	let cliDir: string;
-	let wrangler: ChildProcess | null = null;
+	let fixture: ReturnType<typeof createTestWorker>;
+	let BASE: string;
 	let subEnv: NodeJS.ProcessEnv;
 
 	beforeAll(async () => {
 		tmpDir = mkdtempSync(join(tmpdir(), "bogo-cli-e2e-"));
 		clipHome = join(tmpDir, "clip-home");
-		persist = join(tmpDir, "wrangler");
+		fixture = createTestWorker();
+		const port = await availablePort();
+		BASE = `http://127.0.0.1:${port}`;
 		fakeBin = join(tmpDir, "fake-bin");
 		cliDir = join(tmpDir, "bogo-cli");
 
@@ -174,42 +144,13 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 		}
 
 		subEnv = {
-			...process.env,
+			...testEnvironment(tmpDir),
 			CLIP_HOME: clipHome,
 			PATH: `${fakeBin}:${process.env.PATH ?? ""}`,
 		};
 
-		// Apply migrations into the isolated persist dir, then spawn wrangler
-		// dev against the same persist dir so the revoke UPDATE in test 3
-		// actually lands on the DB the worker reads.
-		execSync(`npx wrangler d1 migrations apply bogo --local --persist-to ${persist}`, {
-			cwd: WORKER_ROOT,
-			stdio: "ignore",
-		});
-
-		// Spawn wrangler in its own process group so we can SIGTERM the whole
-		// tree on cleanup. Without detached+group-kill, npm/npx parent receives
-		// the signal but miniflare/workerd children survive and hold port 27036,
-		// breaking the next CI run.
-		wrangler = spawn(
-			"npx",
-			["wrangler", "dev", "--port", String(PORT), "--local", "--persist-to", persist],
-			{
-				cwd: WORKER_ROOT,
-				stdio: "ignore",
-				detached: true,
-				env: {
-					...process.env,
-					CF_ACCESS_TEAM_DOMAIN: "e2e-cli.cloudflareaccess.com",
-					CF_ACCESS_AUD: "e2e-cli-aud",
-				},
-			},
-		);
-
-		// Always tear down the wrangler tree if anything below throws —
-		// otherwise a generate/install failure leaks the port for the next run.
 		try {
-			await waitForServer(`${BASE}/api/live`);
+			await fixture.start(port);
 
 			// Generate a CLI from a temporary schema with baseUrl + loginUrl
 			// both pointed at our wrangler dev port. clip's generator
@@ -231,19 +172,17 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 				"--output",
 				cliDir,
 			].join(" ");
-			execSync(generateCmd, { stdio: "ignore" });
+			execSync(generateCmd, { stdio: "pipe", env: subEnv });
 
-			execSync("bun install", { cwd: cliDir, stdio: "ignore" });
+			execSync("bun install", { cwd: cliDir, stdio: "pipe", env: subEnv });
 		} catch (err) {
-			killWranglerGroup(wrangler);
-			wrangler = null;
+			await fixture.stop();
 			throw err;
 		}
 	}, 120_000);
 
-	afterAll(() => {
-		killWranglerGroup(wrangler);
-		wrangler = null;
+	afterAll(async () => {
+		await fixture.stop();
 		if (tmpDir) rmSync(tmpDir, { recursive: true, force: true });
 	});
 
@@ -375,11 +314,7 @@ maybeDescribe("bogo CLI e2e (login + CRUD + revoke)", () => {
 		// shell-interpolated UPDATE cannot be injected.
 		const prefix = creds.token.slice(0, 12);
 
-		execSync(
-			`npx wrangler d1 execute bogo --local --persist-to ${persist} ` +
-				`--command "UPDATE api_tokens SET revoked_at=datetime('now') WHERE prefix='${prefix}'"`,
-			{ cwd: WORKER_ROOT, stdio: "ignore" },
-		);
+		fixture.execute(`UPDATE api_tokens SET revoked_at=datetime('now') WHERE prefix='${prefix}'`);
 
 		// Assert directly against /api/me rather than the CLI's stderr — this
 		// keeps the test honest about what is being verified (token

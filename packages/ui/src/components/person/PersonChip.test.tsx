@@ -3,6 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 import { PersonChip } from "./PersonChip.js";
 
 describe("PersonChip", () => {
+	it("uses the medium identity size without losing the accessible name", () => {
+		const { container } = render(<PersonChip name="Alice" size="md" />);
+		expect(screen.getByLabelText("Avatar for Alice").className).toContain("h-7");
+		expect(container.querySelector(".text-sm")).not.toBeNull();
+	});
 	it("renders the person's name", () => {
 		render(<PersonChip name="Shizhe Huang" />);
 		expect(screen.getByText("Shizhe Huang")).toBeTruthy();

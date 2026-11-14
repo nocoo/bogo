@@ -154,6 +154,47 @@ function renderHover(ui: ReactNode) {
 }
 
 describe("PersonHover", () => {
+	it.each(["p-wei", "missing-person"])(
+		"renders a sparse preview safely for %s",
+		async (personId) => {
+			renderHover(
+				<PersonHover personId={personId}>
+					<span>Preview</span>
+				</PersonHover>,
+			);
+			fireEvent.mouseEnter(screen.getByText("Preview").closest("span[tabindex]") as HTMLElement);
+			await act(async () => {
+				await vi.advanceTimersByTimeAsync(200);
+			});
+			const card = screen.getByRole("tooltip");
+			expect(card.textContent).toContain(personId === "p-wei" ? "Wei Chen" : "Person");
+			expect(card.textContent).not.toContain("Manager");
+			expect(screen.getByRole("link", { name: "Open profile" }).getAttribute("href")).toBe(
+				`/people/${personId}`,
+			);
+		},
+	);
+
+	it("preserves native Tab between two trigger controls and at the end of the card", async () => {
+		renderHover(
+			<PersonHover personId="p-mina">
+				<button type="button">First</button>
+				<button type="button">Second</button>
+			</PersonHover>,
+		);
+		const first = screen.getByRole("button", { name: "First" });
+		first.focus();
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(200);
+		});
+		expect(fireEvent.keyDown(first, { key: "Tab" })).toBe(true);
+		const second = screen.getByRole("button", { name: "Second" });
+		second.focus();
+		fireEvent.keyDown(second, { key: "Tab" });
+		const profile = screen.getByRole("link", { name: "Open profile" });
+		expect(document.activeElement).toBe(profile);
+		expect(fireEvent.keyDown(profile, { key: "Tab" })).toBe(true);
+	});
 	it("renders children without a card when personId is missing", () => {
 		render(
 			<PersonHover>
