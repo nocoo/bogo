@@ -1,4 +1,27 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, test } from "@playwright/test";
+
+async function paintedArea(locator: Locator) {
+	return locator.evaluate((element) => {
+		const rect = element.getBoundingClientRect();
+		let left = rect.left;
+		let right = rect.right;
+		let top = rect.top;
+		let bottom = rect.bottom;
+		for (let parent = element.parentElement; parent; parent = parent.parentElement) {
+			const style = getComputedStyle(parent);
+			const clip = parent.getBoundingClientRect();
+			if (style.overflowX !== "visible") {
+				left = Math.max(left, clip.left);
+				right = Math.min(right, clip.right);
+			}
+			if (style.overflowY !== "visible") {
+				top = Math.max(top, clip.top);
+				bottom = Math.min(bottom, clip.bottom);
+			}
+		}
+		return { width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
+	});
+}
 
 test.beforeEach(async ({ page }) => {
 	await page.route("**/api/**", async (route) => {
@@ -35,7 +58,16 @@ for (const colorScheme of ["light", "dark"] as const) {
 		const brand = rail.locator('[data-slot="sidebar-brand-copy"]');
 		await expect(brand).toBeVisible();
 		await expect(brand.getByText("bogo", { exact: true })).toBeVisible();
-		await expect(brand.getByText(/^v\d/)).toBeVisible();
+		const version = brand.getByText(/^v\d/);
+		await expect(version).toBeVisible();
+		for (const copy of [brand.getByText("bogo", { exact: true }), version]) {
+			const painted = await paintedArea(copy);
+			expect(painted.width).toBeGreaterThan(0);
+			expect(painted.height).toBeGreaterThan(0);
+		}
+		const logo = rail.locator('[data-slot="sidebar-brand-logo"] img');
+		expect((await logo.boundingBox())?.width).toBe(24);
+		expect((await logo.boundingBox())?.height).toBe(24);
 		await rail.getByRole("button", { name: "Collapse sidebar", exact: true }).click();
 		await page.mouse.move(1000, 400);
 		await expect(rail).toHaveJSProperty("clientWidth", 68);
@@ -45,6 +77,10 @@ for (const colorScheme of ["light", "dark"] as const) {
 		expect(collapsed?.width).toBe(36);
 		expect(collapsed?.height).toBe(36);
 		expect(collapsed?.y).toBe(expanded?.y);
+		await test.info().attach("desktop-avatar-geometry", {
+			body: JSON.stringify({ expanded, collapsed }),
+			contentType: "application/json",
+		});
 	});
 
 	for (const width of [390, 700]) {
@@ -78,7 +114,8 @@ for (const colorScheme of ["light", "dark"] as const) {
 			await expect(menu).toHaveAttribute("aria-expanded", "true");
 			await expect(drawer).toHaveCSS("padding-left", "0px");
 			await expect(drawer).toHaveCSS("padding-right", "0px");
-			await expect(drawer).toHaveJSProperty("clientWidth", 260);
+			await expect.poll(async () => (await drawer.boundingBox())?.width).toBe(320);
+			await expect(drawer.locator("[data-basalt-sidebar]")).toHaveJSProperty("clientWidth", 260);
 			await expect(
 				drawer.getByRole("button", { name: "Close navigation", exact: true }),
 			).toBeVisible();
@@ -97,6 +134,7 @@ test("one Escape dismisses navigation and restores the menu without changing des
 	await page.setViewportSize({ width: 390, height: 844 });
 	const menu = page.getByRole("button", { name: "Open navigation menu", exact: true });
 	await menu.focus();
+	await expect(page.getByRole("tooltip")).toHaveCount(0);
 	await menu.press("Enter");
 	const drawer = page.locator('[data-slot="sidebar-drawer"]');
 	await expect(drawer).toBeVisible();
@@ -132,3 +170,33 @@ test("mobile route selection closes the drawer and preserves authentication chro
 	);
 	await expect(drawer.getByText("sidebar@example.test", { exact: true })).toBeVisible();
 });
+
+for (const colorScheme of ["light", "dark"] as const) {
+	for (const width of [390, 700]) {
+		for (const opening of ["keyboard", "pointer"] as const) {
+			test(`first Escape restores ${opening} opener at ${width}px in ${colorScheme} mode`, async ({
+				page,
+			}) => {
+				await page.emulateMedia({ colorScheme });
+				await page.setViewportSize({ width, height: 844 });
+				await page.goto("/documents");
+				const menu = page.getByRole("button", { name: "Open navigation menu", exact: true });
+				if (opening === "keyboard") {
+					await menu.focus();
+					await menu.press("Enter");
+				} else {
+					await menu.click();
+				}
+				const drawer = page.locator('[data-slot="sidebar-drawer"]');
+				await expect(
+					drawer.getByRole("button", { name: "Close navigation", exact: true }),
+				).toBeFocused();
+				await expect(page.getByRole("tooltip")).toHaveCount(0);
+				await page.keyboard.press("Escape");
+				await expect(drawer).toBeHidden();
+				await expect(menu).toBeFocused();
+				await expect(menu).toHaveAttribute("aria-expanded", "false");
+			});
+		}
+	}
+}
