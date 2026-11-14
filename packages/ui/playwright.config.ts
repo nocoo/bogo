@@ -29,6 +29,7 @@ export default defineConfig({
 		command: "bun ../../tests/helpers/test-worker.ts 27036",
 		url: "http://127.0.0.1:27036/api/live",
 		reuseExistingServer: false,
+		gracefulShutdown: { signal: "SIGTERM", timeout: 10_000 },
 		timeout: 120_000,
 		stdout: "pipe",
 		stderr: "pipe",
