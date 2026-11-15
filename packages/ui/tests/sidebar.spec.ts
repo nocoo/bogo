@@ -114,7 +114,7 @@ for (const colorScheme of ["light", "dark"] as const) {
 			await expect(menu).toHaveAttribute("aria-expanded", "true");
 			await expect(drawer).toHaveCSS("padding-left", "0px");
 			await expect(drawer).toHaveCSS("padding-right", "0px");
-			await expect.poll(async () => (await drawer.boundingBox())?.width).toBe(320);
+			await expect.poll(async () => (await drawer.boundingBox())?.width).toBe(260);
 			await expect(drawer.locator("[data-basalt-sidebar]")).toHaveJSProperty("clientWidth", 260);
 			await expect(
 				drawer.getByRole("button", { name: "Close navigation", exact: true }),
