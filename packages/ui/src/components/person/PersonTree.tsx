@@ -16,7 +16,7 @@ import { useAllFieldValues, useFieldValues } from "@/viewmodels/field/use-field-
 import type { ChartFieldRow } from "@/viewmodels/person/person-tree-layout.js";
 import { usePersonTree } from "@/viewmodels/person/use-person-tree.js";
 import "@xyflow/react/dist/style.css";
-import { AlertCircle, Loader2, Plus } from "lucide-react";
+import { AlertCircle, Loader2, Plus } from "@nocoo/basalt/icons";
 import { useCallback, useMemo, useState } from "react";
 import { CreatePersonDialog, EmptyPersonState } from "./CreatePersonDialog.js";
 import { EditPersonPanel } from "./EditPersonPanel.js";

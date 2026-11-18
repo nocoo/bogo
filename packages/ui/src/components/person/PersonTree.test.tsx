@@ -1,15 +1,15 @@
 import { ThemeProvider } from "@nocoo/basalt";
+import { toast } from "@nocoo/basalt/components/toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router";
-import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { chooseSelect } from "../../test-select.js";
 import { getNodeCenter, PersonTree } from "./PersonTree.js";
 
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 vi.mock("../TagPicker.js", () => ({
 	TagPicker: () => <div data-testid="tag-picker" />,

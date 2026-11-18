@@ -1,7 +1,7 @@
 import type { CreateDocumentInput, DocumentSummary, UpdateDocumentInput } from "@bogo/shared";
+import { toast } from "@nocoo/basalt/components/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { toast } from "sonner";
 import { useWorkspaceContext } from "../../contexts/workspace-context.js";
 import { documentKeys, documentModel } from "../../models/document.model.js";
 

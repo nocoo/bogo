@@ -46,7 +46,7 @@ for (const colorScheme of ["light", "dark"] as const) {
 		const rail = page.locator("[data-basalt-sidebar]");
 		const avatar = rail.getByRole("img", { name: "Avatar for Sidebar User", exact: true });
 		await expect(avatar).toBeVisible();
-		await expect(rail).toHaveJSProperty("clientWidth", 260);
+		await expect(rail).toHaveJSProperty("clientWidth", 240);
 		await expect(rail.getByText("sidebar@example.test", { exact: true })).toHaveCSS(
 			"line-height",
 			"16px",
@@ -114,8 +114,8 @@ for (const colorScheme of ["light", "dark"] as const) {
 			await expect(menu).toHaveAttribute("aria-expanded", "true");
 			await expect(drawer).toHaveCSS("padding-left", "0px");
 			await expect(drawer).toHaveCSS("padding-right", "0px");
-			await expect.poll(async () => (await drawer.boundingBox())?.width).toBe(260);
-			await expect(drawer.locator("[data-basalt-sidebar]")).toHaveJSProperty("clientWidth", 260);
+			await expect.poll(async () => (await drawer.boundingBox())?.width).toBe(240);
+			await expect(drawer.locator("[data-basalt-sidebar]")).toHaveJSProperty("clientWidth", 240);
 			await expect(
 				drawer.getByRole("button", { name: "Close navigation", exact: true }),
 			).toBeVisible();

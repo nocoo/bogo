@@ -1,7 +1,7 @@
 import type { Document } from "@bogo/shared";
 import { Button, LayerCard } from "@nocoo/basalt";
+import { Loader2, X } from "@nocoo/basalt/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, X } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useWorkspaceContext } from "@/contexts/workspace-context.js";

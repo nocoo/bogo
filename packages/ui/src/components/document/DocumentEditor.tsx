@@ -7,7 +7,7 @@ import type {
 import { Button, Input, LayerCard } from "@nocoo/basalt";
 import { InputArea } from "@nocoo/basalt/components/input-area";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
-import { GitCompareArrows, Loader2, Pencil, Save } from "lucide-react";
+import { GitCompareArrows, Loader2, Pencil, Save } from "@nocoo/basalt/icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { renderMarkdown } from "../../lib/markdown.js";
 import type { DocumentVM } from "../../viewmodels/document/use-document.js";

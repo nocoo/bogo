@@ -8,8 +8,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@nocoo/basalt/components/select";
+import { FileText, Filter, Loader2, Plus, Trash2, X } from "@nocoo/basalt/icons";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Filter, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { countActive, DocumentFilters, EMPTY_FILTERS } from "../components/DocumentFilters.js";

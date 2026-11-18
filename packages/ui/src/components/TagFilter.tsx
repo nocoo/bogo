@@ -1,7 +1,7 @@
 import type { TagScope } from "@bogo/shared";
 import { Button } from "@nocoo/basalt";
+import { Filter } from "@nocoo/basalt/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Filter } from "lucide-react";
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
 import { tagModel } from "../models/tag.model.js";
 import { TagBadge } from "./TagBadge.js";

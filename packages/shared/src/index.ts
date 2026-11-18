@@ -1,4 +1,4 @@
-export const BOGO_VERSION = "0.9.8";
+export const BOGO_VERSION = "0.9.9";
 
 export interface LiveResponse {
 	status: "ok" | "error";

@@ -6,7 +6,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@nocoo/basalt";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown } from "@nocoo/basalt/icons";
 
 export function DocTypePicker({
 	types,

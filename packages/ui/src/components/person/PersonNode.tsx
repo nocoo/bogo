@@ -1,6 +1,6 @@
 import { LayerCard } from "@nocoo/basalt";
+import { GripVertical } from "@nocoo/basalt/icons";
 import { Handle, type NodeProps, Position } from "@xyflow/react";
-import { GripVertical } from "lucide-react";
 import { memo } from "react";
 import { PersonAvatar } from "@/components/person/PersonAvatar";
 import { PersonHover } from "@/components/person/PersonHover";

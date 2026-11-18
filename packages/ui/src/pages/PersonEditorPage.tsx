@@ -1,5 +1,5 @@
 import { PageHeader } from "@nocoo/basalt/components/page-header";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@nocoo/basalt/icons";
 import { useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { PageBackLink } from "@/components/layout/PageBackLink";

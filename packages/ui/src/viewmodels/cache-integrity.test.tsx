@@ -1,7 +1,7 @@
+import { toast } from "@nocoo/basalt/components/toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { toast } from "sonner";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../contexts/workspace-context";
 import { documentKeys } from "../models/document.model";
@@ -15,7 +15,7 @@ import { useAllFieldValues, useFieldValues } from "./field/use-field-values";
 import { useTags } from "./tag/use-tags";
 import { useWorkspaceList } from "./workspace/use-workspace-list";
 
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 afterEach(() => {
 	vi.unstubAllGlobals();
 	vi.clearAllMocks();

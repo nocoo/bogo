@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.9 — 2026-11-19
+
+- Upgrade `@nocoo/basalt` to `^3.5.1`, adopt the 2-line `@import "@nocoo/basalt/styles"; @import "tailwindcss";` CSS entry, and align `ContentIsland` outer inset tokens and default `240px` sidebar rail/drawer geometry.
+- Remove `components/ui/toaster.tsx`, `sonner`, `tw-animate-css`, and `lucide-react`; import `Toaster`/`toast` from `@nocoo/basalt/components/toast` and icons from `@nocoo/basalt/icons`.
+
 ## v0.9.8 — 2026-11-14
 
 - Upgrade exact `@nocoo/basalt` to 3.3.4 and adopt `SidebarDrawer`, removing consumer drawer geometry and focus overrides. The user-approved mobile acceptance is outer 320px / inner 260px with zero padding.
