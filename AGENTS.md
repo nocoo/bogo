@@ -27,15 +27,15 @@ This file is the contract; hooks, CI and configuration enforce it. Raise weaker 
 
 ## Stack / Layout
 
-| Component                              | Choice                                                                               |
-| -------------------------------------- | ------------------------------------------------------------------------------------ |
-| Runtime / install                      | TypeScript 7, Bun 1.3.14/Turbo; CI/CD pins Bun 1.3.11                                |
-| App / data                             | Hono Cloudflare Worker, D1 `bogo`, Vite SPA, clip-generated CLI                      |
-| Shared UI                              | Exact `@nocoo/basalt@3.3.4`; [sidebar acceptance](docs/verification/basalt-3.3.4.md) |
-| Static / tests                         | TypeScript, Biome, Vitest, local HTTP, Playwright and Bun CLI E2E                    |
-| `packages/shared/`, `packages/worker/` | Types and API/data layer                                                             |
-| `packages/ui/`, `packages/cli/`        | Dashboard and generated CLI                                                          |
-| `clip.yaml`, `tests/cli-e2e/`          | Code-generation contract and CLI journeys                                            |
+| Component                              | Choice                                                            |
+| -------------------------------------- | ----------------------------------------------------------------- |
+| Runtime / install                      | TypeScript 7, Bun 1.3.14/Turbo; CI/CD pins Bun 1.3.11             |
+| App / data                             | Hono Cloudflare Worker, D1 `bogo`, Vite SPA, clip-generated CLI   |
+| Shared UI                              | `@nocoo/basalt@^3.5.1`                                            |
+| Static / tests                         | TypeScript, Biome, Vitest, local HTTP, Playwright and Bun CLI E2E |
+| `packages/shared/`, `packages/worker/` | Types and API/data layer                                          |
+| `packages/ui/`, `packages/cli/`        | Dashboard and generated CLI                                       |
+| `clip.yaml`, `tests/cli-e2e/`          | Code-generation contract and CLI journeys                         |
 
 ## Commands
 

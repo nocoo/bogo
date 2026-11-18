@@ -1,6 +1,6 @@
+import { Toaster } from "@nocoo/basalt/components/toast";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Toaster } from "@/components/ui/toaster";
 import { AppProviders } from "@/contexts/app-providers";
 import { DocTypesSettingsPage } from "@/pages/DocTypesSettingsPage";
 import { DocumentEditorPage } from "@/pages/DocumentEditorPage";

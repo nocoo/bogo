@@ -9,7 +9,7 @@ import {
 	PopoverTrigger,
 } from "@nocoo/basalt";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
-import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Trash2, X } from "@nocoo/basalt/icons";
 import { useCallback, useEffect, useState } from "react";
 import type { DocTypesVM } from "../../viewmodels/document/use-doc-types.js";
 

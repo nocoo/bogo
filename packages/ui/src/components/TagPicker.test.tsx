@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../contexts/workspace-context.js";
 import { TagPicker } from "./TagPicker.js";
 
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const mockFetch = vi.fn();
 

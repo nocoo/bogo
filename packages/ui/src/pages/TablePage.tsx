@@ -26,10 +26,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@nocoo/basalt/components/select";
-import { Columns3, Ellipsis, Filter, Plus, Trash2 } from "lucide-react";
+import { toast } from "@nocoo/basalt/components/toast";
+import { Columns3, Ellipsis, Filter, Plus, Trash2 } from "@nocoo/basalt/icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
-import { toast } from "sonner";
 import { PersonAvatar } from "@/components/person/PersonAvatar";
 import { PersonHover } from "@/components/person/PersonHover";
 import { TagBadge } from "@/components/TagBadge";

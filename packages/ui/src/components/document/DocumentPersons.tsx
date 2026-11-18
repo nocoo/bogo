@@ -7,7 +7,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@nocoo/basalt/components/select";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus } from "@nocoo/basalt/icons";
 import { useCallback, useState } from "react";
 import { PersonChip } from "../../components/person/PersonChip.js";
 import type { AddPersonInput } from "../../viewmodels/document/use-document.js";

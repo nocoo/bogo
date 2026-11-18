@@ -1,6 +1,6 @@
 import type { Workspace } from "@bogo/shared";
 import { Button } from "@nocoo/basalt";
-import { AlertCircle, Building2, ChevronDown, Settings } from "lucide-react";
+import { AlertCircle, Building2, ChevronDown, Settings } from "@nocoo/basalt/icons";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { cn } from "@/lib/utils";

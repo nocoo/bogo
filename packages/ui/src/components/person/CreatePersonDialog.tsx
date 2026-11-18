@@ -7,7 +7,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@nocoo/basalt/components/select";
-import { Plus, UserX, X } from "lucide-react";
+import { Plus, UserX, X } from "@nocoo/basalt/icons";
 import { useCallback, useState } from "react";
 
 export function CreatePersonDialog({

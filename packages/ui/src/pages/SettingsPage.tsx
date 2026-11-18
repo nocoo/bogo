@@ -2,7 +2,7 @@ import { BOGO_VERSION } from "@bogo/shared";
 import { LayerCard } from "@nocoo/basalt";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
 import { SectionRule } from "@nocoo/basalt/components/section-rule";
-import { ArrowUpRight, Building2, FileType, ListTree, Tags } from "lucide-react";
+import { ArrowUpRight, Building2, FileType, ListTree, Tags } from "@nocoo/basalt/icons";
 import { Link } from "react-router";
 
 const SETTINGS = [

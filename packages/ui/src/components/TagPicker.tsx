@@ -6,8 +6,8 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@nocoo/basalt";
+import { Check, Tags } from "@nocoo/basalt/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Tags } from "lucide-react";
 import { useWorkspaceContext } from "../contexts/workspace-context.js";
 import { tagModel } from "../models/tag.model.js";
 import { useTagAssignment } from "../viewmodels/tag/use-tag-assignment.js";

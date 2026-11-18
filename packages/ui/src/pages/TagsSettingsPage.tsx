@@ -12,7 +12,7 @@ import {
 	TabsTrigger,
 } from "@nocoo/basalt";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
-import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, X } from "@nocoo/basalt/icons";
 import { useState } from "react";
 import { TagBadge } from "@/components/TagBadge";
 import { PRESET_HEX_VALUES } from "@/lib/tag-colors";

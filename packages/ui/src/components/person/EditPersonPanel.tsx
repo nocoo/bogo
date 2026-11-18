@@ -1,6 +1,6 @@
 import type { CustomFieldDefinition, Person, UpdatePersonInput } from "@bogo/shared";
 import { Button, LayerCard } from "@nocoo/basalt";
-import { X } from "lucide-react";
+import { X } from "@nocoo/basalt/icons";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
 import { PersonEditorForm } from "./PersonEditorForm.js";
 

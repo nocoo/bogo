@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X } from "@nocoo/basalt/icons";
 import { cn } from "../../lib/utils.js";
 import { PersonAvatar } from "./PersonAvatar.js";
 import { PersonHover } from "./PersonHover.js";

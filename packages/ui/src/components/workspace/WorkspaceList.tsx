@@ -1,7 +1,7 @@
 import type { Workspace } from "@bogo/shared";
 import { Badge, Button, Input, LayerCard } from "@nocoo/basalt";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
-import { Building2, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Building2, Loader2, Pencil, Plus, Trash2 } from "@nocoo/basalt/icons";
 import { useCallback, useState } from "react";
 import { useWorkspaceList } from "@/viewmodels/workspace/use-workspace-list.js";
 

@@ -1,6 +1,6 @@
 import type { ColumnKey } from "@bogo/shared";
 import { Badge, Button, LayerCard } from "@nocoo/basalt";
-import { ChevronLeft, ChevronRight, GripVertical, Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, GripVertical, Plus, X } from "@nocoo/basalt/icons";
 import { useCallback, useId, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { ColumnMeta } from "@/viewmodels/table/column-catalog";

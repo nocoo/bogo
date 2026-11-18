@@ -7,7 +7,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@nocoo/basalt/components/select";
-import { X } from "lucide-react";
+import { X } from "@nocoo/basalt/icons";
 import { useCallback, useMemo } from "react";
 import { PersonAvatar } from "./person/PersonAvatar.js";
 import { PersonHover } from "./person/PersonHover.js";

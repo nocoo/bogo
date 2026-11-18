@@ -1,7 +1,7 @@
 import type { DocumentVersion } from "@bogo/shared";
+import { Loader2 } from "@nocoo/basalt/icons";
 import { useTheme } from "@nocoo/basalt/providers/theme";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { api } from "../../lib/api/index.js";
 import { documentKeys } from "../../models/document.model.js";

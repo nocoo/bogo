@@ -50,7 +50,7 @@ test("sidebar logo and navigation follow the shared rail geometry", async ({ pag
 		});
 
 	const expanded = await geometry();
-	expect(expanded.railWidth).toBe(260);
+	expect(expanded.railWidth).toBe(240);
 	expect(expanded.logoLeft - expanded.rowLeft).toBe(6);
 
 	await page.getByRole("button", { name: "Collapse sidebar", exact: true }).click();

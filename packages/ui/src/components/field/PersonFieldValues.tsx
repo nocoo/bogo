@@ -7,7 +7,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@nocoo/basalt/components/select";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@nocoo/basalt/icons";
 import { useCallback, useEffect, useState } from "react";
 import type { FieldValuesVM } from "../../viewmodels/field/use-field-values.js";
 
