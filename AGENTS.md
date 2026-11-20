@@ -1,102 +1,63 @@
 # Bogo
 
-Personal knowledge base for people, documents and workspaces, with a web dashboard and generated CLI.
-Profile: ts-worker-web.
-Human overview: [README.md](README.md). Direction: [architecture](docs/architecture/03-system-architecture.md) and [CLI design](docs/features/02-cli.md). Frameworks must not rewrite this file. Maintain this root `AGENTS.md` as the only project handbook; do not create a `CLAUDE.md` alias, copy or import.
+Personal knowledge base for people, documents, and workspaces: Hono Cloudflare Worker + D1 (`bogo`), Vite React SPA (`@nocoo/basalt`), and `clip`-generated CLI (`@nocoo/bogo`).
+Docs: [README.md](README.md) · [Architecture](docs/architecture/03-system-architecture.md) · [CLI design](docs/features/02-cli.md) · [Sidebar acceptance](docs/verification/basalt-3.3.4.md) · [Retrospective](Retrospective.md)
 
-## Sources of Truth
-
-This file is the contract; hooks, CI and configuration enforce it. Raise weaker enforcement instead of lowering this contract.
-
-| Fact                      | Where                                                                                    |
-| ------------------------- | ---------------------------------------------------------------------------------------- |
-| Human docs                | [README.md](README.md), `docs/architecture/`, `docs/features/`                           |
-| Version                   | Root `package.json`; `clip.yaml` and `BOGO_VERSION` updated by `scripts/bump-version.ts` |
-| Enforcement               | `.husky/`, CI/release workflows, package Vitest configs and scripts                      |
-| Local secrets             | Ignored `packages/worker/.dev.vars`; production secrets managed separately               |
-| Machine rules / accidents | Global `AGENTS.md` and `rules/`; [Retrospective.md](Retrospective.md)                    |
-
-## Project Invariants
-
-- Browser host `bogo.hexly.ai` stays Access-protected, including consent at `/api/auth/cli`. API host `api.bogo.hexly.ai` has no Access application but requires hashed `Bearer bogo_*` token validation. Never restore an Authorization-header Access bypass.
-- `clip.yaml` keeps `loginUrl` on the Access host and `baseUrl` on the API host. `CLIP_BASE_URL` overrides only the API URL. CLI source is generated: edit the schema/templates rather than hand-editing generated output.
-- Vite 7036 (`bogo.dev.hexly.ai`) proxies `/api` to local Worker 37036. Existing localhost/dev-domain Access bypass must not expand to production hosts.
-- Local seeds and E2E must never use `--remote` or production data. No remote `-test` Worker/database is required.
-- Keep viewmodels free of View/DOM imports and routes thin. Route/page map coverage is structural evidence, not complete behavior proof.
-- Worker CD belongs to `release.yml`. `bun run deploy` would race it; npm publication of `@nocoo/bogo` is a separate operation.
-
-## Stack / Layout
-
-| Component                              | Choice                                                            |
-| -------------------------------------- | ----------------------------------------------------------------- |
-| Runtime / install                      | TypeScript 7, Bun 1.3.14/Turbo; CI/CD pins Bun 1.3.11             |
-| App / data                             | Hono Cloudflare Worker, D1 `bogo`, Vite SPA, clip-generated CLI   |
-| Shared UI                              | `@nocoo/basalt@^3.5.1`                                            |
-| Static / tests                         | TypeScript, Biome, Vitest, local HTTP, Playwright and Bun CLI E2E |
-| `packages/shared/`, `packages/worker/` | Types and API/data layer                                          |
-| `packages/ui/`, `packages/cli/`        | Dashboard and generated CLI                                       |
-| `clip.yaml`, `tests/cli-e2e/`          | Code-generation contract and CLI journeys                         |
+Workspaces: `packages/shared/` (types/version), `packages/worker/` (Hono API/D1), `packages/ui/` (dashboard), `packages/cli/` (generated CLI), plus `clip.yaml` and `tests/cli-e2e/`.
 
 ## Commands
 
-Run from the root after a frozen Bun install. Build assets before HTTP/browser/CLI integration. CLI tests need the `clip` generator or a prepared sibling `clip` checkout; CI requires it. Chromium is required for Playwright.
+Run from root with Bun 1.3.14 / Turbo and TypeScript 7 (CI/CD pins Bun 1.3.11). Build UI assets before HTTP, browser, or CLI integration. CLI tests require `clip` on `PATH` or a sibling `../clip` checkout; Playwright requires Chromium.
 
-```bash
-bun install --frozen-lockfile
-bun run typecheck
-bun run lint
-bun run build
-bun run test:unit:coverage
-bun turbo test:e2e --filter=@bogo/worker
-bun run test:e2e:pw
-bun run test:cli-e2e
-bun run gate:clip-yaml
-bun run gate:security
+```sh
+bun install --frozen-lockfile             # installs deps and restores Husky hooks
+bun run seed:local && bun run dev         # UI 7036 (bogo.dev.hexly.ai) -> Worker 37036
+bun run typecheck                         # S1
+bun run lint                              # S2 biome check --error-on-warnings (0 warnings)
+bun run build                             # B1 builds @bogo/ui into packages/worker/static
+bun run test:unit:coverage                # L1 coverage across shared, worker, ui
+bun turbo test:e2e --filter=@bogo/worker  # L3 Worker API integration (unset CF_* env vars)
+bun run test:e2e:pw                       # L4 Playwright browser E2E
+bun run test:cli-e2e                      # L4 clip-generated CLI E2E
+bun run gate:routes                       # API route map completeness
+bun run gate:pages                        # UI page map completeness
+bun run gate:clip-yaml                    # clip.yaml codegen completeness
+bun run gate:security                     # G2 osv-scanner + gitleaks
 ```
 
-Daily local development uses `bun run seed:local`, then `bun run dev`. Do not reuse that seed store for automated tests. L2 refuses inherited `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` or `CF_API_TOKEN`; run with those variables unset.
+## Invariants
 
-## Verification
+- `bogo.hexly.ai` stays Access-protected (including `/api/auth/cli`); `api.bogo.hexly.ai` has no Access app and requires hashed `Bearer bogo_*` tokens. Never restore an Authorization-header Access bypass.
+- `clip.yaml` keeps `loginUrl` on the Access host and `baseUrl` on the API host; `CLIP_BASE_URL` overrides only the API URL. CLI source is generated—edit `clip.yaml`/templates, not generated output.
+- Vite `7036` (`bogo.dev.hexly.ai`) proxies `/api` to local Worker `37036`. Existing localhost/dev-domain Access bypass must never expand to production hosts.
+- Root `package.json` owns the version; `bun scripts/bump-version.ts <patch|minor|major>` syncs all workspace manifests, `BOGO_VERSION`, and `clip.yaml`. Keep local secrets in ignored `packages/worker/.dev.vars`.
+- Local seeds and E2E must never use `--remote` or prod data; no remote `-test` Worker/D1 is needed. Worker API E2E refuses inherited `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, or `CF_API_TOKEN`.
+- Keep viewmodels free of View/DOM imports and routes thin; route/page maps are structural evidence, not complete behavior proof.
+- UI uses `@nocoo/basalt@^3.5.1` in `packages/ui/package.json`; follow `system1-design-basalt` and [sidebar acceptance](docs/verification/basalt-3.3.4.md).
+- Worker CD belongs to `.github/workflows/release.yml`; never run `bun run deploy` concurrently. Authorized releases bump version, review changelog, push commit, verify CI, then push the matching tag.
+- `@nocoo/bogo` npm publication is separate from Worker CD (so npm may lag git). Verify live results on `bogo.hexly.ai` and `api.bogo.hexly.ai`; publication steps live in [CLI design](docs/features/02-cli.md).
 
-Quality follows System1 v1.3.0 Native Mode (`nocoo/base-ci v2026.15`) in `.github/workflows/quality-slots.yml` and `.github/workflows/ci.yml`. Status: `enforced`, `planned`, `manual`, `N/A`.
+## Quality & Local Gates
 
-| Slot              | Status   | Evidence                                                                                       |
-| ----------------- | -------- | ---------------------------------------------------------------------------------------------- |
-| `S1` Types        | enforced | `bun run typecheck` (pre-commit + CI)                                                          |
-| `S2` Lint         | enforced | `bun run lint` / `biome check --error-on-warnings` (pre-commit + CI)                           |
-| `S3` Workflow     | enforced | SHA-pinned workflow action check in CI                                                         |
-| `G1` Secrets      | enforced | `gitleaks` staged (pre-commit) + CI scan                                                       |
-| `G2` Dependencies | enforced | `osv-scanner` (`osv-scanner.toml`, `bun.lock`) in pre-push + CI                                |
-| `B1` Build        | enforced | `bun run build` in CI                                                                          |
-| `L1` Unit         | enforced | `bun run test:unit:coverage` + pre-commit `scripts/check-coverage.sh`                          |
-| `L2` Runtime      | N/A      | Runtime verified via Integration API suite                                                     |
-| `L3` Integration  | enforced | `bun turbo test:e2e --filter=@bogo/worker` (pre-push + CI)                                     |
-| `L4` E2E          | enforced | `bun run test:e2e:pw` (Playwright) + `cli-e2e` in CI                                           |
-| `P1` Package      | N/A      | Deployed as Cloudflare Worker, not an npm package                                              |
-| `Z1` Gate         | enforced | `quality / Z1: Gate` required status check on `main` (includes `coverage-gates` and `cli-e2e`) |
+Follows `system1-quality`; CI slot definitions and pinned `base-ci` revision live in `.github/workflows/quality-slots.yml` (called by `.github/workflows/ci.yml`; `quality / Z1: Gate` required on `main`, including `coverage-gates` and `cli-e2e`). Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
 
-| Hook       | Current behavior                                                             | Required follow-up                                            |
-| ---------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| pre-commit | Index snapshot: gitleaks, types, Biome, routes/pages, coverage (`<30s` warm) | Keep rejection probes when changing hook; add skip/focus gate |
-| pre-push   | Worker L2, G2, clip YAML in parallel, then CLI E2E                           | Verify stdin push refs, <3min                                 |
+- **Exceptions / gaps**: `L2 Runtime` is `N/A` (verified via `L3` integration API suite); `P1 Package` is `N/A` (Worker deploys to Cloudflare, not npm).
+- **Coverage / hook gaps**: `shared` enforces `95%` branches, while `worker`/`ui` branch floors are `90%` (`95%` target `planned`); skip/focus gate and `pre-push` stdin ref checks are `planned`.
+- **Local hooks**: `bun install` restores `.husky/` (`prepare`); hooks are check-only—never use `--no-verify`. Keep rejection probes when editing hooks.
+- **`pre-commit`**: runs on staged Git index snapshot (`G1` staged `gitleaks`, `shared` build, `S1`, `S2`, `gate:routes`, `gate:pages`, `L1` `scripts/check-coverage.sh`; `<30s` warm).
+- **`pre-push`**: runs `L3` Worker API E2E, `G2` `gate:security`, and `gate:clip-yaml` in parallel, then `test:cli-e2e` (`<3min`). CI sets `BOGO_REQUIRE_CLI_E2E=1`; `BOGO_SKIP_CLI_E2E` must not bypass verification.
 
-CI sets `BOGO_REQUIRE_CLI_E2E=1`; local `BOGO_SKIP_CLI_E2E` exists but must not bypass verification. Install restores Husky. Hooks are check-only; never use `--no-verify` on commits or branch pushes.
+## Resources & Isolation
 
-## Resources / Isolation
+| Lane         | Endpoint / State                                                    | Boundary                                                             |
+| ------------ | ------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Daily dev    | UI `127.0.0.1:7036` (`bogo.dev.hexly.ai`), Worker `127.0.0.1:37036` | Local dev D1 + `bun run seed:local`; never reused by automated tests |
+| Worker / CLI | Allocated loopback ports; per-run temp stores                       | Owned local Wrangler config, isolated `HOME`, marker-checked D1      |
+| Browser (PW) | `127.0.0.1:27036`; per-run temp store                               | Fresh owned server (`reuseExistingServer: false`), `SIGTERM` cleanup |
+| Prod         | `https://bogo.hexly.ai`, `https://api.bogo.hexly.ai`                | Read-only checks unless release/deployment is authorized             |
 
-| Lane      | Port / directory                                   | Boundary                                                |
-| --------- | -------------------------------------------------- | ------------------------------------------------------- |
-| Daily dev | UI 7036, Worker 37036                              | Local dev database and explicit seed command            |
-| L2 / CLI  | Allocated loopback ports; temporary per-run stores | Owned local Wrangler config, HOME and marker-checked D1 |
-| Browser   | 27036; temporary per-run store                     | Fresh owned server; no reuse; SIGTERM cleanup           |
-
-Required harnesses reject remote bindings/credential fallback, allocate fresh local SQLite state and verify `_test_marker(key,value)` with `env=test` before fixture resets or cleanup. Keep production and daily-dev stores physically separate from every automated lane.
-
-## Operations / Release
-
-Authorized maintainers use `bun scripts/bump-version.ts patch`, review the synchronized version/changelog, commit and push normally, verify CI and push the matching tag. CD owns the Worker; never deploy it concurrently from a laptop.
-The npm package can lag the repository because CD does not publish it. Verify the requested result on `bogo.hexly.ai` and `api.bogo.hexly.ai`; publication procedures and host boundaries are in [CLI docs](docs/features/02-cli.md).
+Required harnesses reject remote bindings/credential fallback, allocate fresh local SQLite state, and verify `_test_marker(key,value)` (`env=test`) before fixture resets or cleanup. Keep prod and daily-dev stores physically separate from every test lane.
 
 ## Retrospective
 
-Narratives remain in [Retrospective.md](Retrospective.md); keep only recurring rules here, cross-project lessons in global rules/nmem and deterministic requirements in hooks/tests.
+Record incident narratives in [Retrospective.md](Retrospective.md); promote recurring project constraints to `Invariants` above, cross-project lessons to global rules, and deterministic checks to hooks or tests.

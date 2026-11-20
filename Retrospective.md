@@ -2,6 +2,8 @@
 
 Accident narratives for this repo.
 
+Routing: narrative stays here. A project-specific rule that will recur may become one line in `AGENTS.md`. Cross-project lessons go to global rules. If it can be checked by a machine, add a hook or test instead of prose.
+
 ## 2026-11-14: Test fixture lifecycle and profile crop regressions
 
 - **What:** The first isolated browser fixture detached Wrangler without configuring Playwright's graceful shutdown. Playwright's default SIGKILL bypassed cleanup and left this task's Worker on port 27036. Review also caught missing cleanup after a live-but-unhealthy startup and lost `object-cover` behavior when replacing the sidebar avatar.
@@ -25,8 +27,6 @@ Accident narratives for this repo.
 - **What:** Four new mobile geometry tests failed before measuring width because their role locator no longer found the menu button after the modal opened.
 - **Why:** Radix correctly hides the background from the accessibility tree; Playwright role locators exclude that hidden opener by default.
 - **Prevention:** Include the hidden opener when inspecting its ARIA attributes while a modal is open, retain all geometry assertions, and attach rendered measurements before assertions. Do not label a locator failure as a library geometry defect.
-
-Routing: narrative stays here. A project-specific rule that will recur may become one line in `AGENTS.md`. Cross-project lessons go to nmem or a global rule. If it can be checked by a machine, add a hook or test instead of prose.
 
 ## CLI Access header Bypass is gone
 
