@@ -37,15 +37,15 @@
 		"js-yaml": "5.5.0",
 		"source-map-js": "^1.2.2",
 		"postcss-selector-parser": "^7.1.6",
-		"marked": "18.2.0"
+		"marked": "18.2.1"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.6.7",
-		"@vitest/coverage-v8": "5.1.0",
+		"@biomejs/biome": "2.6.8",
+		"@vitest/coverage-v8": "5.1.1",
 		"husky": "^9.1.0",
 		"picomatch": "^4.0.7",
-		"turbo": "^2.11.11",
+		"turbo": "^2.11.13",
 		"typescript": "^7.0.2",
-		"vitest": "5.1.0"
+		"vitest": "5.1.1"
 	}
 }
