@@ -46,6 +46,6 @@
 		"picomatch": "^4.0.7",
 		"turbo": "^2.11.13",
 		"typescript": "^7.0.2",
-		"vitest": "5.1.0"
+		"vitest": "5.1.1"
 	}
 }
