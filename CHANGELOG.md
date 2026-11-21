@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.10 — 2026-11-21
+
+- Upgrade `@xyflow/react` to `13.0.2` and migrate the org chart: `13.0.0` replaces the `colorMode` prop with `forceColorMode` (light/dark only, so the Basalt `system` theme now maps to the system default) and moves its stylesheets into `@layer xyflow`, renaming the dot-pattern variable to `--xy-background-pattern-color`.
+- Upgrade `@tanstack/react-query` to `5.108.2`, `tailwind-merge` to `3.7.1`, `@types/bun` to `1.4.5`, and `@cloudflare/workers-types` to `5.20261121.1`.
+- The lockfile carries two `tailwind-merge` copies while `@nocoo/basalt@3.5.1` pins `3.7.0` exactly; the duplicate disappears once Basalt relaxes that pin.
+
 ## v0.9.9 — 2026-11-19
 
 - Upgrade `@nocoo/basalt` to `^3.5.1`, adopt the 2-line `@import "@nocoo/basalt/styles"; @import "tailwindcss";` CSS entry, and align `ContentIsland` outer inset tokens and default `240px` sidebar rail/drawer geometry.
