@@ -157,7 +157,7 @@ function PersonTreeInner() {
 	return (
 		<LayerCard padding="none" className="person-tree relative h-full min-h-[500px] overflow-hidden">
 			<ReactFlow
-				colorMode={theme}
+				forceColorMode={theme === "system" ? undefined : theme}
 				nodes={vm.nodes}
 				edges={vm.edges}
 				nodeTypes={nodeTypes}

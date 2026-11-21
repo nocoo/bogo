@@ -54,7 +54,7 @@
 
 	.person-tree {
 		--xy-background-color: transparent;
-		--xy-background-pattern-dots-color: hsl(var(--basalt-border));
+		--xy-background-pattern-color: hsl(var(--basalt-border));
 		--xy-edge-stroke: hsl(var(--basalt-muted-foreground));
 		--xy-edge-stroke-width: 1.5;
 		--xy-controls-button-background-color: hsl(var(--basalt-bright));
