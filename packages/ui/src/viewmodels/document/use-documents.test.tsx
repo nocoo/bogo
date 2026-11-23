@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { useDocuments } from "./use-documents.js";
 
-vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), danger: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -167,7 +167,7 @@ describe("useDocuments", () => {
 
 			act(() => result.current.vm.create({ title: "", content: "", personIds: [] }));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Title required"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Title required"));
 		});
 	});
 
@@ -205,7 +205,7 @@ describe("useDocuments", () => {
 
 			act(() => result.current.vm.update("doc-1", { title: "" }));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalled());
+			await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 			expect(result.current.vm.documents[0].title).toBe("Q1 Report");
 		});
 	});
@@ -241,7 +241,7 @@ describe("useDocuments", () => {
 
 			act(() => result.current.vm.remove("doc-1"));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Document has associations"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Document has associations"));
 			expect(result.current.vm.documents).toHaveLength(1);
 		});
 	});

@@ -73,7 +73,7 @@ export function useDocument(id: string): DocumentVM {
 			if (context?.previous) {
 				queryClient.setQueryData(documentKeys.detail(wid, id), context.previous);
 			}
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: documentKeys.detail(wid, id) });
@@ -99,7 +99,7 @@ export function useDocument(id: string): DocumentVM {
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(documentKeys.persons(wid, id), context?.previous ?? []);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: documentKeys.persons(wid, id) });
@@ -122,7 +122,7 @@ export function useDocument(id: string): DocumentVM {
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(documentKeys.persons(wid, id), context?.previous ?? []);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: documentKeys.persons(wid, id) });

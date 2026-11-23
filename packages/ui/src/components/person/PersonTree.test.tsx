@@ -9,7 +9,7 @@ import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace
 import { chooseSelect } from "../../test-select.js";
 import { getNodeCenter, PersonTree } from "./PersonTree.js";
 
-vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), danger: vi.fn() } }));
 
 vi.mock("../TagPicker.js", () => ({
 	TagPicker: () => <div data-testid="tag-picker" />,
@@ -336,7 +336,7 @@ describe("PersonTree", () => {
 		mockFetch.mockResolvedValueOnce(err(400, "VALIDATION", "Name invalid"));
 		fireEvent.click(screen.getByText("Create"));
 
-		await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Name invalid"));
+		await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Name invalid"));
 	});
 
 	describe("edit panel", () => {

@@ -112,7 +112,7 @@ export function PersonEditorForm({
 	const eligibleDottedManagers = persons.filter((p) => p.id !== person.id && p.id !== managerId);
 	const isPage = variant === "page";
 	const fieldClass = "mt-1 w-full";
-	const selectSize = isPage ? "default" : "sm";
+	const selectSize = isPage ? "md" : "sm";
 
 	const hasCustomFields = Boolean(fieldDefs && fieldValuesVm && fieldDefs.length > 0);
 

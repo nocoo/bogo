@@ -85,7 +85,7 @@ export function DocumentsPage() {
 							<Filter className="h-4 w-4" strokeWidth={1.6} />
 							Filters
 							{activeFilterCount > 0 && (
-								<Badge variant="blue" className="ml-1 px-1.5 text-[10px]">
+								<Badge tone="info" className="ml-1 px-1.5 text-[10px]">
 									{activeFilterCount}
 								</Badge>
 							)}

@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { useTagAssignment } from "./use-tag-assignment.js";
 
-vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), danger: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -103,7 +103,7 @@ describe("useTagAssignment", () => {
 		act(() => result.current.ctx.switchWorkspace(WS));
 		act(() => result.current.vm.assign("tag-1", "doc-1"));
 
-		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 	});
 
 	it("shows error toast on unassign failure", async () => {
@@ -114,7 +114,7 @@ describe("useTagAssignment", () => {
 		act(() => result.current.ctx.switchWorkspace(WS));
 		act(() => result.current.vm.unassign("tag-1", "doc-1"));
 
-		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 	});
 
 	it("exposes isPending states", async () => {

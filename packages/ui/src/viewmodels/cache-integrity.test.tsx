@@ -15,7 +15,7 @@ import { useAllFieldValues, useFieldValues } from "./field/use-field-values";
 import { useTags } from "./tag/use-tags";
 import { useWorkspaceList } from "./workspace/use-workspace-list";
 
-vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), danger: vi.fn() } }));
 afterEach(() => {
 	vi.unstubAllGlobals();
 	vi.clearAllMocks();
@@ -192,7 +192,7 @@ describe("workspace cache continuity", () => {
 				if (operation === "add") result.current.document.addPerson({ personId: "person" });
 				else result.current.document.removePerson("person");
 			});
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Association rejected"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Association rejected"));
 			expect(client.getQueryData(key)).toEqual([]);
 		},
 	);
@@ -323,7 +323,7 @@ describe("workspace cache continuity", () => {
 			}
 		});
 		await waitFor(() => expect(toast.success).toHaveBeenCalled());
-		expect(toast.error).not.toHaveBeenCalled();
+		expect(toast.danger).not.toHaveBeenCalled();
 	});
 
 	it("does not invent a document detail after eviction or a failed save", async () => {
@@ -343,7 +343,7 @@ describe("workspace cache continuity", () => {
 			client.removeQueries({ queryKey: documentKeys.detail(workspace.id, "target"), exact: true }),
 		);
 		act(() => result.current.document.update({ title: "After" }));
-		await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Save rejected"));
+		await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Save rejected"));
 		expect(client.getQueryData(documentKeys.detail(workspace.id, "target"))).toBeFalsy();
 	});
 });

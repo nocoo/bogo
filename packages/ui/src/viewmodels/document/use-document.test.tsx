@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { useDocument } from "./use-document.js";
 
-vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), danger: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -157,7 +157,7 @@ describe("useDocument", () => {
 				result.current.vm.update({ title: "" });
 			});
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Title too long"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Title too long"));
 			expect(result.current.vm.document?.title).toBe("Q1 Report");
 		});
 
@@ -235,7 +235,7 @@ describe("useDocument", () => {
 
 			act(() => result.current.vm.addPerson({ personId: "p-1" }));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Already linked"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Already linked"));
 			expect(result.current.vm.persons).toHaveLength(0);
 		});
 	});
@@ -278,7 +278,7 @@ describe("useDocument", () => {
 
 			act(() => result.current.vm.removePerson("p-1"));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Association not found"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Association not found"));
 			expect(result.current.vm.persons).toHaveLength(1);
 		});
 	});
@@ -302,7 +302,7 @@ describe("useDocument", () => {
 
 			act(() => result.current.vm.addPerson({ personId: "p-bad" }));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Person not found"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Person not found"));
 			await waitFor(() => expect(result.current.vm.persons).toHaveLength(0));
 		});
 	});

@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { useDocTypes } from "./use-doc-types.js";
 
-vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), danger: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -159,7 +159,7 @@ describe("useDocTypes", () => {
 
 			act(() => result.current.vm.create({ name: "" }));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Name required"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Name required"));
 		});
 	});
 
@@ -196,7 +196,7 @@ describe("useDocTypes", () => {
 
 			act(() => result.current.vm.update("dt-1", { name: "" }));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalled());
+			await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 			expect(result.current.vm.types[0].name).toBe("Meeting Notes");
 		});
 	});
@@ -249,7 +249,7 @@ describe("useDocTypes", () => {
 
 			act(() => result.current.vm.remove("dt-1"));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Type has documents"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Type has documents"));
 			expect(result.current.vm.types).toHaveLength(1);
 		});
 
@@ -267,7 +267,7 @@ describe("useDocTypes", () => {
 
 			act(() => result.current.vm.remove("dt-1"));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Type not found"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Type not found"));
 			expect(result.current.vm.types).toHaveLength(1);
 		});
 	});

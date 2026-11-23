@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { useTags } from "./use-tags.js";
 
-vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), danger: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -145,7 +145,7 @@ describe("useTags", () => {
 		mockFetch.mockResolvedValue(err(400, "VALIDATION", "Name taken"));
 		act(() => result.current.vm.create({ name: "Engineering", scope: "document" }));
 
-		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 	});
 
 	it("optimistically updates tag on edit", async () => {
@@ -174,7 +174,7 @@ describe("useTags", () => {
 		mockFetch.mockResolvedValue(err(500, "INTERNAL", "fail"));
 		act(() => result.current.vm.update("tag-1", { name: "Platform" }));
 
-		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 		await waitFor(() => expect(result.current.vm.tags[0].name).toBe("Engineering"));
 	});
 
@@ -218,7 +218,7 @@ describe("useTags", () => {
 		mockFetch.mockResolvedValue(err(500, "INTERNAL", "fail"));
 		act(() => result.current.vm.remove("tag-1"));
 
-		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 		await waitFor(() => expect(result.current.vm.tags).toHaveLength(1));
 	});
 

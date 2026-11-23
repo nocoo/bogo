@@ -41,7 +41,7 @@ export function usePersonList(): PersonListVM {
 		},
 		onError: (err: Error) => {
 			setMutationError(err);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 	});
 
@@ -62,7 +62,7 @@ export function usePersonList(): PersonListVM {
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(personKeys.all(wid), context?.previous);
 			setMutationError(err);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: personKeys.all(wid) });
@@ -86,7 +86,7 @@ export function usePersonList(): PersonListVM {
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(personKeys.all(wid), context?.previous);
 			setMutationError(err);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: personKeys.all(wid) });
@@ -110,7 +110,7 @@ export function usePersonList(): PersonListVM {
 		onError: (err: Error, _id, context) => {
 			queryClient.setQueryData(personKeys.all(wid), context?.previous);
 			setMutationError(err);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: personKeys.all(wid) });

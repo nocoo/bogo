@@ -5,8 +5,8 @@ import type {
 	UpdateDocumentInput,
 } from "@bogo/shared";
 import { Button, Input, LayerCard } from "@nocoo/basalt";
-import { InputArea } from "@nocoo/basalt/components/input-area";
 import { PageHeader } from "@nocoo/basalt/components/page-header";
+import { Textarea } from "@nocoo/basalt/components/textarea";
 import { GitCompareArrows, Loader2, Pencil, Save } from "@nocoo/basalt/icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { renderMarkdown } from "../../lib/markdown.js";
@@ -144,7 +144,7 @@ export function DocumentEditor({
 						<div className="border-b border-basalt-border/60 px-4 py-3 text-xs font-medium text-basalt-muted-foreground">
 							Markdown
 						</div>
-						<InputArea
+						<Textarea
 							value={content}
 							onChange={(e) => handleContentChange(e.target.value)}
 							className="block h-[60vh] min-h-72 w-full resize-y rounded-none border-0 p-4 font-mono text-sm leading-relaxed shadow-none"

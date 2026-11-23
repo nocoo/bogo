@@ -103,7 +103,7 @@ export function useFieldValues(personId: string): FieldValuesVM {
 		},
 		onError: (err: Error, vars, context) => {
 			queryClient.setQueryData(fieldKeys.values(wid, vars.personId), context?.previous);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: (_data, _err, vars) => {
 			queryClient.invalidateQueries({ queryKey: fieldKeys.values(wid, vars.personId) });

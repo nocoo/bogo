@@ -135,7 +135,7 @@ export function TablePage() {
 			try {
 				await updateView(activeView.id, { sort: next });
 			} catch (e) {
-				toast.error(e instanceof Error ? e.message : "Failed to update sort");
+				toast.danger(e instanceof Error ? e.message : "Failed to update sort");
 			}
 		},
 		[activeView, updateView],
@@ -147,7 +147,7 @@ export function TablePage() {
 			await updateView(activeView.id, { columns: ensureNameColumn(draftColumns) });
 			setConfigOpen(false);
 		} catch (e) {
-			toast.error(e instanceof Error ? e.message : "Failed to save columns");
+			toast.danger(e instanceof Error ? e.message : "Failed to save columns");
 		}
 	};
 
@@ -156,14 +156,14 @@ export function TablePage() {
 		const err = validateFilterDraft(filterDraft, columnMetas, defs);
 		if (err) {
 			setFilterError(err);
-			toast.error(err);
+			toast.danger(err);
 			return;
 		}
 		setFilterError(null);
 		try {
 			await updateView(activeView.id, { filters: filterDraft });
 		} catch (e) {
-			toast.error(e instanceof Error ? e.message : "Failed to save filters");
+			toast.danger(e instanceof Error ? e.message : "Failed to save filters");
 		}
 	};
 
@@ -180,7 +180,7 @@ export function TablePage() {
 	const handleCreateView = async () => {
 		const name = newViewName.trim();
 		if (!name) {
-			toast.error("View name is required");
+			toast.danger("View name is required");
 			return;
 		}
 		try {
@@ -191,7 +191,7 @@ export function TablePage() {
 			closeCreateDialog();
 			setSearchParams({ view: created.id });
 		} catch (e) {
-			toast.error(e instanceof Error ? e.message : "Failed to create view");
+			toast.danger(e instanceof Error ? e.message : "Failed to create view");
 		}
 	};
 
@@ -201,7 +201,7 @@ export function TablePage() {
 			await deleteView(activeView.id);
 			if (defaultView) setSearchParams({ view: defaultView.id });
 		} catch (e) {
-			toast.error(e instanceof Error ? e.message : "Failed to delete view");
+			toast.danger(e instanceof Error ? e.message : "Failed to delete view");
 		}
 	};
 
@@ -210,7 +210,7 @@ export function TablePage() {
 		try {
 			await updateView(activeView.id, { isDefault: true });
 		} catch (e) {
-			toast.error(e instanceof Error ? e.message : "Failed to set default view");
+			toast.danger(e instanceof Error ? e.message : "Failed to set default view");
 		}
 	};
 

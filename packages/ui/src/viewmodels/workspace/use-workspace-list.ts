@@ -49,7 +49,7 @@ export function useWorkspaceList(): WorkspaceListVM {
 			]);
 			toast.success("Workspace created");
 		},
-		onError: (err: Error) => toast.error(err.message),
+		onError: (err: Error) => toast.danger(err.message),
 	});
 
 	const updateMutation = useMutation({
@@ -78,7 +78,7 @@ export function useWorkspaceList(): WorkspaceListVM {
 			if (context?.previousWorkspace) {
 				switchWorkspace(context.previousWorkspace);
 			}
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: workspaceKeys.all });
@@ -108,7 +108,7 @@ export function useWorkspaceList(): WorkspaceListVM {
 				const ws = context.previous.find((w) => w.id === context.previousSelectedId) ?? null;
 				switchWorkspace(ws);
 			}
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: workspaceKeys.all });

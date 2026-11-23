@@ -22,13 +22,13 @@ export function useTagAssignment(scope: TagScope) {
 	const assignMutation = useMutation({
 		...tagModel.assignMutationOptions(wid),
 		onSuccess: () => invalidateAll(),
-		onError: (err: Error) => toast.error(err.message),
+		onError: (err: Error) => toast.danger(err.message),
 	});
 
 	const unassignMutation = useMutation({
 		...tagModel.unassignMutationOptions(wid),
 		onSuccess: () => invalidateAll(),
-		onError: (err: Error) => toast.error(err.message),
+		onError: (err: Error) => toast.danger(err.message),
 	});
 
 	const assign = useCallback(

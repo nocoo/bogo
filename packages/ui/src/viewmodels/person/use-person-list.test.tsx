@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { usePersonList } from "./use-person-list.js";
 
-vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), danger: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -274,7 +274,7 @@ describe("usePersonList", () => {
 			await waitFor(() =>
 				expect(result.current.vm.persons.find((p) => p.id === "p-alice")?.name).toBe("Alice"),
 			);
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("DB error"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("DB error"));
 		});
 	});
 
@@ -327,7 +327,7 @@ describe("usePersonList", () => {
 			await waitFor(() =>
 				expect(result.current.vm.persons.find((p) => p.id === "p-root")?.managerId).toBeNull(),
 			);
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Would create cycle"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Would create cycle"));
 		});
 	});
 

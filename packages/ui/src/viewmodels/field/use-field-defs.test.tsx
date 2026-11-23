@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { useFieldDefs } from "./use-field-defs.js";
 
-vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), danger: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -172,7 +172,7 @@ describe("useFieldDefs", () => {
 
 			act(() => result.current.vm.create({ name: "", fieldType: "text", required: false }));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Name required"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Name required"));
 		});
 	});
 
@@ -209,7 +209,7 @@ describe("useFieldDefs", () => {
 
 			act(() => result.current.vm.update("fd-1", { name: "" }));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalled());
+			await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 			expect(result.current.vm.defs[0].name).toBe("Department");
 		});
 
@@ -262,7 +262,7 @@ describe("useFieldDefs", () => {
 
 			act(() => result.current.vm.remove("fd-1"));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Field has values"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Field has values"));
 			expect(result.current.vm.defs).toHaveLength(1);
 		});
 
@@ -280,7 +280,7 @@ describe("useFieldDefs", () => {
 
 			act(() => result.current.vm.remove("fd-1"));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Field not found"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Field not found"));
 			expect(result.current.vm.defs).toHaveLength(1);
 		});
 
@@ -333,7 +333,7 @@ describe("useFieldDefs", () => {
 
 			act(() => result.current.vm.reorder("fd-1", 99));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("swap failed"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("swap failed"));
 			await waitFor(() =>
 				expect(result.current.vm.defs.find((d) => d.id === "fd-1")?.sortOrder).toBe(0),
 			);

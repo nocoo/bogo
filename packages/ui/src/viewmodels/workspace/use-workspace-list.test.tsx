@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { useWorkspaceList } from "./use-workspace-list.js";
 
-vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), danger: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -142,7 +142,7 @@ describe("useWorkspaceList", () => {
 			mockFetch.mockResolvedValue(err(400, "VALIDATION", "Name required"));
 			act(() => result.current.create(""));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalled());
+			await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 		});
 	});
 
@@ -171,7 +171,7 @@ describe("useWorkspaceList", () => {
 				.mockResolvedValueOnce(ok([WS1]));
 			act(() => result.current.rename("ws-1", "Bad"));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalled());
+			await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 			await waitFor(() =>
 				expect(result.current.workspaces.find((w) => w.id === "ws-1")?.name).toBe("Corp"),
 			);
@@ -212,7 +212,7 @@ describe("useWorkspaceList", () => {
 				.mockResolvedValueOnce(ok([WS1, WS2]));
 			act(() => result.current.vm.rename("ws-1", "Bad"));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalled());
+			await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 			await waitFor(() => expect(result.current.ctx.workspace?.name).toBe("Corp"));
 		});
 	});
@@ -254,7 +254,7 @@ describe("useWorkspaceList", () => {
 				.mockResolvedValueOnce(ok([WS1, WS2]));
 			act(() => result.current.remove("ws-1"));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalled());
+			await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 			await waitFor(() => expect(result.current.workspaces).toHaveLength(2));
 		});
 
@@ -271,7 +271,7 @@ describe("useWorkspaceList", () => {
 				.mockResolvedValueOnce(ok([WS1, WS2]));
 			act(() => result.current.remove("ws-1"));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalled());
+			await waitFor(() => expect(toast.danger).toHaveBeenCalled());
 			await waitFor(() => expect(result.current.selectedId).toBe("ws-1"));
 		});
 	});

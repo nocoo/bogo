@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { WorkspaceList } from "./WorkspaceList.js";
 
-vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), danger: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -247,6 +247,6 @@ describe("WorkspaceList", () => {
 		const deleteBtn = screen.getByLabelText("Delete Corp");
 		fireEvent.click(deleteBtn);
 
-		await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Not allowed"));
+		await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Not allowed"));
 	});
 });

@@ -36,7 +36,7 @@ export function useFieldDefs(): FieldDefsVM {
 			]);
 			toast.success("Field created");
 		},
-		onError: (err: Error) => toast.error(err.message),
+		onError: (err: Error) => toast.danger(err.message),
 	});
 
 	const updateMutation = useMutation({
@@ -56,7 +56,7 @@ export function useFieldDefs(): FieldDefsVM {
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(fieldKeys.defs(wid), context?.previous);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: fieldKeys.defs(wid) });
@@ -78,7 +78,7 @@ export function useFieldDefs(): FieldDefsVM {
 		},
 		onError: (err: Error, _id, context) => {
 			queryClient.setQueryData(fieldKeys.defs(wid), context?.previous);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: fieldKeys.defs(wid) });

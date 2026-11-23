@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceContext, WorkspaceProvider } from "../../contexts/workspace-context.js";
 import { useFieldValues, validateFieldValue } from "./use-field-values.js";
 
-vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@nocoo/basalt/components/toast", () => ({ toast: { success: vi.fn(), danger: vi.fn() } }));
 
 const mockFetch = vi.fn();
 
@@ -264,7 +264,7 @@ describe("useFieldValues", () => {
 
 			act(() => result.current.vm.setValue("fd-1", "bad"));
 
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Invalid value"));
+			await waitFor(() => expect(toast.danger).toHaveBeenCalledWith("Invalid value"));
 			expect(result.current.vm.values[0].value).toBe("Engineering");
 		});
 

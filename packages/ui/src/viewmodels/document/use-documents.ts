@@ -38,7 +38,7 @@ export function useDocuments(tagIds?: string[]): DocumentsVM {
 			]);
 			toast.success("Document created");
 		},
-		onError: (err: Error) => toast.error(err.message),
+		onError: (err: Error) => toast.danger(err.message),
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: documentKeys.all(wid) });
 		},
@@ -62,7 +62,7 @@ export function useDocuments(tagIds?: string[]): DocumentsVM {
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(documentKeys.all(wid), context?.previous);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: documentKeys.all(wid) });
@@ -84,7 +84,7 @@ export function useDocuments(tagIds?: string[]): DocumentsVM {
 		},
 		onError: (err: Error, _id, context) => {
 			queryClient.setQueryData(documentKeys.all(wid), context?.previous);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: documentKeys.all(wid) });

@@ -37,7 +37,7 @@ export function useTags(scope: TagScope): TagsVM {
 			invalidate();
 			toast.success("Tag created");
 		},
-		onError: (err: Error) => toast.error(err.message),
+		onError: (err: Error) => toast.danger(err.message),
 	});
 
 	const updateMutation = useMutation({
@@ -60,7 +60,7 @@ export function useTags(scope: TagScope): TagsVM {
 		},
 		onError: (err: Error, _vars, context) => {
 			queryClient.setQueryData(tagKeys.withCounts(wid, scope), context?.previous);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => invalidate(),
 	});
@@ -79,7 +79,7 @@ export function useTags(scope: TagScope): TagsVM {
 		onSuccess: () => toast.success("Tag deleted"),
 		onError: (err: Error, _id, context) => {
 			queryClient.setQueryData(tagKeys.withCounts(wid, scope), context?.previous);
-			toast.error(err.message);
+			toast.danger(err.message);
 		},
 		onSettled: () => invalidate(),
 	});
