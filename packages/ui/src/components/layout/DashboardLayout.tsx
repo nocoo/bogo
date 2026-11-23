@@ -1,4 +1,12 @@
-import { ContentIsland, SidebarDrawer } from "@nocoo/basalt";
+import {
+	ContentIsland,
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+	SidebarProvider,
+} from "@nocoo/basalt";
 import { AppHeader, AppHeaderMenuButton, ProjectLinks } from "@nocoo/basalt/components/app-header";
 import { AppMain, AppShell, AppSkipLink } from "@nocoo/basalt/components/app-shell";
 import { ThemeToggle } from "@nocoo/basalt/components/theme-toggle";
@@ -51,21 +59,34 @@ function DashboardLayoutInner() {
 			)}
 
 			{isMobile && (
-				<SidebarDrawer
-					id={drawerId}
-					open={mobileOpen}
-					onOpenChange={setMobileOpen}
-					returnFocusRef={menuButton}
-					title="Navigation"
-					description="Browse Bogo dashboard pages"
-				>
-					<Sidebar
-						ariaLabel="Navigation"
-						variant="mobile"
-						onNavigate={() => setMobileOpen(false)}
-						onDismiss={() => setMobileOpen(false)}
-					/>
-				</SidebarDrawer>
+				<Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+					<SheetContent
+						id={drawerId}
+						data-slot="sidebar-drawer"
+						side="left"
+						showCloseButton={false}
+						className="basalt-sidebar-drawer max-h-dvh w-[var(--basalt-size-sidebar-width)] max-w-[var(--basalt-size-sidebar-width)] border-r-0 bg-basalt-background p-0 sm:p-0"
+						onCloseAutoFocus={(event) => {
+							if (menuButton.current) {
+								event.preventDefault();
+								menuButton.current.focus();
+							}
+						}}
+					>
+						<SheetHeader className="sr-only">
+							<SheetTitle>Navigation</SheetTitle>
+							<SheetDescription>Browse Bogo dashboard pages</SheetDescription>
+						</SheetHeader>
+						<SidebarProvider collapsed={false}>
+							<Sidebar
+								ariaLabel="Navigation"
+								variant="mobile"
+								onNavigate={() => setMobileOpen(false)}
+								onDismiss={() => setMobileOpen(false)}
+							/>
+						</SidebarProvider>
+					</SheetContent>
+				</Sheet>
 			)}
 
 			<AppMain>
