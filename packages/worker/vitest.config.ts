@@ -2,6 +2,8 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
 	test: {
+		allowOnly: false,
+		passWithNoTests: false,
 		globals: true,
 		include: ["src/**/*.test.ts", "test/e2e/helpers/**/*.test.ts", "test/seeds/**/*.test.ts"],
 		coverage: {
@@ -18,7 +20,7 @@ export default defineConfig({
 			],
 			thresholds: {
 				lines: 95,
-				branches: 90,
+				branches: 95,
 				functions: 95,
 				statements: 95,
 			},

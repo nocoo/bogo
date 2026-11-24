@@ -3,7 +3,7 @@
 # Usage: check-coverage.sh [branch-threshold] [line-threshold]
 set -euo pipefail
 
-BRANCH_THRESH=${1:-90}
+BRANCH_THRESH=${1:-95}
 LINE_THRESH=${2:-95}
 
 echo "Running coverage checks (branches≥$BRANCH_THRESH%, lines≥$LINE_THRESH%)..."
