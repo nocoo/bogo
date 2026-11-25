@@ -39,7 +39,7 @@ bun run gate:security                     # G2 osv-scanner + gitleaks
 
 ## Quality & Local Gates
 
-Follows `system1-quality`; CI slot definitions and pinned `base-ci` revision live in `.github/workflows/quality-slots.yml` (called by `.github/workflows/ci.yml`; `quality / Z1: Gate` required on `main`, including `coverage-gates` and `cli-e2e`). Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
+Follows `system1-quality`; CI slot definitions and pinned `base-ci` revision live in `.github/workflows/quality-slots.yml` (called by `.github/workflows/ci.yml`; `quality / Z1: Gate` required on `main`, including `L1: Unit (Coverage Gates)` and `L4: E2E (CLI)`). Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
 
 - **Exceptions / gaps**: `L2 Runtime` is `N/A` (verified via `L3` integration API suite); `P1 Package` is `N/A` (Worker deploys to Cloudflare, not npm).
 - **Coverage / hook gaps**: `shared`, `worker`, and `ui` all enforce 95% × 4 metrics (`ui` excludes View/context `.tsx` shells covered by L4 E2E) with Vitest `allowOnly`/`passWithNoTests` guards enforced; `pre-push` stdin ref checks are `planned`.

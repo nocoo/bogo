@@ -159,7 +159,7 @@ jobs:
       - run: echo "N/A - deployed as Cloudflare Worker, not an npm package"
 
   coverage-gates:
-    name: "Coverage Gates (routes / pages / clip.yaml)"
+    name: "L1: Unit (Coverage Gates)"
     runs-on: ubuntu-latest
     outputs:
       tested-sha: ${{ github.sha }}
@@ -190,7 +190,7 @@ jobs:
         run: bun run gate:clip-yaml
 
   cli-e2e:
-    name: "CLI E2E (clip-generated bogo CLI)"
+    name: "L4: E2E (CLI)"
     runs-on: ubuntu-latest
     outputs:
       tested-sha: ${{ github.sha }}
