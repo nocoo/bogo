@@ -87,20 +87,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: nocoo/base-ci/.github/actions/setup-js@dc858360aa7812db61fd9d825943e4efd4dcd0e7 # v2026.17
-        with:
-          package-manager: bun
-          runtime-version: ${{ env.BUN_VERSION }}
-          install-policy: trusted
-      - run: bun turbo build --filter=@bogo/shared && bun run test:unit:coverage
-
-  coverage-gates:
-    name: "L1: Unit (Coverage Gates)"
-    runs-on: ubuntu-latest
-    outputs:
-      tested-sha: ${{ github.sha }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: bogo
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -113,6 +99,9 @@ jobs:
           runtime-version: ${{ env.BUN_VERSION }}
           install-policy: trusted
           working-directory: bogo
+      - name: Unit tests and coverage
+        working-directory: bogo
+        run: bun run test:unit:coverage
       - name: Route coverage gate
         working-directory: bogo
         run: bun run gate:routes
@@ -219,7 +208,6 @@ jobs:
       - l3-integration
       - l4-e2e
       - p1-package
-      - coverage-gates
       - cli-e2e
     outputs:
       tested-sha: ${{ github.sha }}
@@ -237,7 +225,6 @@ jobs:
           echo "l3-integration: ${{ needs.l3-integration.result }}"
           echo "l4-e2e: ${{ needs.l4-e2e.result }}"
           echo "p1-package: ${{ needs.p1-package.result }}"
-          echo "coverage-gates: ${{ needs.coverage-gates.result }}"
           echo "cli-e2e: ${{ needs.cli-e2e.result }}"
           for r in \
             "${{ needs.s1-types.result }}" \
@@ -249,7 +236,6 @@ jobs:
             "${{ needs.l1-unit.result }}" \
             "${{ needs.l3-integration.result }}" \
             "${{ needs.l4-e2e.result }}" \
-            "${{ needs.coverage-gates.result }}" \
             "${{ needs.cli-e2e.result }}"; do
             if [ "$r" != "success" ]; then
               echo "Required slot failed or was skipped: $r"

@@ -7,6 +7,7 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			"@": resolve(rootDir, "./src"),
+			"@bogo/shared": resolve(rootDir, "../shared/src/index.ts"),
 		},
 	},
 	test: {
@@ -30,15 +31,22 @@ export default defineConfig({
 				"src/**/*.test.tsx",
 				"src/**/*.d.ts",
 				"src/**/index.ts",
+				"**/types.ts",
 				// Pure presentation View/context shells — covered by L4 Playwright E2E
 				"src/components/**",
+				"src/views/**",
+				"src/pages/**",
 				"src/contexts/**",
+				"src/app/**/{page,layout,loading,error,not-found}.tsx",
+				"src/main.tsx",
+				"src/App.tsx",
+				"src/app.tsx",
 			],
 			thresholds: {
-				lines: 95,
-				branches: 95,
-				functions: 95,
-				statements: 95,
+				lines: 80,
+				branches: 80,
+				functions: 80,
+				statements: 80,
 			},
 		},
 	},

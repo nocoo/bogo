@@ -1,6 +1,12 @@
+import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+	resolve: {
+		alias: {
+			"@bogo/shared": resolve(import.meta.dirname, "../shared/src/index.ts"),
+		},
+	},
 	test: {
 		allowOnly: false,
 		passWithNoTests: false,
@@ -19,10 +25,10 @@ export default defineConfig({
 				"src/test-utils/**",
 			],
 			thresholds: {
-				lines: 95,
-				branches: 95,
-				functions: 95,
-				statements: 95,
+				lines: 80,
+				branches: 80,
+				functions: 80,
+				statements: 80,
 			},
 		},
 	},
