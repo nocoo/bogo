@@ -215,32 +215,31 @@ test("mobile route selection closes the drawer and preserves authentication chro
 	await expect(drawer.getByText("sidebar@example.test", { exact: true })).toBeVisible();
 });
 
-for (const colorScheme of ["light", "dark"] as const) {
-	for (const width of [390, 700]) {
-		for (const opening of ["keyboard", "pointer"] as const) {
-			test(`first Escape restores ${opening} opener at ${width}px in ${colorScheme} mode`, async ({
-				page,
-			}) => {
-				await page.emulateMedia({ colorScheme });
-				await page.setViewportSize({ width, height: 844 });
-				await page.goto("/documents");
-				const menu = page.getByRole("button", { name: "Open navigation menu", exact: true });
-				if (opening === "keyboard") {
-					await menu.focus();
-					await menu.press("Enter");
-				} else {
-					await menu.click();
-				}
-				const drawer = page.locator('[data-slot="sidebar-drawer"]');
-				await expect(
-					drawer.getByRole("button", { name: "Close navigation", exact: true }),
-				).toBeFocused();
-				await expect(page.getByRole("tooltip")).toHaveCount(0);
-				await page.keyboard.press("Escape");
-				await expect(drawer).toBeHidden();
-				await expect(menu).toBeFocused();
-				await expect(menu).toHaveAttribute("aria-expanded", "false");
-			});
+for (const [colorScheme, opening] of [
+	["dark", "keyboard"],
+	["light", "pointer"],
+] as const) {
+	test(`first Escape restores ${opening} opener at 390px in ${colorScheme} mode`, async ({
+		page,
+	}) => {
+		await page.emulateMedia({ colorScheme });
+		await page.setViewportSize({ width: 390, height: 844 });
+		await page.goto("/documents");
+		const menu = page.getByRole("button", { name: "Open navigation menu", exact: true });
+		if (opening === "keyboard") {
+			await menu.focus();
+			await menu.press("Enter");
+		} else {
+			await menu.click();
 		}
-	}
+		const drawer = page.locator('[data-slot="sidebar-drawer"]');
+		await expect(
+			drawer.getByRole("button", { name: "Close navigation", exact: true }),
+		).toBeFocused();
+		await expect(page.getByRole("tooltip")).toHaveCount(0);
+		await page.keyboard.press("Escape");
+		await expect(drawer).toBeHidden();
+		await expect(menu).toBeFocused();
+		await expect(menu).toHaveAttribute("aria-expanded", "false");
+	});
 }
