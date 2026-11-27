@@ -34,12 +34,12 @@ bun run gate:security                     # G2 osv-scanner + gitleaks
 - Local seeds and E2E must never use `--remote` or prod data; no remote `-test` Worker/D1 is needed. Worker API E2E refuses inherited `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, or `CF_API_TOKEN`.
 - Keep viewmodels free of View/DOM imports and routes thin; route/page maps are structural evidence, not complete behavior proof.
 - UI uses `@nocoo/basalt@^3.5.1` in `packages/ui/package.json`; follow `system1-design-basalt` and [sidebar acceptance](docs/verification/basalt-3.3.4.md).
-- Worker CD belongs to `.github/workflows/release.yml`; never run `bun run deploy` concurrently. Authorized releases bump version, review changelog, push commit, verify CI, then push the matching tag.
+- Worker CD belongs to `.github/workflows/pipeline.yml` (`deploy` job, `D1`–`D5` via `deploy-worker.yml`, gated on `quality / Z1: Gate` on `main` push or `workflow_dispatch` with `deploy=true`); it reuses the `B1` `b1-worker-bundle` artifact without rebuilding, applies remote D1 migrations, deploys the Worker, and verifies `/api/live`. Never run `bun run deploy` concurrently. Authorized releases bump version, review changelog, and push to `main`.
 - `@nocoo/bogo` npm publication is separate from Worker CD (so npm may lag git). Verify live results on `bogo.hexly.ai` and `api.bogo.hexly.ai`; publication steps live in [CLI design](docs/features/02-cli.md).
 
 ## Quality & Local Gates
 
-Follows `system1-quality`; CI slot definitions and pinned `base-ci` revision live in `.github/workflows/quality-slots.yml` (called by `.github/workflows/ci.yml`; `quality / Z1: Gate` required on `main`, including `L4: E2E (CLI)`). Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
+Follows `system1-quality`; CI slot definitions and pinned `base-ci` revision live in `.github/workflows/quality-slots.yml` (called by `.github/workflows/pipeline.yml`; `quality / Z1: Gate` required on `main`, including `L4: E2E (CLI)`). Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
 
 - **Exceptions / gaps**: `L2 Runtime` is `N/A` (verified via `L3` integration API suite); `P1 Package` is `N/A` (Worker deploys to Cloudflare, not npm). `L3`, `L4`, and `L4: E2E (CLI)` reuse the `B1` build artifact (`packages/shared/dist` and `packages/worker/static`).
 - **Coverage / hook gaps**: `shared`, `worker`, and `ui` all enforce 80% × 4 metrics (`ui` excludes View/context `.tsx` shells covered by L4 E2E) with Vitest `allowOnly`/`passWithNoTests` guards enforced; `pre-push` stdin ref checks are `planned`.
