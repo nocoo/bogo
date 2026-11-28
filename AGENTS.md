@@ -42,7 +42,7 @@ bun run gate:security                     # G2 osv-scanner + gitleaks
 Follows `system1-quality`; CI slot definitions and pinned `base-ci` revision live in `.github/workflows/quality-slots.yml` (called by `.github/workflows/pipeline.yml`; `quality / Z1: Gate` required on `main`, including `L4: E2E (CLI)`). Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
 
 - **Exceptions / gaps**: `L2 Runtime` is `N/A` (verified via `L3` integration API suite); `P1 Package` is `N/A` (Worker deploys to Cloudflare, not npm). `L3`, `L4`, and `L4: E2E (CLI)` reuse the `B1` build artifact (`packages/shared/dist` and `packages/worker/static`).
-- **Coverage / hook gaps**: `shared`, `worker`, and `ui` all enforce 80% × 4 metrics (`ui` excludes View/context `.tsx` shells covered by L4 E2E) with Vitest `allowOnly`/`passWithNoTests` guards enforced; `pre-push` stdin ref checks are `planned`.
+- **Coverage / hook gaps**: `shared`, `worker`, and `ui` all enforce 90% statements/lines/functions and 85% branches (`ui` excludes View/context `.tsx` shells covered by L4 E2E) with Vitest `allowOnly`/`passWithNoTests` guards enforced; `pre-push` stdin ref checks are `planned`.
 - **Local hooks**: `bun install` restores `.husky/` (`prepare`); hooks are check-only—never use `--no-verify`. Keep rejection probes when editing hooks.
 - **`pre-commit`**: runs on staged Git index snapshot (`G1` staged `gitleaks`, `shared` build, `S1`, `S2`, `gate:routes`, `gate:pages`, `L1` `scripts/check-coverage.sh`; `<30s` warm).
 - **`pre-push`**: runs `L3` Worker API E2E, `G2` `gate:security`, and `gate:clip-yaml` in parallel, then `test:cli-e2e` (`<3min`). CI sets `BOGO_REQUIRE_CLI_E2E=1`; `BOGO_SKIP_CLI_E2E` must not bypass verification.
